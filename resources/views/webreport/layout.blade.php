@@ -569,6 +569,13 @@
                 </svg>
                 Daftar Harga
             </a>
+            <a href="{{ route('webreport.api-docs') }}" 
+               class="nav-link {{ ($active_tab ?? '') === 'api-docs' ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Format Transaksi
+            </a>
             <a href="{{ route('webreport.settings') }}" 
                class="nav-link {{ ($active_tab ?? '') === 'settings' ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">

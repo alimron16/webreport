@@ -36,7 +36,7 @@ class AdminController extends Controller
     public function login(Request $request)
     {
         $throttleKey = 'admin_login_' . $request->ip();
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
             return back()->with('error', "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik.");
         }

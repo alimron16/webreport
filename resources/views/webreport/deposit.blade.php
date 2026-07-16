@@ -470,7 +470,7 @@
                                 <th class="text-right">Saldo Akhir</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="mutasi-tbody">
                             @forelse($mutasi as $m)
                                 <tr>
                                     <td>{{ \Carbon\Carbon::parse($m['tanggal'])->format('d/m/Y H:i') }}</td>
@@ -494,6 +494,58 @@
                         </tbody>
                     </table>
                 </div>
+                
+                @if(count($mutasi) > 0)
+                <div class="pagination-wrapper" style="padding: 16px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 0 0 10px 10px;">
+                    <span id="page-info" style="font-size: 13px; color: var(--color-text-3);"></span>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-prev" class="btn" style="background: #f8fafc; border: 1px solid var(--color-border); color: var(--color-text-2); padding: 6px 12px;">Sebelumnnya</button>
+                        <button id="btn-next" class="btn" style="background: #f8fafc; border: 1px solid var(--color-border); color: var(--color-text-2); padding: 6px 12px;">Selanjutnya</button>
+                    </div>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const tbody = document.getElementById('mutasi-tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+                        const btnPrev = document.getElementById('btn-prev');
+                        const btnNext = document.getElementById('btn-next');
+                        const pageInfo = document.getElementById('page-info');
+                        
+                        let currentPage = 1;
+                        const rowsPerPage = 10;
+                        const totalPages = Math.ceil(rows.length / rowsPerPage);
+                        
+                        function renderTable() {
+                            const start = (currentPage - 1) * rowsPerPage;
+                            const end = start + rowsPerPage;
+                            
+                            rows.forEach((row, index) => {
+                                row.style.display = (index >= start && index < end) ? '' : 'none';
+                            });
+                            
+                            pageInfo.textContent = `Menampilkan ${start + 1} - ${Math.min(end, rows.length)} dari ${rows.length} Mutasi`;
+                            
+                            btnPrev.disabled = currentPage === 1;
+                            btnPrev.style.opacity = currentPage === 1 ? '0.5' : '1';
+                            btnPrev.style.cursor = currentPage === 1 ? 'not-allowed' : 'pointer';
+                            
+                            btnNext.disabled = currentPage === totalPages;
+                            btnNext.style.opacity = currentPage === totalPages ? '0.5' : '1';
+                            btnNext.style.cursor = currentPage === totalPages ? 'not-allowed' : 'pointer';
+                        }
+                        
+                        btnPrev.addEventListener('click', () => {
+                            if (currentPage > 1) { currentPage--; renderTable(); }
+                        });
+                        
+                        btnNext.addEventListener('click', () => {
+                            if (currentPage < totalPages) { currentPage++; renderTable(); }
+                        });
+                        
+                        if(rows.length > 0) renderTable();
+                    });
+                </script>
+                @endif
             </div>
         </div>
 

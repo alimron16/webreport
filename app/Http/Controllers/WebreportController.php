@@ -58,9 +58,9 @@ class WebreportController extends Controller
      */
     public function login(Request $request)
     {
-        // Rate Limiter Check (5 attempts per 5 minutes per IP)
+        // Rate Limiter Check (3 attempts per 5 minutes per IP)
         $throttleKey = 'webreport_login_' . $request->ip();
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
             return back()->with('error', "Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik.")->withInput();
         }
@@ -717,5 +717,16 @@ class WebreportController extends Controller
         }
 
         return back()->withInput()->with('error', $res['desc'] ?? 'Gagal memperbarui pengaturan keamanan.');
+    }
+    public function apiDocs(Request $request)
+    {
+        if ($redirect = $this->checkAuth()) {
+            return $redirect;
+        }
+        $activeCode = $this->getActiveReseller();
+        return view('webreport.api-docs', [
+            'active_tab' => 'api-docs',
+            'active_reseller_code' => $activeCode
+        ]);
     }
 }

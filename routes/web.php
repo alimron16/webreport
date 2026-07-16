@@ -27,6 +27,7 @@ Route::post('/pending/upload',           [WebreportController::class, 'uploadDoc
 Route::get('/prices',                    [WebreportController::class, 'prices'])->name('webreport.prices');
 Route::post('/quick-action',             [WebreportController::class, 'quickAction'])->name('webreport.quick-action');
 Route::get('/logo',                      [WebreportController::class, 'getLogo'])->name('webreport.logo');
+Route::get('/api-docs',                  [WebreportController::class, 'apiDocs'])->name('webreport.api-docs');
 Route::get('/settings',                  [WebreportController::class, 'settings'])->name('webreport.settings');
 Route::post('/settings/send-otp',        [WebreportController::class, 'sendSettingsOtp'])->name('webreport.settings.send-otp');
 Route::post('/settings/update',          [WebreportController::class, 'updateSettings'])->name('webreport.settings.update');
