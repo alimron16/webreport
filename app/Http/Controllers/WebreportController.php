@@ -308,11 +308,17 @@ class WebreportController extends Controller
         $refId = $request->input('ref_id', '');
         $status = $request->input('status', '');
 
+        // Jika request untuk ekspor excel, ambil seluruh data (limit diset besar)
+        $queryLimit = $limit;
+        if ($request->input('export') === 'excel') {
+            $queryLimit = 999999;
+        }
+
         $trxResult = $this->otomaXService->call('GetTrxHistory', [
             'kode_reseller' => $activeCode,
             'tgl_awal' => $startDate,
             'tgl_akhir' => $endDate,
-            'limit' => $limit,
+            'limit' => $queryLimit,
             'tujuan' => $tujuan,
             'produk' => $produk,
             'ref_id' => $refId,
