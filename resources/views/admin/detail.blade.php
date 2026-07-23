@@ -192,6 +192,18 @@
                     <td class="val" style="font-family: monospace; font-size:14px; font-weight:700;">{{ $reg->pin }}</td>
                 </tr>
                 <tr>
+                    <td class="label">Jenis PKS</td>
+                    <td class="val" style="font-weight: 700;">
+                        @if($reg->jenis_pks === 'perorangan')
+                            Perorangan (Pribadi)
+                        @elseif($reg->jenis_pks === 'badan_usaha')
+                            Badan Usaha / Badan Hukum
+                        @else
+                            -
+                        @endif
+                    </td>
+                </tr>
+                <tr>
                     <td class="label">Nama Berkas Fisik</td>
                     <td class="val" style="color: var(--color-purple); font-size: 12.5px;">{{ $reg->berkas_nama ?? '-' }}</td>
                 </tr>

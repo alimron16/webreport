@@ -476,78 +476,148 @@
     </div>
 </div>
 
-
-{{-- ═══════════════════════════════════════════════
-     TAB 2: PKS
-     ═══════════════════════════════════════════════ --}}
 <div id="tab-pks" class="stg-tab-pane">
     <div class="stg-grid">
 
-        {{-- Form --}}
-        <div class="stg-card">
-            <div class="stg-card-hdr">
-                <div class="stg-card-title">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Template PKS / Perjanjian Kerja Sama
-                </div>
-            </div>
-            <div class="card-body" style="padding: 20px;">
-                @if(session('pks_success'))
-                <div class="stg-alert success">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>{{ session('pks_success') }}</span>
-                </div>
-                @endif
+        {{-- Wrapper to stack both upload forms in the main column --}}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
 
-                {{-- Active Doc --}}
-                @php $pksName = \Illuminate\Support\Facades\Cache::get('pks_template_name'); @endphp
-                @if($pksName)
-                    <div style="margin-bottom: 16px;">
-                        <div class="stg-label">Dokumen Aktif</div>
-                        <div class="doc-row">
-                            <div class="doc-icon">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="doc-name">{{ $pksName }}</div>
-                                <div class="doc-sub">Dapat diunduh oleh calon reseller</div>
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <div class="stg-alert warning" style="margin-bottom: 20px;">
+            {{-- Form Perorangan --}}
+            <div class="stg-card">
+                <div class="stg-card-hdr">
+                    <div class="stg-card-title">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
-                        <span>Belum ada template PKS. Unggah dokumen agar calon reseller dapat mengunduhnya saat pendaftaran.</span>
+                        Template PKS Perorangan (Pribadi)
                     </div>
-                @endif
+                </div>
+                <div class="card-body" style="padding: 20px;">
+                    @if(session('pks_success') && strpos(session('pks_success'), 'Perorangan') !== false)
+                    <div class="stg-alert success">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ session('pks_success') }}</span>
+                    </div>
+                    @endif
 
-                {{-- Upload Form --}}
-                <div class="stg-label">Unggah Dokumen Baru</div>
-                <form action="{{ route('admin.pks.upload') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="stg-field">
-                        <div class="stg-field-lbl">
-                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                            File Dokumen
-                            <span style="font-weight:400; color:var(--color-text-4); font-size:11.5px;">(PDF / DOC / DOCX, maks. 5MB)</span>
+                    {{-- Active Doc Perorangan --}}
+                    @php $pksNamePerorangan = \Illuminate\Support\Facades\Cache::get('pks_template_name_perorangan'); @endphp
+                    @if($pksNamePerorangan)
+                        <div style="margin-bottom: 16px;">
+                            <div class="stg-label">Dokumen Aktif (Perorangan)</div>
+                            <div class="doc-row">
+                                <div class="doc-icon">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="doc-name">{{ $pksNamePerorangan }}</div>
+                                    <div class="doc-sub">Dapat diunduh oleh calon reseller perorangan</div>
+                                </div>
+                            </div>
                         </div>
-                        <input type="file" name="pks_file" class="form-control" accept=".pdf,.doc,.docx" required>
-                    </div>
-                    <div style="margin-top: 16px;">
-                        <button type="submit" class="btn btn-primary"
-                            style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                            Unggah Template PKS
-                        </button>
-                    </div>
-                </form>
+                    @else
+                        <div class="stg-alert warning" style="margin-bottom: 20px;">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span>Belum ada template PKS Perorangan. Unggah dokumen agar calon reseller perorangan dapat mengunduhnya.</span>
+                        </div>
+                    @endif
+
+                    {{-- Upload Form Perorangan --}}
+                    <div class="stg-label">Unggah Dokumen Baru (Perorangan)</div>
+                    <form action="{{ route('admin.pks.upload') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="pks_type" value="perorangan">
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                File Dokumen
+                                <span style="font-weight:400; color:var(--color-text-4); font-size:11.5px;">(PDF / DOC / DOCX / ZIP, maks. 5MB)</span>
+                            </div>
+                            <input type="file" name="pks_file" class="form-control" accept=".pdf,.doc,.docx,.zip" required>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button type="submit" class="btn btn-primary"
+                                style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                Unggah Template PKS Perorangan
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            {{-- Form Badan Usaha --}}
+            <div class="stg-card">
+                <div class="stg-card-hdr">
+                    <div class="stg-card-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        Template PKS Badan Usaha / Badan Hukum
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 20px;">
+                    @if(session('pks_success') && strpos(session('pks_success'), 'Badan Usaha') !== false)
+                    <div class="stg-alert success">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ session('pks_success') }}</span>
+                    </div>
+                    @endif
+
+                    {{-- Active Doc Badan Usaha --}}
+                    @php $pksNameBadanUsaha = \Illuminate\Support\Facades\Cache::get('pks_template_name_badan_usaha'); @endphp
+                    @if($pksNameBadanUsaha)
+                        <div style="margin-bottom: 16px;">
+                            <div class="stg-label">Dokumen Aktif (Badan Usaha)</div>
+                            <div class="doc-row">
+                                <div class="doc-icon">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="doc-name">{{ $pksNameBadanUsaha }}</div>
+                                    <div class="doc-sub">Dapat diunduh oleh calon reseller badan usaha (PT/CV)</div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="stg-alert warning" style="margin-bottom: 20px;">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span>Belum ada template PKS Badan Usaha. Unggah dokumen agar calon reseller badan usaha dapat mengunduhnya.</span>
+                        </div>
+                    @endif
+
+                    {{-- Upload Form Badan Usaha --}}
+                    <div class="stg-label">Unggah Dokumen Baru (Badan Usaha)</div>
+                    <form action="{{ route('admin.pks.upload') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="pks_type" value="badan_usaha">
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                File Dokumen
+                                <span style="font-weight:400; color:var(--color-text-4); font-size:11.5px;">(PDF / DOC / DOCX / ZIP, maks. 5MB)</span>
+                            </div>
+                            <input type="file" name="pks_file" class="form-control" accept=".pdf,.doc,.docx,.zip" required>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button type="submit" class="btn btn-primary"
+                                style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                Unggah Template PKS Badan Usaha
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
         </div>
 
         {{-- Info --}}

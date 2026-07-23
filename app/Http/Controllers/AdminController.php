@@ -284,21 +284,26 @@ class AdminController extends Controller
         if ($r = $this->guardAdmin()) return $r;
 
         $request->validate([
+            'pks_type' => 'required|in:perorangan,badan_usaha',
             'pks_file' => 'required|file|mimes:pdf,doc,docx,zip|max:5120',
         ], [
+            'pks_type.required' => 'Tipe PKS wajib ditentukan.',
+            'pks_type.in'       => 'Tipe PKS tidak valid.',
             'pks_file.required' => 'File PKS wajib dipilih.',
             'pks_file.mimes'    => 'File PKS harus berformat PDF, DOC, DOCX, atau ZIP.',
             'pks_file.max'      => 'Ukuran file PKS maksimal 5MB.',
         ]);
 
         $file = $request->file('pks_file');
-        $fileName = 'pks_agreement.' . $file->getClientOriginalExtension();
+        $type = $request->input('pks_type');
+        $fileName = 'pks_agreement_' . $type . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('pks', $fileName, 'local');
 
-        \Illuminate\Support\Facades\Cache::forever('pks_template_path', $path);
-        \Illuminate\Support\Facades\Cache::forever('pks_template_name', $file->getClientOriginalName());
+        \Illuminate\Support\Facades\Cache::forever('pks_template_path_' . $type, $path);
+        \Illuminate\Support\Facades\Cache::forever('pks_template_name_' . $type, $file->getClientOriginalName());
 
-        return back()->with('pks_success', 'File PKS / Perjanjian Kerja Sama berhasil diperbarui.');
+        $typeLabel = $type === 'badan_usaha' ? 'Badan Usaha / Badan Hukum' : 'Perorangan (Pribadi)';
+        return back()->with('pks_success', 'File PKS ' . $typeLabel . ' berhasil diperbarui.');
     }
 
     // ── Update Portal Branding ─────────────────────────
@@ -336,6 +341,12 @@ class AdminController extends Controller
     public function settingsView()
     {
         if ($r = $this->guardAdmin()) return $r;
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        } catch (\Exception $e) {
+            \Log::error("Failed to run automatic migration in settingsView: " . $e->getMessage());
+        }
 
         $mailConfig = [
             'from_address' => Cache::get('mail_from_address', env('MAIL_FROM_ADDRESS', '')),

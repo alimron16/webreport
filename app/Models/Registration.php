@@ -23,6 +23,7 @@ class Registration extends Model
         'url_report',
         'berkas_path',
         'berkas_nama',
+        'jenis_pks',
         'foto_ktp_path',
         'foto_npwp_path',
         'status',

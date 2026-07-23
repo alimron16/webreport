@@ -480,26 +480,43 @@ class OtomaXService
                     if (!empty($url_report))  $insertData['url_report']  = $url_report;
 
                     try {
+                        \Illuminate\Support\Facades\Log::info("OtomaXService [InsertResellerFull]: Memulai pendaftaran reseller baru di database OtomaX.", [
+                            'kode' => $kode,
+                            'nama' => $name,
+                            'nama_pemilik' => $nama_pemilik,
+                            'nomor_hp' => $pengirim,
+                            'email' => $email
+                        ]);
                         $db->table('reseller')->insert($insertData);
+                        \Illuminate\Support\Facades\Log::info("OtomaXService [InsertResellerFull]: Full insert berhasil untuk kode reseller '{$kode}'.");
                     } catch (\Exception $e) {
-                        // Retry with only core fields if schema differs
-                        $fallbackKeys = ['kode', 'nama', 'pin', 'aktif', 'saldo', 'poin', 'komisi', 'tgl_daftar', 'kode_level', 'nomor_hp'];
-                        $fallbackData = array_intersect_key($insertData, array_flip($fallbackKeys));
-                        $db->table('reseller')->insert($fallbackData);
+                        \Illuminate\Support\Facades\Log::warning("OtomaXService [InsertResellerFull]: Full insert gagal untuk kode reseller '{$kode}'. Pesan error: " . $e->getMessage() . ". Mencoba fallback insert dengan kolom utama...");
+                        
+                        try {
+                            $fallbackKeys = ['kode', 'nama', 'pin', 'aktif', 'saldo', 'poin', 'komisi', 'tgl_daftar', 'kode_level', 'nomor_hp'];
+                            $fallbackData = array_intersect_key($insertData, array_flip($fallbackKeys));
+                            $db->table('reseller')->insert($fallbackData);
+                            \Illuminate\Support\Facades\Log::info("OtomaXService [InsertResellerFull]: Fallback insert berhasil untuk kode reseller '{$kode}'.");
+                        } catch (\Exception $fallbackEx) {
+                            \Illuminate\Support\Facades\Log::error("OtomaXService [InsertResellerFull]: Fallback insert gagal total untuk reseller '{$kode}'. Pesan error: " . $fallbackEx->getMessage());
+                            throw $fallbackEx;
+                        }
                     }
 
                     // Insert Sender/Pengirim details in the separate pengirim table
                     try {
                         // Insert WhatsApp number (tipe 'W' / WhatsApp)
                         if (!empty($pengirim)) {
+                            \Illuminate\Support\Facades\Log::info("OtomaXService [InsertResellerFull]: Mendaftarkan nomor WhatsApp '{$pengirim}' untuk reseller '{$kode}' ke tabel pengirim...");
                             $db->table('pengirim')->insert([
                                 'pengirim'      => $pengirim,
-                                'tipe'          => 'W',
+                                'tipe_pengirim' => 'W',
                                 'kode_reseller' => $kode
                             ]);
+                            \Illuminate\Support\Facades\Log::info("OtomaXService [InsertResellerFull]: WhatsApp '{$pengirim}' berhasil didaftarkan ke tabel pengirim.");
                         }
                     } catch (\Exception $e) {
-                        // Silently ignore or fallback if pengirim table has different columns
+                        \Illuminate\Support\Facades\Log::warning("OtomaXService [InsertResellerFull]: Gagal mendaftarkan pengirim '{$pengirim}' untuk reseller '{$kode}'. Pesan error: " . $e->getMessage());
                     }
 
                     return [

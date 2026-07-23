@@ -115,10 +115,21 @@ class RegistrationController extends Controller
         ]);
     }
 
-    public function downloadTemplate()
+    public function downloadTemplate(Request $request)
     {
-        $path = \Illuminate\Support\Facades\Cache::get('pks_template_path');
-        $name = \Illuminate\Support\Facades\Cache::get('pks_template_name');
+        $type = $request->query('type', 'perorangan');
+        if (!in_array($type, ['perorangan', 'badan_usaha'])) {
+            $type = 'perorangan';
+        }
+
+        $path = \Illuminate\Support\Facades\Cache::get('pks_template_path_' . $type);
+        $name = \Illuminate\Support\Facades\Cache::get('pks_template_name_' . $type);
+
+        // Fallback to legacy single PKS key if type-specific cache is empty
+        if (!$path) {
+            $path = \Illuminate\Support\Facades\Cache::get('pks_template_path');
+            $name = \Illuminate\Support\Facades\Cache::get('pks_template_name');
+        }
 
         if ($path && Storage::disk('local')->exists($path)) {
             return Storage::disk('local')->download($path, $name);

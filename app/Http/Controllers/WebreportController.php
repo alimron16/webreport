@@ -167,18 +167,24 @@ class WebreportController extends Controller
         }
 
         $request->validate([
+            'jenis_pks' => 'required|in:perorangan,badan_usaha',
             'foto_ktp'  => 'required|file|mimes:jpg,jpeg,png|max:3072',
-            'berkas'    => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:3072',
+            'berkas'    => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:3072',
             'foto_npwp' => 'nullable|file|mimes:jpg,jpeg,png|max:3072',
         ], [
+            'jenis_pks.required' => 'Jenis PKS wajib dipilih.',
+            'jenis_pks.in'       => 'Jenis PKS tidak valid.',
             'foto_ktp.required' => 'Foto KTP wajib diunggah.',
             'foto_ktp.mimes'    => 'Foto KTP harus berformat JPG atau PNG.',
             'foto_ktp.max'      => 'Ukuran Foto KTP maksimal 3MB.',
+            'berkas.required'   => 'Berkas PKS wajib diunggah.',
             'berkas.mimes'      => 'Berkas PKS harus berformat PDF, JPG, PNG, atau DOC/DOCX.',
             'berkas.max'        => 'Ukuran berkas PKS maksimal 3MB.',
             'foto_npwp.mimes'   => 'Foto NPWP harus berformat JPG atau PNG.',
             'foto_npwp.max'     => 'Ukuran Foto NPWP maksimal 3MB.',
         ]);
+
+        $reg->jenis_pks = $request->input('jenis_pks');
 
         $safeName = str_replace(' ', '_', $reg->nama);
 

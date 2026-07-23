@@ -129,6 +129,14 @@
             <form action="{{ route('webreport.pending.upload') }}" method="POST" enctype="multipart/form-data" style="text-align: left;">
                 @csrf
                 <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Jenis Pendaftaran / PKS <span style="color:#dc2626;">*</span></label>
+                    <select name="jenis_pks" id="jenis_pks_selector" required style="width:100%; border:1px solid var(--color-border); padding:8px; border-radius:6px; font-size:13px; background:#fff; height: 38px;">
+                        <option value="perorangan" {{ old('jenis_pks') == 'perorangan' ? 'selected' : '' }}>Perorangan (Pribadi)</option>
+                        <option value="badan_usaha" {{ old('jenis_pks') == 'badan_usaha' ? 'selected' : '' }}>Badan Usaha / Badan Hukum (seperti PT atau CV)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 15px;">
                     <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Foto KTP Pemilik <span style="color:#dc2626;">*</span></label>
                     <input type="file" name="foto_ktp" accept=".jpg,.jpeg,.png" required style="width:100%; border:1px solid var(--color-border); padding:8px; border-radius:6px; font-size:13px;">
                 </div>
@@ -136,7 +144,7 @@
                 <div style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border: 1px solid var(--color-border); border-radius: 8px;">
                     <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Perjanjian Kerja Sama (PKS) <span style="color:#dc2626;">*</span></div>
                     <p style="font-size: 11px; color: var(--color-text-3); margin-bottom: 8px;">Anda bisa mengunduh template, menandatanganinya, dan mengunggahnya kembali.</p>
-                    <a href="{{ route('webreport.register.template') }}" style="display:inline-block; font-size:12px; color:#2563eb; text-decoration:none; margin-bottom: 8px;">Unduh Template PKS</a>
+                    <a id="pks_download_link" href="{{ route('webreport.register.template', ['type' => 'perorangan']) }}" style="display:inline-block; font-size:12px; color:#2563eb; text-decoration:none; margin-bottom: 8px; font-weight: 600;">Unduh Template PKS</a>
                     <input type="file" name="berkas" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required style="width:100%; border:1px solid var(--color-border); padding:8px; border-radius:6px; font-size:13px; background: #fff;">
                 </div>
 
@@ -149,6 +157,17 @@
                     Unggah Dokumen
                 </button>
             </form>
+
+            <script>
+                document.getElementById('jenis_pks_selector').addEventListener('change', function() {
+                    var type = this.value;
+                    var link = document.getElementById('pks_download_link');
+                    var baseUrl = "{{ route('webreport.register.template') }}";
+                    link.href = baseUrl + "?type=" + type;
+                });
+                // Trigger change on load to ensure correct state if old input exists
+                document.getElementById('jenis_pks_selector').dispatchEvent(new Event('change'));
+            </script>
 
         @else
             <div class="pending-icon">
