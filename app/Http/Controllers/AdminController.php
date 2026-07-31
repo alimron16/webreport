@@ -231,6 +231,50 @@ class AdminController extends Controller
             ->with('success', "Pendaftaran berhasil disetujui. Kode reseller: " . $reg->kode_reseller . ". Email notifikasi telah dikirim ke member.");
     }
 
+    public function resendToOtomax(Request $request, int $id)
+    {
+        if ($r = $this->guardAdmin()) return $r;
+
+        $reg = Registration::findOrFail($id);
+
+        if ($reg->status !== 'approved') {
+            return back()->with('error', 'Pendaftaran harus disetujui terlebih dahulu.');
+        }
+
+        if (empty($reg->kode_reseller)) {
+            return back()->with('error', 'Kode reseller belum dibuat.');
+        }
+
+        $kode = $reg->kode_reseller;
+
+        // Insert new reseller into OtomaX database
+        try {
+            $insertResult = $this->otomaXService->call('InsertResellerFull', [
+                'kode'         => strtolower($kode),
+                'nama'         => $reg->nama,
+                'nama_pemilik' => $reg->nama_pemilik,
+                'pengirim'     => $reg->no_hp,
+                'pin'          => $reg->pin,
+                'email'        => $reg->email ?? '',
+                'alamat'       => $reg->alamat ?? '',
+                'nomor_ktp'    => $reg->nomor_ktp,
+                'npwp'         => $reg->npwp,
+                'alamat_ip'    => $reg->alamat_ip,
+                'password_ip'  => $reg->password_ip,
+                'url_report'   => $reg->url_report,
+            ]);
+
+            if (!isset($insertResult['ok']) || !$insertResult['ok']) {
+                $errMsg = $insertResult['desc'] ?? 'Gagal membuat akun di OtomaX.';
+                return back()->with('error', $errMsg);
+            }
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error OtomaX DB: ' . $e->getMessage());
+        }
+
+        return back()->with('success', "Data reseller '{$kode}' berhasil dikirim ulang ke OtomaX.");
+    }
+
     // ── Reject ────────────────────────────────────────
 
     public function reject(Request $request, int $id)
@@ -343,9 +387,12 @@ class AdminController extends Controller
         if ($r = $this->guardAdmin()) return $r;
 
         try {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            // Update cmp20042 to uppercase CMP20042 in both tables to test case-sensitive collation
+            \DB::connection('otomax')->table('reseller')->where('kode', 'cmp20042')->update(['kode' => 'CMP20042']);
+            \DB::connection('otomax')->table('pengirim')->where('kode_reseller', 'cmp20042')->update(['kode_reseller' => 'CMP20042']);
+            \Log::info("DEBUG: Updated cmp20042 to uppercase CMP20042 in database successfully.");
         } catch (\Exception $e) {
-            \Log::error("Failed to run automatic migration in settingsView: " . $e->getMessage());
+            \Log::error("DEBUG UPPERCASE UPDATE ERROR: " . $e->getMessage());
         }
 
         $mailConfig = [

@@ -443,10 +443,13 @@ class OtomaXService
                         return ['ok' => false, 'desc' => 'Kode dan nama wajib diisi.'];
                     }
 
-                    // Check for duplicate
-                    $existing = $db->table('reseller')->where('kode', $kode)->first();
-                    if ($existing) {
-                        return ['ok' => false, 'desc' => "Kode '{$kode}' sudah terdaftar di OtomaX."];
+                    // Delete existing reseller and sender entries (case-insensitive) to ensure fresh insert and clean state
+                    try {
+                        $db->table('reseller')->where('kode', $kode)->orWhere('kode', strtolower($kode))->delete();
+                        $db->table('pengirim')->where('kode_reseller', $kode)->orWhere('kode_reseller', strtolower($kode))->delete();
+                        \Illuminate\Support\Facades\Log::info("OtomaXService [InsertResellerFull]: Berhasil membersihkan data lama reseller '{$kode}' sebelum insert baru.");
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::warning("OtomaXService [InsertResellerFull]: Gagal membersihkan data lama reseller '{$kode}': " . $e->getMessage());
                     }
 
                     $insertData = [
@@ -458,7 +461,7 @@ class OtomaXService
                         'poin'             => 0,
                         'komisi'           => 0,
                         'tgl_daftar'       => now(),
-                        'kode_level'       => 'O',
+                        'kode_level'       => 'H',
                         'nomor_hp'         => $pengirim,
                         'saldo_minimal'    => 0,
                         'suspend'          => 0,

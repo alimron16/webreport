@@ -326,12 +326,24 @@
             </div>
         @else
             <!-- Handled State -->
-            <div class="action-card" style="text-align:center; padding: 24px 16px;">
-                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--color-text-3); margin-bottom:8px;">
+            <div class="action-card" style="text-align:center; padding: 24px 16px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--color-text-3); margin-bottom:4px;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
                 <div style="font-weight:700; font-size:13.5px; color:var(--color-text);">Pendaftaran Sudah Diproses</div>
-                <p style="font-size:12px; color:var(--color-text-3); margin-top:4px;">Berkas ini telah ditinjau dan berstatus <strong>{{ $reg->statusLabel() }}</strong>.</p>
+                <p style="font-size:12px; color:var(--color-text-3); margin-top:4px; margin-bottom: 8px;">Berkas ini telah ditinjau dan berstatus <strong>{{ $reg->statusLabel() }}</strong>.</p>
+                
+                @if($reg->status === 'approved')
+                    <form action="{{ route('admin.registrations.resend-otomax', $reg->id) }}" method="POST" style="width: 100%;">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary btn-block" style="padding: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang data reseller ini ke OtomaX?')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Kirim Ulang ke OtomaX
+                        </button>
+                    </form>
+                @endif
             </div>
         @endif
     </div>

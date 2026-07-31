@@ -42,6 +42,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/registrations/{id}',                  [AdminController::class, 'detail'])->name('registrations.detail');
     Route::get('/registrations/{id}/berkas',           [AdminController::class, 'downloadBerkas'])->name('registrations.berkas');
     Route::post('/registrations/{id}/approve',         [AdminController::class, 'approve'])->name('registrations.approve');
+    Route::post('/registrations/{id}/resend-otomax',    [AdminController::class, 'resendToOtomax'])->name('registrations.resend-otomax');
     Route::post('/registrations/{id}/reject',          [AdminController::class, 'reject'])->name('registrations.reject');
     Route::post('/pks/upload',                         [AdminController::class, 'uploadPks'])->name('pks.upload');
     Route::post('/branding/update',                    [AdminController::class, 'updateBranding'])->name('branding.update');
