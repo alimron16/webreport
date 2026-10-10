@@ -170,12 +170,41 @@ class AdminController extends Controller
 
         $tgl_awal = $request->input('tgl_awal', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $tgl_akhir = $request->input('tgl_akhir', Carbon::now()->format('Y-m-d'));
-        $kode_reseller = trim($request->input('kode_reseller', ''));
-        $profit_filter = $request->input('profit_filter', 'all');
-        $search = trim($request->input('search', ''));
+        $rawMember = trim($request->input('kode_reseller', ''));
+        $kode_reseller = $rawMember;
+
+        // Jika format berasal dari autocomplete "KODE - NAMA"
+        if (str_contains($rawMember, ' - ')) {
+            $kode_reseller = trim(explode(' - ', $rawMember, 2)[0]);
+        }
 
         $resellersRes = $this->otomaXService->call('GetAllResellers');
         $allResellers = ($resellersRes['ok'] ?? false) ? ($resellersRes['result'] ?? []) : [];
+
+        // Cocokkan jika user mengetik nama lengkap reseller
+        if (!empty($kode_reseller) && !empty($allResellers)) {
+            $matched = null;
+            foreach ($allResellers as $r) {
+                if (strcasecmp($r['kode'] ?? '', $kode_reseller) === 0) {
+                    $matched = $r['kode'];
+                    break;
+                }
+            }
+            if (!$matched) {
+                foreach ($allResellers as $r) {
+                    if (strcasecmp($r['nama'] ?? '', $kode_reseller) === 0) {
+                        $matched = $r['kode'];
+                        break;
+                    }
+                }
+            }
+            if ($matched) {
+                $kode_reseller = $matched;
+            }
+        }
+
+        $profit_filter = $request->input('profit_filter', 'all');
+        $search = trim($request->input('search', ''));
 
         $profitRes = $this->otomaXService->call('GetAdminResellerProfit', [
             'tgl_awal' => $tgl_awal,
@@ -232,7 +261,37 @@ class AdminController extends Controller
 
         $tgl_awal = $request->input('tgl_awal', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $tgl_akhir = $request->input('tgl_akhir', Carbon::now()->format('Y-m-d'));
-        $kode_reseller = trim($request->input('kode_reseller', ''));
+        $rawMember = trim($request->input('kode_reseller', ''));
+        $kode_reseller = $rawMember;
+
+        if (str_contains($rawMember, ' - ')) {
+            $kode_reseller = trim(explode(' - ', $rawMember, 2)[0]);
+        }
+
+        $resellersRes = $this->otomaXService->call('GetAllResellers');
+        $allResellers = ($resellersRes['ok'] ?? false) ? ($resellersRes['result'] ?? []) : [];
+
+        if (!empty($kode_reseller) && !empty($allResellers)) {
+            $matched = null;
+            foreach ($allResellers as $r) {
+                if (strcasecmp($r['kode'] ?? '', $kode_reseller) === 0) {
+                    $matched = $r['kode'];
+                    break;
+                }
+            }
+            if (!$matched) {
+                foreach ($allResellers as $r) {
+                    if (strcasecmp($r['nama'] ?? '', $kode_reseller) === 0) {
+                        $matched = $r['kode'];
+                        break;
+                    }
+                }
+            }
+            if ($matched) {
+                $kode_reseller = $matched;
+            }
+        }
+
         $profit_filter = $request->input('profit_filter', 'all');
         $search = trim($request->input('search', ''));
 

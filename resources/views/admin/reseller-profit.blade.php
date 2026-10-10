@@ -36,20 +36,52 @@
                     <input type="date" name="tgl_akhir" id="tgl_akhir" class="form-control form-control-sm" value="{{ $tgl_akhir }}">
                 </div>
 
-                <!-- Filter Per Member -->
-                <div class="col-12 col-md-3 col-lg-3">
-                    <label class="form-label small fw-semibold text-muted mb-1">
-                        <i class="bx bx-user me-1"></i>Filter Per Member
+                <!-- Filter Per Member (Input Text + Autocomplete Datalist) -->
+                <div class="col-12 col-md-4 col-lg-3">
+                    <label class="form-label small fw-semibold text-muted mb-1 d-flex justify-content-between align-items-center">
+                        <span><i class="bx bx-user me-1"></i>Filter Per Member</span>
+                        @if(!empty($kode_reseller))
+                            <a href="javascript:void(0)" onclick="clearMemberFilter()" class="text-danger text-decoration-none fw-normal" style="font-size: 0.72rem;">
+                                <i class="bx bx-x me-1"></i>Reset
+                            </a>
+                        @endif
                     </label>
-                    <select name="kode_reseller" id="kode_reseller" class="form-select form-select-sm">
-                        <option value="">-- Semua Member / Agen --</option>
+                    <div class="input-group input-group-sm">
+                        <input type="text" 
+                               name="kode_reseller" 
+                               id="kode_reseller" 
+                               list="resellerOptions" 
+                               class="form-control form-control-sm" 
+                               placeholder="Ketik Kode / Nama Member..." 
+                               value="{{ $kode_reseller }}" 
+                               autocomplete="off">
+                        @if(!empty($kode_reseller))
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearMemberFilter()" title="Hapus Filter Member">
+                                <i class="bx bx-x"></i>
+                            </button>
+                        @endif
+                    </div>
+                    <datalist id="resellerOptions">
                         @foreach($allResellers as $r)
                             @php $rKode = $r['kode'] ?? ''; $rNama = $r['nama'] ?? ''; @endphp
-                            <option value="{{ $rKode }}" {{ $kode_reseller === $rKode ? 'selected' : '' }}>
-                                {{ $rKode }} - {{ $rNama }}
-                            </option>
+                            <option value="{{ $rKode }}">{{ $rKode }} - {{ $rNama }}</option>
                         @endforeach
-                    </select>
+                    </datalist>
+                    @if(!empty($kode_reseller))
+                        @php
+                            $selectedReseller = collect($allResellers)->first(function($item) use ($kode_reseller) {
+                                return strcasecmp($item['kode'] ?? '', $kode_reseller) === 0 
+                                    || strcasecmp($item['nama'] ?? '', $kode_reseller) === 0
+                                    || str_contains(strtolower($item['kode'] ?? ''), strtolower($kode_reseller))
+                                    || str_contains(strtolower($item['nama'] ?? ''), strtolower($kode_reseller));
+                            });
+                        @endphp
+                        @if($selectedReseller)
+                            <div class="form-text small text-primary mt-1 text-truncate" style="font-size: 0.72rem;">
+                                <i class="bx bx-check-circle me-1"></i><strong>{{ $selectedReseller['kode'] }}</strong>: {{ $selectedReseller['nama'] }}
+                            </div>
+                        @endif
+                    @endif
                 </div>
 
                 <!-- Filter Status Profit -->
@@ -65,7 +97,7 @@
                 </div>
 
                 <!-- Cari Nama / Kode -->
-                <div class="col-6 col-md-4 col-lg-2">
+                <div class="col-6 col-md-3 col-lg-2">
                     <label class="form-label small fw-semibold text-muted mb-1">
                         <i class="bx bx-search me-1"></i>Cari Keyword
                     </label>
@@ -73,7 +105,7 @@
                 </div>
 
                 <!-- Tombol Submit & Reset -->
-                <div class="col-12 col-md-4 col-lg-1 d-flex gap-1">
+                <div class="col-12 col-md-2 col-lg-1 d-flex gap-1">
                     <button type="submit" class="btn btn-primary btn-sm w-100" title="Terapkan Filter">
                         <i class="bx bx-filter"></i>
                     </button>
@@ -510,5 +542,22 @@ function showResellerDetail(kode, nama) {
             modal.hide();
         });
 }
+
+function clearMemberFilter() {
+    const el = document.getElementById('kode_reseller');
+    if (el) el.value = '';
+    document.getElementById('filterForm').submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const memberInput = document.getElementById('kode_reseller');
+    if (memberInput) {
+        memberInput.addEventListener('change', function() {
+            if (this.value.trim() !== '') {
+                document.getElementById('filterForm').submit();
+            }
+        });
+    }
+});
 </script>
 @endsection

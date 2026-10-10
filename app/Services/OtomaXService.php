@@ -821,7 +821,12 @@ class OtomaXService
                         ->where('transaksi.tgl_entri', '<=', $tgl_akhir . ' 23:59:59');
 
                     if (!empty($kode_reseller)) {
-                        $query->where('reseller.kode', $kode_reseller);
+                        $query->where(function($q) use ($kode_reseller) {
+                            $q->where('reseller.kode', $kode_reseller)
+                              ->orWhere('reseller.nama', $kode_reseller)
+                              ->orWhere('reseller.kode', 'like', "%{$kode_reseller}%")
+                              ->orWhere('reseller.nama', 'like', "%{$kode_reseller}%");
+                        });
                     }
 
                     if (!empty($search)) {
@@ -1671,7 +1676,11 @@ class OtomaXService
                 $grouped = [];
                 // Initialize all or matched resellers
                 foreach ($resellers as $k => $r) {
-                    if (!empty($filterRs) && $k !== $filterRs) continue;
+                    if (!empty($filterRs)) {
+                        $matchCode = (strcasecmp($k, $filterRs) === 0 || str_contains(strtolower($k), strtolower($filterRs)));
+                        $matchName = (strcasecmp($r['nama'] ?? '', $filterRs) === 0 || str_contains(strtolower($r['nama'] ?? ''), strtolower($filterRs)));
+                        if (!$matchCode && !$matchName) continue;
+                    }
                     if (!empty($search) && !str_contains(strtolower($k), $search) && !str_contains(strtolower($r['nama'] ?? ''), $search)) continue;
 
                     $grouped[$k] = [
