@@ -503,7 +503,13 @@ class AdminController extends Controller
     {
         if ($r = $this->guardAdmin()) return $r;
 
-
+        $otomaxDbConfig = [
+            'host'         => \App\Models\Setting::get('otomax_db_host', '127.0.0.1'),
+            'port'         => \App\Models\Setting::get('otomax_db_port', 1433),
+            'database'     => \App\Models\Setting::get('otomax_db_database', 'otomax'),
+            'username'     => \App\Models\Setting::get('otomax_db_username', 'sa'),
+            'has_password' => !empty(\App\Models\Setting::get('otomax_db_password', '')),
+        ];
 
         $mailConfig = [
             'from_address' => Cache::get('mail_from_address', env('MAIL_FROM_ADDRESS', '')),
