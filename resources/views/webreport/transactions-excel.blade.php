@@ -47,38 +47,38 @@
         <thead>
             <tr>
                 <th>Trx ID</th>
-                <th>Tgl Status</th>
                 <th>Tgl Entri</th>
+                <th>Tgl Status</th>
                 <th>Produk</th>
                 <th>No. Tujuan</th>
                 <th>Status</th>
                 <th>SN</th>
-                <th>Nama Reseller</th>
-                <th>Kode Reseller</th>
                 <th>Harga</th>
                 <th>Saldo Awal</th>
                 <th>Saldo Akhir</th>
                 <th>Ref ID</th>
                 <th>Keterangan</th>
+                <th>Kode Reseller</th>
+                <th>Nama Reseller</th>
             </tr>
         </thead>
         <tbody>
             @foreach($transactions as $trx)
                 <tr>
                     <td>{{ $trx['trxid'] }}</td>
-                    <td style="mso-number-format:'\@';">{{ !empty($trx['tgl_status']) ? \Carbon\Carbon::parse($trx['tgl_status'])->format('d/m/Y H:i:s') : '-' }}</td>
                     <td style="mso-number-format:'\@';">{{ !empty($trx['tgl_entri']) ? \Carbon\Carbon::parse($trx['tgl_entri'])->format('d/m/Y H:i:s') : '-' }}</td>
+                    <td style="mso-number-format:'\@';">{{ !empty($trx['tgl_status']) ? \Carbon\Carbon::parse($trx['tgl_status'])->format('d/m/Y H:i:s') : '-' }}</td>
                     <td>{{ $trx['kode_produk'] ?? '-' }}</td>
                     <td>'{{ $trx['tujuan'] ?? '-' }}</td>
                     <td>{{ $trx['status'] ?? '-' }}</td>
                     <td>'{{ $trx['sn'] ?? '-' }}</td>
-                    <td>{{ $reseller_name ?? '-' }}</td>
-                    <td>{{ $trx['kode_reseller'] ?? $active_reseller_code ?? '-' }}</td>
                     <td>{{ (int)($trx['harga'] ?? 0) }}</td>
                     <td>{{ (int)($trx['saldo_awal'] ?? 0) }}</td>
                     <td>{{ (int)($trx['saldo_akhir'] ?? 0) }}</td>
                     <td>{{ $trx['ref_id'] ?? '-' }}</td>
                     <td>{{ $trx['keterangan'] ?? '-' }}</td>
+                    <td>{{ $trx['kode_reseller'] ?? $active_reseller_code ?? '-' }}</td>
+                    <td>{{ $reseller_name ?? '-' }}</td>
                 </tr>
             @endforeach
         </tbody>

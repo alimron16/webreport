@@ -2,28 +2,32 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebreportController;
-use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\RegistrationController;
 
-// ── Member / Reseller Portal ─────────────────────────────────
+// ── Public Landing Page ──────────────────────────────────────
+Route::get('/',                    [WebreportController::class, 'landing'])->name('webreport.landing');
+
+// ── Public Pages & Registration ──────────────────────────────
+Route::get('/daftar-harga',        [WebreportController::class, 'publicPrices'])->name('webreport.public-prices');
+Route::get('/harga/{token}',       [WebreportController::class, 'publicPricesToken'])->name('webreport.public-prices-token');
+Route::get('/register',            [RegistrationController::class, 'show'])->name('webreport.register');
+Route::post('/register',           [RegistrationController::class, 'store'])->name('webreport.register.post');
+Route::post('/register/send-otp',  [RegistrationController::class, 'sendOtp'])->name('webreport.register.send-otp');
+Route::get('/register/template',   [RegistrationController::class, 'downloadTemplate'])->name('webreport.register.template');
+
+// ── Member / Reseller Portal Auth ────────────────────────────
 Route::get('/login',  [WebreportController::class, 'loginView'])->name('webreport.login');
 Route::post('/login', [WebreportController::class, 'login'])->name('webreport.login.post');
 Route::post('/logout',[WebreportController::class, 'logout'])->name('webreport.logout');
 
-// Registration
-Route::get('/register',           [RegistrationController::class, 'show'])->name('webreport.register');
-Route::post('/register',          [RegistrationController::class, 'store'])->name('webreport.register.post');
-Route::post('/register/send-otp',  [RegistrationController::class, 'sendOtp'])->name('webreport.register.send-otp');
-Route::get('/register/template',  [RegistrationController::class, 'downloadTemplate'])->name('webreport.register.template');
-
-// Authenticated member pages
-Route::get('/',                          [WebreportController::class, 'dashboard'])->name('webreport.dashboard');
+// ── Authenticated Member Pages ───────────────────────────────
+Route::get('/dashboard',                  [WebreportController::class, 'dashboard'])->name('webreport.dashboard');
 Route::get('/transactions',              [WebreportController::class, 'transactions'])->name('webreport.transactions');
 Route::get('/transactions/{trxid}',      [WebreportController::class, 'transactionDetail'])->name('webreport.transactions.detail');
 Route::get('/deposit',                   [WebreportController::class, 'deposit'])->name('webreport.deposit');
 Route::post('/deposit/request',          [WebreportController::class, 'requestDeposit'])->name('webreport.deposit.request');
 Route::post('/deposit/cancel',           [WebreportController::class, 'cancelDeposit'])->name('webreport.deposit.cancel');
-Route::post('/pending/upload',           [WebreportController::class, 'uploadDocuments'])->name('webreport.pending.upload');
 Route::get('/prices',                    [WebreportController::class, 'prices'])->name('webreport.prices');
 Route::post('/quick-action',             [WebreportController::class, 'quickAction'])->name('webreport.quick-action');
 Route::get('/logo',                      [WebreportController::class, 'getLogo'])->name('webreport.logo');
@@ -39,12 +43,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/logout',[AdminController::class, 'logout'])->name('logout');
 
     Route::get('/',                                    [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/registrations/{id}',                  [AdminController::class, 'detail'])->name('registrations.detail');
-    Route::get('/registrations/{id}/berkas',           [AdminController::class, 'downloadBerkas'])->name('registrations.berkas');
-    Route::post('/registrations/{id}/approve',         [AdminController::class, 'approve'])->name('registrations.approve');
-    Route::post('/registrations/{id}/resend-otomax',    [AdminController::class, 'resendToOtomax'])->name('registrations.resend-otomax');
-    Route::post('/registrations/{id}/reject',          [AdminController::class, 'reject'])->name('registrations.reject');
-    Route::post('/pks/upload',                         [AdminController::class, 'uploadPks'])->name('pks.upload');
+    Route::get('/dashboard',                           [AdminController::class, 'dashboard'])->name('dashboard.main');
+    Route::get('/reseller-profit',                     [AdminController::class, 'resellerProfitView'])->name('reseller-profit');
+    Route::get('/reseller-profit/export',              [AdminController::class, 'resellerProfitExport'])->name('reseller-profit.export');
+    Route::get('/reseller-profit/detail/{kode}',       [AdminController::class, 'resellerProfitDetailAjax'])->name('reseller-profit.detail');
+    Route::get('/price-links',                         [AdminController::class, 'priceLinksView'])->name('price-links');
+    Route::post('/price-links/create',                 [AdminController::class, 'createPriceLink'])->name('price-links.create');
+    Route::post('/price-links/delete/{id}',            [AdminController::class, 'deletePriceLink'])->name('price-links.delete');
+
     Route::post('/branding/update',                    [AdminController::class, 'updateBranding'])->name('branding.update');
     Route::post('/logs/clear',                         [AdminController::class, 'clearSystemLogs'])->name('logs.clear');
     Route::get('/settings',                            [AdminController::class, 'settingsView'])->name('settings');
@@ -52,5 +58,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/settings/mail/test',                 [AdminController::class, 'testMailSettings'])->name('settings.mail.test');
     Route::post('/settings/bank',                      [AdminController::class, 'updateBankSettings'])->name('settings.bank');
     Route::post('/settings/otomax',                    [AdminController::class, 'updateOtomaxSettings'])->name('settings.otomax');
+    Route::post('/settings/otomax/test',               [AdminController::class, 'testOtomaxConnection'])->name('settings.otomax.test');
     Route::post('/settings/security',                  [AdminController::class, 'updateSecuritySettings'])->name('settings.security');
+    Route::post('/settings/apicenter',                 [AdminController::class, 'updateApiCenterSettings'])->name('settings.apicenter');
+    Route::post('/settings/account',                    [AdminController::class, 'updateAccountSettings'])->name('settings.account');
 });

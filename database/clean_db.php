@@ -1,0 +1,2 @@
+<?php
+// Maintenance script completed.

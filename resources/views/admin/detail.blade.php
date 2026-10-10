@@ -1,346 +1,232 @@
 @extends('admin.layout')
 
-@section('title', 'Tinjau Registrasi')
-@section('page-header', 'Detail Registrasi')
-
-@section('extra-styles')
-<style>
-    .detail-grid {
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: 20px;
-        align-items: start;
-    }
-
-    @media (max-width: 900px) {
-        .detail-grid { grid-template-columns: 1fr; }
-    }
-
-    .info-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1.5rem;
-    }
-
-    .info-table tr { border-bottom: 1px solid var(--color-border); }
-    .info-table tr:last-child { border-bottom: none; }
-
-    .info-table td {
-        padding: 12px 0;
-        font-size: 13.5px;
-        color: var(--color-text-2);
-    }
-
-    .info-table td.label {
-        font-weight: 600;
-        color: var(--color-text-3);
-        width: 35%;
-    }
-
-    .info-table td.val {
-        font-weight: 500;
-        text-align: right;
-    }
-
-    .action-card {
-        background: var(--color-white);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius);
-        padding: 20px;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 16px;
-    }
-
-    .action-title {
-        font-family: 'Outfit', sans-serif;
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--color-text);
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .action-group {
-        margin-bottom: 12px;
-    }
-
-    .btn-block {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        margin-top: 10px;
-    }
-
-    .text-area-reason {
-        min-height: 80px;
-        resize: vertical;
-        font-size: 13px;
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-
-    .modal-content {
-        background: #fff;
-        border-radius: var(--radius);
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        overflow: hidden;
-    }
-
-    .modal-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--color-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #f9fafb;
-    }
-
-    .modal-close {
-        background: none;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        color: var(--color-text-3);
-    }
-
-    .modal-close:hover {
-        color: var(--color-text);
-    }
-</style>
-@endsection
+@section('title', 'Tinjau Registrasi - ' . $reg->nama)
+@section('page-header', 'Detail Registrasi Reseller')
 
 @section('content')
 
-<div style="margin-bottom: 15px;">
-    <a href="{{ route('admin.dashboard', ['status' => $reg->status]) }}" class="btn btn-secondary btn-sm">
-        ← Kembali ke Daftar
+<div class="mb-4">
+    <a href="{{ route('admin.dashboard', ['status' => $reg->status]) }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
     </a>
 </div>
 
-<div class="detail-grid">
+<div class="row g-4">
     
-    <!-- Left Column: Details -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">
-                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Formulir Pendaftaran Reseller
+    <!-- Kolom Kiri: Formulir Data Registrasi -->
+    <div class="col-12 col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-title mb-0">
+                    <i class="bx bx-id-card text-primary fs-4"></i>
+                    <span>Formulir Pendaftaran Reseller</span>
+                </div>
+                @php
+                    $s = strtolower($reg->status ?? '');
+                    $badgeClass = 'bg-label-warning';
+                    if ($s === 'approved' || $s === 'disetujui') $badgeClass = 'bg-label-success';
+                    elseif ($s === 'rejected' || $s === 'ditolak') $badgeClass = 'bg-label-danger';
+                @endphp
+                <span class="badge {{ $badgeClass }} fs-6">
+                    {{ $reg->statusLabel() }}
+                </span>
             </div>
-            <span class="badge badge-{{ $reg->statusColor() }}">
-                {{ $reg->statusLabel() }}
-            </span>
-        </div>
-        <div class="card-body">
-            <table class="info-table">
-                <tr>
-                    <td class="label">Nama Outlet / Reseller</td>
-                    <td class="val" style="font-weight:700; color:var(--color-text);">{{ $reg->nama }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Nama Pemilik</td>
-                    <td class="val" style="font-weight:600; color:var(--color-text);">{{ $reg->nama_pemilik ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">No. HP / WhatsApp</td>
-                    <td class="val">{{ $reg->no_hp }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Email</td>
-                    <td class="val">{{ $reg->email ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Alamat Lengkap</td>
-                    <td class="val" style="text-align:left; word-break: break-word;">{{ $reg->alamat ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Nomor KTP (NIK)</td>
-                    <td class="val">{{ $reg->nomor_ktp ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Nomor NPWP</td>
-                    <td class="val">{{ $reg->npwp ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Alamat IP</td>
-                    <td class="val">{{ $reg->alamat_ip ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Password IP</td>
-                    <td class="val">{{ $reg->password_ip ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">URL Callback</td>
-                    <td class="val" style="text-align:left; word-break: break-all;">{{ $reg->url_report ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">PIN Pilihan (Login)</td>
-                    <td class="val" style="font-family: monospace; font-size:14px; font-weight:700;">{{ $reg->pin }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Jenis PKS</td>
-                    <td class="val" style="font-weight: 700;">
-                        @if($reg->jenis_pks === 'perorangan')
-                            Perorangan (Pribadi)
-                        @elseif($reg->jenis_pks === 'badan_usaha')
-                            Badan Usaha / Badan Hukum
-                        @else
-                            -
-                        @endif
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label">Nama Berkas Fisik</td>
-                    <td class="val" style="color: var(--color-purple); font-size: 12.5px;">{{ $reg->berkas_nama ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Tanggal Masuk</td>
-                    <td class="val">{{ $reg->created_at->format('d M Y, H:i:s') }}</td>
-                </tr>
-                @if($reg->reviewed_at)
-                    <tr>
-                        <td class="label">Diproses Pada</td>
-                        <td class="val">{{ $reg->reviewed_at->format('d M Y, H:i:s') }} oleh {{ $reg->reviewed_by }}</td>
-                    </tr>
-                @endif
-                @if($reg->kode_reseller)
-                    <tr>
-                        <td class="label">Kode Reseller OtomaX</td>
-                        <td class="val" style="font-size:15px; font-weight:800; color:var(--color-purple);">{{ $reg->kode_reseller }}</td>
-                    </tr>
-                @endif
-                @if($reg->catatan_admin)
-                    <tr>
-                        <td class="label">Catatan Admin</td>
-                        <td class="val" style="text-align:left; background:#f9fafb; padding:10px; border-radius:6px; border:1px solid #e5e7eb;">
-                            {{ $reg->catatan_admin }}
-                        </td>
-                    </tr>
-                @endif
-            </table>
 
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                @if($reg->berkas_path)
-                    <a href="{{ route('admin.registrations.berkas', $reg->id) }}" class="btn btn-secondary" style="width:100%; justify-content: flex-start;">
-                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Unduh Berkas PKS yang Telah Diisi
-                    </a>
-                @endif
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted small fw-semibold" style="width: 35%;">Nama Outlet / Reseller</td>
+                                <td class="fw-bold text-dark fs-6">{{ $reg->nama }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Nama Pemilik</td>
+                                <td class="fw-semibold text-dark">{{ $reg->nama_pemilik ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">No. HP / WhatsApp</td>
+                                <td class="font-monospace fw-semibold">{{ $reg->no_hp }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Email</td>
+                                <td>{{ $reg->email ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Alamat Lengkap</td>
+                                <td class="text-wrap">{{ $reg->alamat ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Nomor KTP (NIK)</td>
+                                <td class="font-monospace">{{ $reg->nomor_ktp ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Nomor NPWP</td>
+                                <td class="font-monospace">{{ $reg->npwp ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Alamat IP Whitelist</td>
+                                <td class="font-monospace">{{ $reg->alamat_ip ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">PIN Pilihan</td>
+                                <td class="font-monospace fw-bold text-primary">{{ $reg->pin }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Jenis PKS</td>
+                                <td>
+                                    @if($reg->jenis_pks === 'badan_usaha')
+                                        <span class="badge bg-label-info">Badan Usaha / Badan Hukum</span>
+                                    @else
+                                        <span class="badge bg-label-primary">Perorangan (Pribadi)</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small fw-semibold">Tanggal Masuk</td>
+                                <td>{{ $reg->created_at->format('d M Y, H:i:s') }}</td>
+                            </tr>
+                            @if($reg->reviewed_at)
+                            <tr>
+                                <td class="text-muted small fw-semibold">Diproses Pada</td>
+                                <td class="text-muted">{{ $reg->reviewed_at->format('d M Y, H:i:s') }} oleh {{ $reg->reviewed_by }}</td>
+                            </tr>
+                            @endif
+                            @if($reg->kode_reseller)
+                            <tr>
+                                <td class="text-muted small fw-semibold">Kode Reseller OtomaX</td>
+                                <td class="fw-bold fs-5 text-primary font-monospace">{{ $reg->kode_reseller }}</td>
+                            </tr>
+                            @endif
+                            @if($reg->catatan_admin)
+                            <tr>
+                                <td class="text-muted small fw-semibold">Catatan Admin</td>
+                                <td>
+                                    <div class="p-2 bg-light rounded border small text-dark">{{ $reg->catatan_admin }}</div>
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
 
-                @if($reg->foto_ktp_path)
-                    <a href="{{ route('admin.registrations.berkas', [$reg->id, 'type' => 'ktp']) }}" class="btn btn-secondary" style="width:100%; justify-content: flex-start;">
-                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Unduh Berkas Foto KTP
-                    </a>
-                @endif
-
-                @if($reg->foto_npwp_path)
-                    <a href="{{ route('admin.registrations.berkas', [$reg->id, 'type' => 'npwp']) }}" class="btn btn-secondary" style="width:100%; justify-content: flex-start;">
-                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Unduh Berkas Foto NPWP
-                    </a>
-                @endif
+                <div class="d-flex flex-column gap-2 mt-3 pt-3 border-top">
+                    @if($reg->berkas_path)
+                        <a href="{{ route('admin.registrations.berkas', $reg->id) }}" class="btn btn-outline-secondary btn-sm justify-content-start">
+                            <i class="bx bx-download me-2"></i> Unduh Berkas PKS yang Telah Diisi
+                        </a>
+                    @endif
+                    @if($reg->foto_ktp_path)
+                        <a href="{{ route('admin.registrations.berkas', [$reg->id, 'type' => 'ktp']) }}" class="btn btn-outline-secondary btn-sm justify-content-start">
+                            <i class="bx bx-image me-2"></i> Unduh Berkas Foto KTP
+                        </a>
+                    @endif
+                    @if($reg->foto_npwp_path)
+                        <a href="{{ route('admin.registrations.berkas', [$reg->id, 'type' => 'npwp']) }}" class="btn btn-outline-secondary btn-sm justify-content-start">
+                            <i class="bx bx-file me-2"></i> Unduh Berkas Foto NPWP
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Right Column: Verification actions -->
-    <div>
+    <!-- Kolom Kanan: Tindakan Verifikasi -->
+    <div class="col-12 col-lg-4">
         @if($reg->isPending())
-            <div class="action-card" style="display: flex; flex-direction: column; gap: 12px; padding: 24px;">
-                <div style="font-weight: 600; font-size: 14px; text-align: center; margin-bottom: 8px;">Tindakan Verifikasi</div>
-                <button type="button" class="btn btn-primary btn-block" onclick="openModal('approveModal')" style="padding: 12px;">
-                    Setujui Pendaftaran
-                </button>
-                <button type="button" class="btn btn-secondary btn-block" onclick="openModal('rejectModal')" style="padding: 12px; color: #dc2626; border-color: #f87171; background: #fef2f2;">
-                    Tolak Pendaftaran
-                </button>
+            <div class="card mb-4">
+                <div class="card-header py-3">
+                    <div class="card-title mb-0" style="font-size: 0.95rem;">
+                        <i class="bx bx-shield-alt text-primary fs-5"></i>
+                        <span>Tindakan Verifikasi</span>
+                    </div>
+                </div>
+                <div class="card-body d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-primary w-100 py-2" data-bs-toggle="modal" data-bs-target="#approveModal">
+                        <i class="bx bx-check-circle me-1"></i> Setujui Pendaftaran
+                    </button>
+                    <button type="button" class="btn btn-outline-danger w-100 py-2" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                        <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
+                    </button>
+                </div>
             </div>
 
             <!-- Modal Approve -->
-            <div id="approveModal" class="modal-overlay" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 style="margin:0; font-size: 16px;">Setujui Pendaftaran</h3>
-                        <button type="button" class="modal-close" onclick="closeModal('approveModal')">&times;</button>
+            <div class="modal fade" id="approveModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 0.75rem;">
+                        <div class="modal-header border-bottom py-3">
+                            <h5 class="modal-title fw-bold text-success">
+                                <i class="bx bx-check-circle me-1"></i> Setujui Pendaftaran
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{{ route('admin.registrations.approve', $reg->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-body p-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="kode_reseller">Kode Reseller Baru</label>
+                                    <input type="text" name="kode_reseller" id="kode_reseller" class="form-control font-monospace fw-bold text-uppercase fs-6" 
+                                           value="{{ $suggestedKode }}" required>
+                                    <small class="text-muted d-block mt-1">Dibuat otomatis: awalan <strong>RS</strong> + 5 digit acak.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="catatan_admin_approve">Catatan Tambahan (Opsional)</label>
+                                    <textarea name="catatan_admin" id="catatan_admin_approve" class="form-control" rows="3" placeholder="Contoh: Selamat bergabung di jaringan reseller kami..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-top py-2">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Apakah Anda yakin ingin menyetujui pendaftaran ini?')">
+                                    Setujui & Buat Akun
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <form action="{{ route('admin.registrations.approve', $reg->id) }}" method="POST" style="padding: 20px;">
-                        @csrf
-                        <div class="action-group">
-                            <label class="form-label" for="kode_reseller">Kode Reseller Baru</label>
-                            <input type="text" name="kode_reseller" id="kode_reseller" class="form-control" 
-                                   value="{{ $suggestedKode }}" style="font-weight:700; font-size:15px; text-transform:uppercase;" required>
-                            <small style="color:var(--color-text-3); font-size:11px; display:block; margin-top:4px;">
-                                Dibuat otomatis: awalan <strong>CMP</strong> + 5 digit angka acak.
-                            </small>
-                        </div>
-                        <div class="action-group" style="margin-top:15px;">
-                            <label class="form-label" for="catatan_admin_approve">Catatan Tambahan (Opsional)</label>
-                            <textarea name="catatan_admin" id="catatan_admin_approve" class="form-control text-area-reason" placeholder="Contoh: Selamat bergabung di jaringan kami..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 20px;" onclick="return confirm('Apakah Anda yakin ingin menyetujui pendaftaran ini?')">
-                            Setujui & Buat Akun
-                        </button>
-                    </form>
                 </div>
             </div>
 
             <!-- Modal Reject -->
-            <div id="rejectModal" class="modal-overlay" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 style="margin:0; font-size: 16px;">Tolak Pendaftaran</h3>
-                        <button type="button" class="modal-close" onclick="closeModal('rejectModal')">&times;</button>
-                    </div>
-                    <form action="{{ route('admin.registrations.reject', $reg->id) }}" method="POST" style="padding: 20px;">
-                        @csrf
-                        <div class="action-group">
-                            <label class="form-label" for="alasan_tolak">Alasan Penolakan</label>
-                            <textarea name="catatan_admin" id="alasan_tolak" class="form-control text-area-reason" placeholder="Tulis alasan penolakan berkas..." required></textarea>
+            <div class="modal fade" id="rejectModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 0.75rem;">
+                        <div class="modal-header border-bottom py-3">
+                            <h5 class="modal-title fw-bold text-danger">
+                                <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-                        <button type="submit" class="btn btn-secondary btn-block" style="margin-top: 20px; color: #dc2626; border-color: #dc2626;" onclick="return confirm('Apakah Anda yakin ingin menolak pendaftaran ini?')">
-                            Konfirmasi Penolakan
-                        </button>
-                    </form>
+                        <form action="{{ route('admin.registrations.reject', $reg->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-body p-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="alasan_tolak">Alasan Penolakan</label>
+                                    <textarea name="catatan_admin" id="alasan_tolak" class="form-control" rows="3" placeholder="Tulis alasan penolakan berkas..." required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-top py-2">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menolak pendaftaran ini?')">
+                                    Konfirmasi Penolakan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         @else
-            <!-- Handled State -->
-            <div class="action-card" style="text-align:center; padding: 24px 16px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
-                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--color-text-3); margin-bottom:4px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-                <div style="font-weight:700; font-size:13.5px; color:var(--color-text);">Pendaftaran Sudah Diproses</div>
-                <p style="font-size:12px; color:var(--color-text-3); margin-top:4px; margin-bottom: 8px;">Berkas ini telah ditinjau dan berstatus <strong>{{ $reg->statusLabel() }}</strong>.</p>
+            <div class="card text-center p-4">
+                <div class="avatar avatar-lg mx-auto mb-3 bg-label-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bx bx-check-shield fs-2 text-primary"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Sudah Diproses</h5>
+                <p class="text-muted small mb-3">Berkas pendaftaran ini telah selesai ditinjau.</p>
                 
                 @if($reg->status === 'approved')
-                    <form action="{{ route('admin.registrations.resend-otomax', $reg->id) }}" method="POST" style="width: 100%;">
+                    <form action="{{ route('admin.registrations.resend-otomax', $reg->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-secondary btn-block" style="padding: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang data reseller ini ke OtomaX?')">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Kirim Ulang ke OtomaX
+                        <button type="submit" class="btn btn-outline-primary w-100" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang data reseller ini ke OtomaX?')">
+                            <i class="bx bx-sync me-1"></i> Sinkron Ulang ke OtomaX
                         </button>
                     </form>
                 @endif
@@ -349,22 +235,5 @@
     </div>
 
 </div>
-
-<script>
-    function openModal(id) {
-        document.getElementById(id).style.display = 'flex';
-    }
-
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal-overlay')) {
-            event.target.style.display = 'none';
-        }
-    }
-</script>
 
 @endsection

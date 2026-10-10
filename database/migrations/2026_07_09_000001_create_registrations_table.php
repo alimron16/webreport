@@ -35,7 +35,7 @@ return new class extends Migration
             // Proses validasi admin
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->string('kode_reseller')->nullable();
-            $table->string('kode_prefix', 10)->default('CMP');
+            $table->string('kode_prefix', 10)->default('RS');
             $table->text('catatan_admin')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->string('reviewed_by')->nullable();

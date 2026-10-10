@@ -40,9 +40,9 @@ class Registration extends Model
 
     /**
      * Generate unique reseller code: {PREFIX}{5-digit random}
-     * e.g. CMP12345
+     * e.g. RS12345
      */
-    public static function generateKode(string $prefix = 'CMP'): string
+    public static function generateKode(string $prefix = 'RS'): string
     {
         do {
             $kode = strtoupper($prefix) . str_pad(random_int(10000, 99999), 5, '0', STR_PAD_LEFT);

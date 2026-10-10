@@ -10,6 +10,32 @@
    Font: Inter (body 14px), Outfit (headings)
    ═══════════════════════════════════════════════ */
 
+:root {
+    --color-border: #e2e8f0;
+    --color-border-dark: #cbd5e1;
+    --color-bg: #f8fafc;
+    --color-text: #0f172a;
+    --color-text-2: #334155;
+    --color-text-3: #64748b;
+    --color-text-4: #94a3b8;
+    --color-purple: #2563eb;
+    --color-purple-light: #eff6ff;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+html[data-bs-theme="dark"], html.dark-style {
+    --color-border: #1f2937;
+    --color-border-dark: #374151;
+    --color-bg: #111827;
+    --color-text: #f8fafc;
+    --color-text-2: #cbd5e1;
+    --color-text-3: #94a3b8;
+    --color-text-4: #64748b;
+    --color-purple: #3b82f6;
+    --color-purple-light: rgba(37, 99, 235, 0.15);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+}
+
 /* ── Settings Layout ────────────────────────────── */
 .settings-layout {
     display: grid;
@@ -337,18 +363,220 @@
     line-height: 1.65;
 }
 .sec-tips strong { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--color-text); margin-bottom: 6px; }
+
+/* ── Banner Shortcut Style ───────────────────────── */
+.stg-banner-shortcut {
+    grid-column: 1 / -1;
+    margin-top: -10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+.stg-banner-shortcut .banner-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #dbeafe;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.stg-banner-shortcut .banner-title {
+    font-weight: 700;
+    font-size: 14.5px;
+    color: #1e3a8a;
+}
+.stg-banner-shortcut .banner-desc {
+    font-size: 12.5px;
+    color: #475569;
+    margin-top: 2px;
+}
+
+/* ── Dark Mode Overrides for Settings ─────────── */
+html[data-bs-theme="dark"] .stg-card {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-bs-theme="dark"] .stg-card-hdr {
+    background: #111827 !important;
+    border-bottom-color: #1f2937 !important;
+}
+
+html[data-bs-theme="dark"] .stg-card-title {
+    color: #f8fafc !important;
+}
+
+html[data-bs-theme="dark"] .stg-tab-btn {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #94a3b8 !important;
+}
+
+html[data-bs-theme="dark"] .stg-tab-btn:hover {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+html[data-bs-theme="dark"] .stg-tab-btn.active {
+    background: #1e293b !important;
+    color: #60a5fa !important;
+    border-color: #3b82f6 !important;
+}
+
+html[data-bs-theme="dark"] .stg-label {
+    color: #60a5fa !important;
+}
+
+html[data-bs-theme="dark"] .stg-field-lbl {
+    color: #cbd5e1 !important;
+}
+
+html[data-bs-theme="dark"] .stg-hint {
+    color: #94a3b8 !important;
+}
+
+html[data-bs-theme="dark"] .tip-item {
+    border-bottom-color: #1f2937 !important;
+}
+
+html[data-bs-theme="dark"] .tip-icon {
+    background: rgba(37, 99, 235, 0.15) !important;
+    color: #60a5fa !important;
+}
+
+html[data-bs-theme="dark"] .tip-text strong {
+    color: #f8fafc !important;
+}
+
+html[data-bs-theme="dark"] .tip-text span {
+    color: #94a3b8 !important;
+}
+
+html[data-bs-theme="dark"] .logo-preview,
+html[data-bs-theme="dark"] .doc-row,
+html[data-bs-theme="dark"] .smtp-row {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+html[data-bs-theme="dark"] .smtp-row code {
+    background: #0f172a !important;
+    border-color: #1e293b !important;
+    color: #38bdf8 !important;
+}
+
+html[data-bs-theme="dark"] .sec-tips {
+    background: rgba(37, 99, 235, 0.12) !important;
+    border-color: rgba(37, 99, 235, 0.25) !important;
+    color: #cbd5e1 !important;
+}
+
+html[data-bs-theme="dark"] .sec-tips strong {
+    color: #93c5fd !important;
+}
+
+html[data-bs-theme="dark"] .step-list li {
+    border-bottom-color: #1f2937 !important;
+    color: #cbd5e1 !important;
+}
+
+html[data-bs-theme="dark"] .test-section {
+    border-top-color: #1f2937 !important;
+}
+
+html[data-bs-theme="dark"] .test-title {
+    color: #f8fafc !important;
+}
+
+html[data-bs-theme="dark"] .nav-pills .nav-link {
+    background-color: #111827;
+    color: #94a3b8;
+    border: 1px solid #1f2937;
+}
+
+html[data-bs-theme="dark"] .nav-pills .nav-link:hover {
+    background-color: #1e293b;
+    color: #f8fafc;
+}
+
+html[data-bs-theme="dark"] .nav-pills .nav-link.active {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+}
+
+html[data-bs-theme="dark"] .stg-banner-shortcut {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+html[data-bs-theme="dark"] .stg-banner-shortcut .banner-icon {
+    background: rgba(37, 99, 235, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+html[data-bs-theme="dark"] .stg-banner-shortcut .banner-title {
+    color: #f8fafc !important;
+}
+
+html[data-bs-theme="dark"] .stg-banner-shortcut .banner-desc {
+    color: #94a3b8 !important;
+}
 </style>
 @endsection
 
 @section('content')
-<div class="settings-layout">
 
-{{-- ─────────────────────────────────────────────
-     TAB NAVIGATION
-     ───────────────────────────────────────────── --}}
-{{-- ─────────────────────────────────────────────
-     TAB NAVIGATION MOVED TO SIDEBAR
-     ───────────────────────────────────────────── --}}
+{{-- ── Sneat Nav Pills Tab Navigation ── --}}
+<ul class="nav nav-pills flex-column flex-sm-row mb-4 gap-2" id="settingsTabs">
+    <li class="nav-item">
+        <button class="nav-link active" onclick="switchTab('tab-branding', this)">
+            <i class="bx bx-image-alt me-1"></i> Branding & Info
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-account', this)">
+            <i class="bx bx-user-pin me-1"></i> Akun & Password
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-otomax', this)">
+            <i class="bx bx-data me-1"></i> Database SQL Server
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-bank', this)">
+            <i class="bx bx-credit-card me-1"></i> Rekening Bank
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-gmail', this)">
+            <i class="bx bx-envelope me-1"></i> Notifikasi Email
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-security', this)">
+            <i class="bx bx-shield-quarter me-1"></i> Keamanan & Captcha
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-apicenter', this)">
+            <i class="bx bx-broadcast me-1"></i> IP Center & Regex API
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-logs', this)">
+            <i class="bx bx-terminal me-1"></i> System Logs
+        </button>
+    </li>
+</ul>
+
+<div class="settings-layout">
 
 
 {{-- ═══════════════════════════════════════════════
@@ -387,7 +615,7 @@
                         </div>
                         <input type="text" name="site_title" class="form-control"
                             value="{{ old('site_title', \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX')) }}"
-                            placeholder="Contoh: PT. Chika Mandiri" required>
+                            placeholder="Contoh: OtomaX Server / Perusahaan Anda" required>
                     </div>
 
                     <div class="stg-field">
@@ -404,12 +632,17 @@
                     <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border);">
                         <div class="stg-label">Logo Portal</div>
 
-                        @php $logoUrl = \Illuminate\Support\Facades\Cache::get('site_logo_url'); @endphp
+                        @php $logoUrl = $portal_logo_url ?? \Illuminate\Support\Facades\Cache::get('site_logo_url'); @endphp
                         @if($logoUrl)
-                        <div class="logo-preview">
-                            <img src="{{ $logoUrl }}" alt="Logo aktif">
-                            <span class="logo-preview-sub">Logo saat ini</span>
-                        </div><br>
+                        <div class="logo-preview d-flex align-items-center gap-3 p-3 bg-light rounded border mb-3">
+                            <img src="{{ $logoUrl }}" alt="Logo aktif" style="max-height: 48px; max-width: 150px; object-fit: contain;">
+                            <div>
+                                <span class="d-block fw-semibold text-dark small">Logo Aktif Saat Ini</span>
+                                <label class="form-check-label text-danger small mt-1 d-flex align-items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" name="remove_logo" value="1" class="form-check-input"> Hapus logo & kembali ke ikon default
+                                </label>
+                            </div>
+                        </div>
                         @endif
 
                         <div class="stg-field">
@@ -423,11 +656,120 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border);">
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
+                        <div class="stg-label d-flex align-items-center gap-1 text-success">
+                            <i class="bx bxl-whatsapp fs-5"></i> Kontak WhatsApp & Pendaftaran Calon Mitra
+                        </div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">
+                                <i class="bx bxl-whatsapp text-success me-1"></i> Nomor WhatsApp CS / Pendaftaran
+                            </div>
+                            <input type="text" name="whatsapp_number" class="form-control"
+                                value="{{ old('whatsapp_number', \Illuminate\Support\Facades\Cache::get('whatsapp_number', '')) }}"
+                                placeholder="Contoh: 08123456789 atau 628123456789">
+                            <div class="stg-hint">Nomor admin yang otomatis dibuka saat pengunjung mengklik tombol <strong>Daftar</strong> atau tombol <strong>Hubungi CS</strong> di halaman beranda.</div>
+                        </div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">
+                                <i class="bx bx-message-rounded-dots text-primary me-1"></i> Template Pesan Otomatis Tombol "Daftar"
+                            </div>
+                            <textarea name="whatsapp_registration_message" rows="3" class="form-control"
+                                placeholder="Tuliskan template pesan WhatsApp pendaftaran...">{{ old('whatsapp_registration_message', \Illuminate\Support\Facades\Cache::get('whatsapp_registration_message', 'Halo Admin, saya ingin mendaftar menjadi agen/reseller di {site_title}. Mohon panduan cara dan syarat pendaftarannya. Terima kasih!')) }}</textarea>
+                            <div class="stg-hint">Pesan yang otomatis terketik di WhatsApp calon mitra. Gunakan token <code>{site_title}</code> untuk otomatis menyisipkan nama portal Anda.</div>
+                        </div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">
+                                <i class="bx bx-support text-info me-1"></i> Template Pesan Otomatis CS / Pertanyaan Umum
+                            </div>
+                            <textarea name="whatsapp_cs_message" rows="2" class="form-control"
+                                placeholder="Tuliskan template pesan bantuan CS...">{{ old('whatsapp_cs_message', \Illuminate\Support\Facades\Cache::get('whatsapp_cs_message', 'Halo Customer Service {site_title}, saya membutuhkan informasi/bantuan seputar transaksi Webreport. Terima kasih.')) }}</textarea>
+                        </div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">
+                                <i class="bx bx-time text-warning me-1"></i> Jam Operasional Layanan CS
+                            </div>
+                            <input type="text" name="cs_working_hours" class="form-control"
+                                value="{{ old('cs_working_hours', \Illuminate\Support\Facades\Cache::get('cs_working_hours', '07.00 - 23.00 WIB (Setiap Hari)')) }}"
+                                placeholder="Contoh: 07.00 - 23.00 WIB atau 24 Jam Nonstop">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
+                        <div class="stg-label d-flex align-items-center gap-1 text-info">
+                            <i class="bx bxl-telegram fs-5"></i> Akun & Saluran Telegram (Opsional)
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="stg-field">
+                                    <div class="stg-field-lbl">Username CS Telegram</div>
+                                    <input type="text" name="telegram_cs_username" class="form-control"
+                                        value="{{ old('telegram_cs_username', \Illuminate\Support\Facades\Cache::get('telegram_cs_username', '')) }}"
+                                        placeholder="Contoh: @cs_otomax atau cs_otomax">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stg-field">
+                                    <div class="stg-field-lbl">Link Saluran / Channel Info</div>
+                                    <input type="url" name="telegram_channel_url" class="form-control"
+                                        value="{{ old('telegram_channel_url', \Illuminate\Support\Facades\Cache::get('telegram_channel_url', '')) }}"
+                                        placeholder="Contoh: https://t.me/info_otomax">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
+                        <div class="stg-label d-flex align-items-center gap-1">
+                            <i class="bx bx-navigation fs-5 text-primary"></i> Aksi Tombol "Daftar" di Landing Page
+                        </div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">Pilihan Alur Pendaftaran</div>
+                            @php $currRegMode = old('registration_mode', \Illuminate\Support\Facades\Cache::get('registration_mode', 'whatsapp')); @endphp
+                            <select name="registration_mode" class="form-select">
+                                <option value="whatsapp" {{ $currRegMode === 'whatsapp' ? 'selected' : '' }}>
+                                    ✅ Langsung Buka Chat WhatsApp Admin dengan Pesan Otomatis (Rekomendasi)
+                                </option>
+                                <option value="form" {{ $currRegMode === 'form' ? 'selected' : '' }}>
+                                    📄 Buka Halaman Formulir Pendaftaran Web (/register)
+                                </option>
+                                <option value="both" {{ $currRegMode === 'both' ? 'selected' : '' }}>
+                                    🔀 Tampilkan Tombol WhatsApp sebagai Utama dan Opsi Formulir Web
+                                </option>
+                            </select>
+                            <div class="stg-hint">Menentukan apa yang terjadi saat calon mitra mengklik tombol <strong>Daftar Mitra</strong> pada landing page.</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
+                        <div class="stg-label d-flex align-items-center gap-1">
+                            <i class="bx bx-layout fs-5 text-purple" style="color: #8b5cf6;"></i> Kustomisasi Teks Hero Landing Page (Opsional)
+                        </div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">Judul Hero Landing Page</div>
+                            <input type="text" name="hero_headline" class="form-control"
+                                value="{{ old('hero_headline', \Illuminate\Support\Facades\Cache::get('hero_headline', '')) }}"
+                                placeholder="Kosongkan untuk menggunakan judul bawaan (Portal Webreport Cepat, Akurat & Real-Time)">
+                        </div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">Deskripsi / Subtitle Hero</div>
+                            <textarea name="hero_subheadline" rows="2" class="form-control"
+                                placeholder="Kosongkan untuk menggunakan teks deskripsi bawaan...">{{ old('hero_subheadline', \Illuminate\Support\Facades\Cache::get('hero_subheadline', '')) }}</textarea>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
                         <button type="submit" class="btn btn-primary"
-                            style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                            style="display:inline-flex; align-items:center; gap:6px; font-weight:600; padding: 10px 20px;">
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                            Simpan Branding
+                            Simpan Pengaturan Branding & Kontak
                         </button>
                     </div>
                 </form>
@@ -473,185 +815,34 @@
             </div>
         </div>
 
-    </div>
-</div>
-
-<div id="tab-pks" class="stg-tab-pane">
-    <div class="stg-grid">
-
-        {{-- Wrapper to stack both upload forms in the main column --}}
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-
-            {{-- Form Perorangan --}}
-            <div class="stg-card">
-                <div class="stg-card-hdr">
-                    <div class="stg-card-title">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        {{-- Banner Shortcut ke Kelola Tautan Harga --}}
+        <div class="stg-card stg-banner-shortcut">
+            <div class="card-body" style="padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div class="banner-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                         </svg>
-                        Template PKS Perorangan (Pribadi)
+                    </div>
+                    <div>
+                        <div class="banner-title">
+                            Kelola Tautan Publik & Masa Aktif Daftar Harga
+                        </div>
+                        <div class="banner-desc">
+                            Sekarang Anda dapat men-generate tautan khusus level grup lengkap dengan batas masa kadaluarsa (expired) di menu khusus.
+                        </div>
                     </div>
                 </div>
-                <div class="card-body" style="padding: 20px;">
-                    @if(session('pks_success') && strpos(session('pks_success'), 'Perorangan') !== false)
-                    <div class="stg-alert success">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ session('pks_success') }}</span>
-                    </div>
-                    @endif
-
-                    {{-- Active Doc Perorangan --}}
-                    @php $pksNamePerorangan = \Illuminate\Support\Facades\Cache::get('pks_template_name_perorangan'); @endphp
-                    @if($pksNamePerorangan)
-                        <div style="margin-bottom: 16px;">
-                            <div class="stg-label">Dokumen Aktif (Perorangan)</div>
-                            <div class="doc-row">
-                                <div class="doc-icon">
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="doc-name">{{ $pksNamePerorangan }}</div>
-                                    <div class="doc-sub">Dapat diunduh oleh calon reseller perorangan</div>
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <div class="stg-alert warning" style="margin-bottom: 20px;">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                            <span>Belum ada template PKS Perorangan. Unggah dokumen agar calon reseller perorangan dapat mengunduhnya.</span>
-                        </div>
-                    @endif
-
-                    {{-- Upload Form Perorangan --}}
-                    <div class="stg-label">Unggah Dokumen Baru (Perorangan)</div>
-                    <form action="{{ route('admin.pks.upload') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="pks_type" value="perorangan">
-                        <div class="stg-field">
-                            <div class="stg-field-lbl">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                File Dokumen
-                                <span style="font-weight:400; color:var(--color-text-4); font-size:11.5px;">(PDF / DOC / DOCX / ZIP, maks. 5MB)</span>
-                            </div>
-                            <input type="file" name="pks_file" class="form-control" accept=".pdf,.doc,.docx,.zip" required>
-                        </div>
-                        <div style="margin-top: 16px;">
-                            <button type="submit" class="btn btn-primary"
-                                style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                Unggah Template PKS Perorangan
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            {{-- Form Badan Usaha --}}
-            <div class="stg-card">
-                <div class="stg-card-hdr">
-                    <div class="stg-card-title">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                        Template PKS Badan Usaha / Badan Hukum
-                    </div>
-                </div>
-                <div class="card-body" style="padding: 20px;">
-                    @if(session('pks_success') && strpos(session('pks_success'), 'Badan Usaha') !== false)
-                    <div class="stg-alert success">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ session('pks_success') }}</span>
-                    </div>
-                    @endif
-
-                    {{-- Active Doc Badan Usaha --}}
-                    @php $pksNameBadanUsaha = \Illuminate\Support\Facades\Cache::get('pks_template_name_badan_usaha'); @endphp
-                    @if($pksNameBadanUsaha)
-                        <div style="margin-bottom: 16px;">
-                            <div class="stg-label">Dokumen Aktif (Badan Usaha)</div>
-                            <div class="doc-row">
-                                <div class="doc-icon">
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="doc-name">{{ $pksNameBadanUsaha }}</div>
-                                    <div class="doc-sub">Dapat diunduh oleh calon reseller badan usaha (PT/CV)</div>
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <div class="stg-alert warning" style="margin-bottom: 20px;">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                            <span>Belum ada template PKS Badan Usaha. Unggah dokumen agar calon reseller badan usaha dapat mengunduhnya.</span>
-                        </div>
-                    @endif
-
-                    {{-- Upload Form Badan Usaha --}}
-                    <div class="stg-label">Unggah Dokumen Baru (Badan Usaha)</div>
-                    <form action="{{ route('admin.pks.upload') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="pks_type" value="badan_usaha">
-                        <div class="stg-field">
-                            <div class="stg-field-lbl">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                File Dokumen
-                                <span style="font-weight:400; color:var(--color-text-4); font-size:11.5px;">(PDF / DOC / DOCX / ZIP, maks. 5MB)</span>
-                            </div>
-                            <input type="file" name="pks_file" class="form-control" accept=".pdf,.doc,.docx,.zip" required>
-                        </div>
-                        <div style="margin-top: 16px;">
-                            <button type="submit" class="btn btn-primary"
-                                style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                Unggah Template PKS Badan Usaha
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-        </div>
-
-        {{-- Info --}}
-        <div class="stg-card">
-            <div class="stg-card-hdr">
-                <div class="stg-card-title">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Informasi
-                </div>
-            </div>
-            <div class="card-body" style="padding: 4px 20px 16px;">
-                <div class="tip-item">
-                    <div class="tip-icon">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <div class="tip-text">
-                        <strong>Fungsi</strong>
-                        <span>Dokumen PKS dapat diunduh oleh calon reseller selama proses pendaftaran sebagai acuan perjanjian.</span>
-                    </div>
-                </div>
-                <div class="tip-item">
-                    <div class="tip-icon">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div class="tip-text">
-                        <strong>Format Disarankan</strong>
-                        <span>Gunakan format <strong>PDF</strong> agar tampilan konsisten di semua perangkat dan tidak dapat diedit.</span>
-                    </div>
-                </div>
+                <a href="{{ route('admin.price-links') }}" class="btn btn-primary" style="font-weight: 600; padding: 9px 18px; font-size: 13px; gap: 6px; display: inline-flex; align-items: center;">
+                    Buka Kelola Tautan Harga →
+                </a>
             </div>
         </div>
 
     </div>
 </div>
+
+
 
 {{-- ═══════════════════════════════════════════════
      TAB OTOMAX SQL SERVER
@@ -667,6 +858,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
                     </svg>
                     Database SQL Server (OtomaX)
+                    <span style="margin-left: auto; font-size: 11px; padding: 3px 8px; background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        Terenkripsi di DB (Bukan .ENV)
+                    </span>
                 </div>
             </div>
             <div class="card-body" style="padding: 20px;">
@@ -682,36 +877,41 @@
                     
                     <div class="stg-field">
                         <div class="stg-field-lbl">Database Host / IP</div>
-                        <input type="text" name="db_host" class="form-control" value="{{ env('DB_HOST_OTOMAX', '127.0.0.1') }}" placeholder="127.0.0.1" required>
+                        <input type="text" id="otomax_db_host" name="db_host" class="form-control" value="{{ $otomaxDbConfig['host'] ?? '127.0.0.1' }}" placeholder="127.0.0.1" required>
                     </div>
 
                     <div class="stg-field">
                         <div class="stg-field-lbl">Database Port</div>
-                        <input type="number" name="db_port" class="form-control" value="{{ env('DB_PORT_OTOMAX', '1433') }}" placeholder="1433" required>
+                        <input type="number" id="otomax_db_port" name="db_port" class="form-control" value="{{ $otomaxDbConfig['port'] ?? '1433' }}" placeholder="1433" required>
                     </div>
                     
                     <div class="stg-field">
                         <div class="stg-field-lbl">Database Name</div>
-                        <input type="text" name="db_database" class="form-control" value="{{ env('DB_DATABASE_OTOMAX', 'otomax') }}" placeholder="otomax" required>
+                        <input type="text" id="otomax_db_database" name="db_database" class="form-control" value="{{ $otomaxDbConfig['database'] ?? 'otomax' }}" placeholder="otomax" required>
                     </div>
 
                     <div class="stg-field">
                         <div class="stg-field-lbl">Database Username</div>
-                        <input type="text" name="db_username" class="form-control" value="{{ env('DB_USERNAME_OTOMAX', 'sa') }}" placeholder="sa" required>
+                        <input type="text" id="otomax_db_username" name="db_username" class="form-control" value="{{ $otomaxDbConfig['username'] ?? 'sa' }}" placeholder="sa" required>
                     </div>
 
                     <div class="stg-field">
                         <div class="stg-field-lbl">Database Password</div>
-                        <input type="password" name="db_password" class="form-control" value="{{ env('DB_PASSWORD_OTOMAX', '') }}" placeholder="Kosongkan jika tidak ada password">
-                        <div class="stg-hint">Password untuk terhubung ke SQL Server.</div>
+                        <input type="password" id="otomax_db_password" name="db_password" class="form-control" value="" placeholder="{{ !empty($otomaxDbConfig['has_password']) ? '•••••••••••• (Tersimpan terenkripsi di database)' : 'Kosongkan jika tidak ada password' }}">
+                        <div class="stg-hint">Kredensial disimpan terenkripsi (AES-256) di database, bukan di file .env. Kosongkan kolom ini jika tidak ingin mengubah password saat ini.</div>
                     </div>
 
-                    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end;">
+                    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <button type="button" id="btn-test-otomax" class="btn btn-secondary" onclick="testOtomaxConnection()" style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            Uji Coba Koneksi
+                        </button>
                         <button type="submit" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px; font-weight:600;">
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             Simpan Konfigurasi
                         </button>
                     </div>
+                    <div id="test-otomax-result" style="margin-top: 14px;"></div>
                 </form>
             </div>
         </div>
@@ -721,17 +921,51 @@
             <div class="stg-card-hdr">
                 <div class="stg-card-title">
                     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Informasi
+                    Informasi & Status Server
                 </div>
             </div>
-            <div class="card-body" style="padding: 4px 20px 16px;">
+            <div class="card-body" style="padding: 12px 20px 20px;">
+                @php 
+                    $hasSqlsrv = extension_loaded('pdo_sqlsrv') || extension_loaded('sqlsrv');
+                @endphp
                 <div class="tip-item">
+                    <div class="tip-icon" style="{{ $hasSqlsrv ? 'background:#ecfdf5; color:#059669;' : 'background:#fef2f2; color:#dc2626;' }}">
+                        @if($hasSqlsrv)
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        @else
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        @endif
+                    </div>
+                    <div class="tip-text">
+                        <strong>Driver PHP Microsoft SQL Server</strong>
+                        @if($hasSqlsrv)
+                            <span style="color:#059669; font-weight:600;">Terpasang & Aktif (pdo_sqlsrv).</span>
+                        @else
+                            <span style="color:#dc2626; font-weight:600;">Belum aktif di PHP server ini.</span>
+                            <div style="font-size:11.5px; color:var(--color-text-3); margin-top:3px; line-height:1.4;">
+                                Tambahkan <code>extension=pdo_sqlsrv</code> di <code>php.ini</code> agar web dapat berkomunikasi dengan database SQL Server.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="tip-item" style="margin-top:12px;">
                     <div class="tip-icon">
                         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
                     <div class="tip-text">
-                        <strong>Koneksi Database</strong>
-                        <span>Pastikan SQL Server sudah mengizinkan koneksi TCP/IP pada port yang ditentukan (default: 1433).</span>
+                        <strong>Koneksi TCP/IP & Port 1433</strong>
+                        <span>Pastikan SQL Server sudah mengaktifkan protokol TCP/IP di SQL Server Configuration Manager dan port 1433 diizinkan oleh Windows Firewall.</span>
+                    </div>
+                </div>
+
+                <div class="tip-item" style="margin-top:12px;">
+                    <div class="tip-icon">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </div>
+                    <div class="tip-text">
+                        <strong>Mode Autentikasi</strong>
+                        <span>Gunakan SQL Server Authentication (mode Mixed Mode), bukan Windows Authentication Only.</span>
                     </div>
                 </div>
             </div>
@@ -965,7 +1199,7 @@
                                 </div>
                                 <div style="flex:1;">
                                     <label class="stg-field-lbl" style="font-size:11px;">Atas Nama</label>
-                                    <input type="text" name="banks[{{ $index }}][atas_nama]" class="form-control" value="{{ $bank['atas_nama'] }}" placeholder="PT Chika" required>
+                                    <input type="text" name="banks[{{ $index }}][atas_nama]" class="form-control" value="{{ $bank['atas_nama'] }}" placeholder="Nama Pemilik Rekening" required>
                                 </div>
                                 <div>
                                     <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 0.65rem; border-radius: 6px; background:#dc2626; color:#fff; border:none; cursor:pointer;">
@@ -977,9 +1211,8 @@
                         @endif
                     </div>
 
-                    <button type="button" class="btn btn-secondary" onclick="addBank()" style="margin-top: 10px; display:inline-flex; align-items:center; gap:6px; font-weight:600; padding:6px 12px; border-radius:6px; border:1px solid var(--color-border); background:#f9fafb; cursor:pointer;">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        Tambah Rekening
+                    <button type="button" class="btn btn-outline-primary" onclick="addBank()" style="margin-top: 12px; font-weight: 600;">
+                        <i class="bx bx-plus me-1"></i> Tambah Rekening
                     </button>
 
                     <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border);">
@@ -1107,7 +1340,7 @@ Tidak ada log tersedia.
                     <div class="form-group" style="margin-bottom: 24px;">
                         <label class="stg-field-lbl">Secret Key</label>
                         <input type="text" name="recaptcha_secret_key" class="form-control" 
-                               value="{{ \Illuminate\Support\Facades\Cache::get('recaptcha_secret_key') }}" 
+                               value="{{ $recaptchaSecret ?? '' }}" 
                                placeholder="Contoh: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe">
                     </div>
 
@@ -1141,6 +1374,278 @@ Tidak ada log tersedia.
     </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════
+     TAB: IP CENTER & REGEX BALASAN JAWABAN
+     ═══════════════════════════════════════════════ --}}
+<div id="tab-apicenter" class="stg-tab-pane">
+    <div class="stg-grid">
+        <div class="stg-card">
+            <div class="stg-card-hdr">
+                <div class="stg-card-title">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+                    </svg>
+                    IP Center & Regex Balasan Jawaban Transaksi
+                </div>
+            </div>
+
+            <form action="{{ route('admin.settings.apicenter') }}" method="POST">
+                @csrf
+                <div class="card-body" style="padding: 24px;">
+                    @if(session('apicenter_success'))
+                        <div class="stg-alert success">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{{ session('apicenter_success') }}</span>
+                        </div>
+                    @endif
+
+                    <div class="stg-label">IP Center & Endpoint URL</div>
+
+                    <div class="stg-field">
+                        <label class="stg-field-lbl">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            IP Center / Endpoint URL
+                        </label>
+                        <input type="text" name="api_endpoint" class="form-control font-monospace"
+                               value="{{ old('api_endpoint', \Illuminate\Support\Facades\Cache::get('api_endpoint', 'http://103.166.91.114:5558/')) }}"
+                               placeholder="http://103.166.91.114:5558/" required>
+                        <div class="stg-hint">URL endpoint IP Center ini akan ditampilkan kepada member di menu <b>Format Transaksi & API</b>.</div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
+                        <div class="stg-label">Regex Penangkapan Balasan Server (Parser Response)</div>
+
+                        <div class="stg-field">
+                            <label class="stg-field-lbl">
+                                <span class="badge bg-label-success me-1" style="font-size: 10px;">Sukses</span>
+                                Pola Regex Balasan Sukses
+                            </label>
+                            <input type="text" name="regex_success" class="form-control font-monospace"
+                                   value="{{ old('regex_success', \Illuminate\Support\Facades\Cache::get('api_regex_success', '(?i).*SUKSES.*|.*BERHASIL.*|.*SN[:\s=]+(?<sn>[^\s,]+).*')) }}"
+                                   placeholder="(?i).*SUKSES.*|.*BERHASIL.*|.*SN[:\s=]+(?<sn>[^\s,]+).*" required>
+                            <div class="stg-hint">Pola ekspresi reguler untuk menangkap status transaksi berhasil dan nomor Serial Number (SN).</div>
+                        </div>
+
+                        <div class="stg-field">
+                            <label class="stg-field-lbl">
+                                <span class="badge bg-label-danger me-1" style="font-size: 10px;">Gagal</span>
+                                Pola Regex Balasan Gagal
+                            </label>
+                            <input type="text" name="regex_failed" class="form-control font-monospace"
+                                   value="{{ old('regex_failed', \Illuminate\Support\Facades\Cache::get('api_regex_failed', '(?i).*GAGAL.*|.*SALDO TIDAK CUKUP.*|.*NOMOR SALAH.*')) }}"
+                                   placeholder="(?i).*GAGAL.*|.*SALDO TIDAK CUKUP.*|.*NOMOR SALAH.*" required>
+                            <div class="stg-hint">Pola ekspresi reguler untuk menangkap balasan transaksi gagal atau ditolak.</div>
+                        </div>
+
+                        <div class="stg-field">
+                            <label class="stg-field-lbl">
+                                <span class="badge bg-label-warning me-1" style="font-size: 10px;">Menunggu</span>
+                                Pola Regex Balasan Menunggu / Diproses
+                            </label>
+                            <input type="text" name="regex_pending" class="form-control font-monospace"
+                                   value="{{ old('regex_pending', \Illuminate\Support\Facades\Cache::get('api_regex_pending', '(?i).*DIPROSES.*|.*MENUNGGU.*|.*PENDING.*')) }}"
+                                   placeholder="(?i).*DIPROSES.*|.*MENUNGGU.*|.*PENDING.*" required>
+                            <div class="stg-hint">Pola ekspresi reguler untuk menangkap status transaksi yang sedang diproses antrean server.</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border);">
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                            Simpan Pengaturan IP Center & Regex
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="stg-card">
+            <div class="stg-card-hdr">
+                <div class="stg-card-title">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Informasi & Integrasi
+                </div>
+            </div>
+            <div class="card-body" style="padding: 18px 20px;">
+                <p style="font-size: 13px; color: var(--color-text-2); line-height: 1.6; margin-bottom: 12px;">
+                    Pengaturan ini mengontrol konfigurasi yang dipublikasikan ke mitra/reseller di halaman <strong>Format Transaksi & API</strong> member:
+                </p>
+                <div class="tip-item mb-3">
+                    <div class="tip-icon">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </div>
+                    <div class="tip-text">
+                        <strong>Endpoint URL</strong>
+                        <span>Alamat IP dan Port Center OtomaX yang dihubungi oleh modul H2H / bot mitra untuk kirim transaksi.</span>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    </div>
+                    <div class="tip-text">
+                        <strong>Regex Balasan</strong>
+                        <span>Digunakan oleh parser regex mitra untuk membedakan respon transaksi Sukses, Gagal, atau Menunggu.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ═══════════════════════════════════════════════
+     TAB: AKUN & PASSWORD ADMINISTRATOR
+     ═══════════════════════════════════════════════ --}}
+<div id="tab-account" class="stg-tab-pane">
+    <div class="stg-grid">
+
+        {{-- Form Ganti Password & Username --}}
+        <div class="stg-card">
+            <div class="stg-card-hdr">
+                <div class="stg-card-title">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    Kredensial Administrator
+                </div>
+                <span class="badge bg-label-primary">Keamanan Utama</span>
+            </div>
+            <div class="card-body" style="padding: 20px;">
+                @if(session('account_success'))
+                <div class="stg-alert success">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>{{ session('account_success') }}</span>
+                </div>
+                @endif
+
+                @if(session('account_error'))
+                <div class="stg-alert error">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>{{ session('account_error') }}</span>
+                </div>
+                @endif
+
+                <form action="{{ route('admin.settings.account') }}" method="POST">
+                    @csrf
+
+                    <div class="stg-label">Identitas Login</div>
+
+                    <div class="stg-field">
+                        <div class="stg-field-lbl">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            Username Administrator
+                        </div>
+                        <input type="text" name="new_username" class="form-control"
+                            value="{{ old('new_username', $currentAdminUsername ?? 'admin') }}" required>
+                        <div class="stg-hint">Gunakan username unik yang mudah Anda ingat.</div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
+                        <div class="stg-label">Pergantian Password</div>
+
+                        <div class="stg-field">
+                            <div class="stg-field-lbl">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                Password Saat Ini <span class="lbl-warn">* Wajib untuk konfirmasi</span>
+                            </div>
+                            <div class="pwd-wrap">
+                                <input type="password" name="current_password" id="admin_curr_pass" class="form-control" placeholder="Masukkan password admin saat ini" required>
+                                <button type="button" class="pwd-eye" onclick="toggleInputVisibility('admin_curr_pass', this)">
+                                    <i class="bx bx-show fs-5"></i>
+                                </button>
+                            </div>
+                            <div class="stg-hint">Wajib dimasukkan sebelum menyimpan perubahan.</div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <div class="stg-field">
+                                    <div class="stg-field-lbl">
+                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                                        Password Baru (Opsional)
+                                    </div>
+                                    <div class="pwd-wrap">
+                                        <input type="password" name="new_password" id="admin_new_pass" class="form-control" placeholder="Kosongkan jika tidak ingin ganti">
+                                        <button type="button" class="pwd-eye" onclick="toggleInputVisibility('admin_new_pass', this)">
+                                            <i class="bx bx-show fs-5"></i>
+                                        </button>
+                                    </div>
+                                    <div class="stg-hint">Minimal 6 karakter, kombinasi huruf & angka.</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <div class="stg-field">
+                                    <div class="stg-field-lbl">
+                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                        Ulangi Password Baru
+                                    </div>
+                                    <div class="pwd-wrap">
+                                        <input type="password" name="new_password_confirmation" id="admin_conf_pass" class="form-control" placeholder="Ketik ulang password baru">
+                                        <button type="button" class="pwd-eye" onclick="toggleInputVisibility('admin_conf_pass', this)">
+                                            <i class="bx bx-show fs-5"></i>
+                                        </button>
+                                    </div>
+                                    <div class="stg-hint">Harus sama dengan password baru di samping.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--color-border);">
+                        <button type="submit" class="btn btn-primary" style="font-weight:600; gap:6px;">
+                            <i class="bx bx-save fs-5"></i> Simpan Perubahan Akun
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Panel Informasi Keamanan --}}
+        <div class="stg-card">
+            <div class="stg-card-hdr">
+                <div class="stg-card-title">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Keamanan Kredensial
+                </div>
+            </div>
+            <div class="card-body" style="padding: 16px 20px;">
+                <div class="tip-item">
+                    <div class="tip-icon">
+                        <i class="bx bx-lock-alt fs-5"></i>
+                    </div>
+                    <div class="tip-text">
+                        <strong>Enkripsi Password Bcrypt</strong>
+                        <span>Password tidak lagi disimpan dalam bentuk teks polos di file <code>.env</code>, melainkan di-hash dengan algoritma Bcrypt (12 rounds) standar industri.</span>
+                    </div>
+                </div>
+
+                <div class="tip-item">
+                    <div class="tip-icon">
+                        <i class="bx bx-shield-check fs-5"></i>
+                    </div>
+                    <div class="tip-text">
+                        <strong>Perlindungan Brute Force</strong>
+                        <span>Login admin dilindungi dengan Rate Limiting (pembatasan percobaan login salah berturut-turut) dan proteksi session fixation.</span>
+                    </div>
+                </div>
+
+                <div class="tip-item">
+                    <div class="tip-icon">
+                        <i class="bx bx-history fs-5"></i>
+                    </div>
+                    <div class="tip-text">
+                        <strong>Pencatatan Audit Log</strong>
+                        <span>Setiap percobaan masuk dan perubahan kredensial login dicatat ke dalam audit log server beserta alamat IP penyerang/pengguna.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
     </div> {{-- End .settings-content-area --}}
 </div> {{-- End .settings-layout --}}
 
@@ -1151,38 +1656,70 @@ Tidak ada log tersedia.
     /* ── Tab Switch ── */
     function switchTab(id, btn) {
         document.querySelectorAll('.stg-tab-pane').forEach(p => p.classList.remove('active'));
-        // `.stg-tab-btn` elements were removed, so we don't need to loop them anymore.
+        document.querySelectorAll('#settingsTabs .nav-link').forEach(b => b.classList.remove('active'));
         
         const targetTab = document.getElementById(id);
         if (targetTab) {
             targetTab.classList.add('active');
         }
+
+        if (btn) {
+            btn.classList.add('active');
+        } else {
+            const foundBtn = document.querySelector(`#settingsTabs button[onclick*="${id}"]`);
+            if (foundBtn) foundBtn.classList.add('active');
+        }
+
         history.replaceState(null, '', '?tab=' + id);
+    }
+
+    /* ── Show/Hide Password Toggle Helper ── */
+    function toggleInputVisibility(inputId, btn) {
+        const inp = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (!inp) return;
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            if (icon) {
+                icon.className = 'bx bx-hide fs-5';
+            }
+        } else {
+            inp.type = 'password';
+            if (icon) {
+                icon.className = 'bx bx-show fs-5';
+            }
+        }
     }
 
     /* ── Auto-switch from URL param or session flash ── */
     document.addEventListener('DOMContentLoaded', function () {
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
-        
         if (tabParam) {
-            switchTab(tabParam, null);
+            const target = tabParam.startsWith('tab-') ? tabParam : ('tab-' + tabParam);
+            switchTab(target, null);
         } else {
             const hash = window.location.hash;
-            if (hash === '#gmail') switchTab('tab-gmail', null);
-            else if (hash === '#pks') switchTab('tab-pks', null);
+            if (hash === '#account') switchTab('tab-account', null);
+            else if (hash === '#gmail') switchTab('tab-gmail', null);
             else if (hash === '#bank') switchTab('tab-bank', null);
             else if (hash === '#security') switchTab('tab-security', null);
+            else if (hash === '#otomax') switchTab('tab-otomax', null);
+            else if (hash === '#apicenter') switchTab('tab-apicenter', null);
         }
 
-        @if(session('mail_success') || $errors->any())
+        @if(session('account_success') || session('account_error'))
+            switchTab('tab-account', null);
+        @elseif(session('mail_success') || $errors->any())
             switchTab('tab-gmail', null);
-        @elseif(session('pks_success'))
-            switchTab('tab-pks', null);
         @elseif(session('bank_success'))
             switchTab('tab-bank', null);
         @elseif(session('security_success'))
             switchTab('tab-security', null);
+        @elseif(session('otomax_success'))
+            switchTab('tab-otomax', null);
+        @elseif(session('apicenter_success'))
+            switchTab('tab-apicenter', null);
         @endif
     });
 
@@ -1207,7 +1744,7 @@ Tidak ada log tersedia.
             </div>
             <div style="flex:1;">
                 <label class="stg-field-lbl" style="font-size:11px;">Atas Nama</label>
-                <input type="text" name="banks[${bankIndex}][atas_nama]" class="form-control" placeholder="PT Chika" required>
+                <input type="text" name="banks[${bankIndex}][atas_nama]" class="form-control" placeholder="Nama Pemilik Rekening" required>
             </div>
             <div>
                 <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 0.65rem; border-radius: 6px; background:#dc2626; color:#fff; border:none; cursor:pointer;">
@@ -1270,6 +1807,111 @@ Tidak ada log tersedia.
         .finally(() => {
             btn.disabled  = false;
             btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg> Kirim Test`;
+        });
+    }
+
+    /* ── Copy Public Price URL ── */
+    function copyPublicPriceUrl() {
+        const input = document.getElementById('publicPriceUrl');
+        const btnText = document.getElementById('btnCopyText');
+        input.select();
+        input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value).then(() => {
+            btnText.innerText = 'Tersalin!';
+            setTimeout(() => {
+                btnText.innerText = 'Salin Tautan';
+            }, 2000);
+        }).catch(() => {
+            document.execCommand('copy');
+            btnText.innerText = 'Tersalin!';
+            setTimeout(() => {
+                btnText.innerText = 'Salin Tautan';
+            }, 2000);
+        });
+    }
+
+    const basePublicPriceUrl = "{{ route('webreport.public-prices') }}";
+
+    function updateShareUrl() {
+        const sel = document.getElementById('adminShareLevelSelect');
+        const customInp = document.getElementById('adminCustomLevelInput');
+        if (customInp) customInp.value = '';
+        applyShareLevelUrl(sel.value);
+    }
+
+    function updateCustomShareUrl() {
+        const sel = document.getElementById('adminShareLevelSelect');
+        const customInp = document.getElementById('adminCustomLevelInput');
+        if (sel) sel.value = '';
+        applyShareLevelUrl(customInp.value.trim());
+    }
+
+    function applyShareLevelUrl(level) {
+        const urlInp = document.getElementById('publicPriceUrl');
+        const previewBtn = document.getElementById('btnPreviewPublicPrice');
+        const topLink = document.getElementById('btnTopOpenPrice');
+        
+        let target = basePublicPriceUrl;
+        if (level && level.trim() !== '') {
+            target += '?level=' + encodeURIComponent(level.trim().toUpperCase());
+        }
+        if (urlInp) urlInp.value = target;
+        if (previewBtn) previewBtn.href = target;
+        if (topLink) topLink.href = target;
+    }
+
+    /* ── Test SQL Server Connection ── */
+    function testOtomaxConnection() {
+        const btn    = document.getElementById('btn-test-otomax');
+        const result = document.getElementById('test-otomax-result');
+
+        const host     = document.getElementById('otomax_db_host').value.trim();
+        const port     = document.getElementById('otomax_db_port').value.trim();
+        const database = document.getElementById('otomax_db_database').value.trim();
+        const username = document.getElementById('otomax_db_username').value.trim();
+        const password = document.getElementById('otomax_db_password').value;
+
+        btn.disabled  = true;
+        btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin .7s linear infinite;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Menguji Koneksi...`;
+        result.innerHTML = '';
+
+        fetch('{{ route('admin.settings.otomax.test') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({
+                db_host: host,
+                db_port: port,
+                db_database: database,
+                db_username: username,
+                db_password: password
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            const ok     = data.status === 'success';
+            const color  = ok ? '#059669' : '#dc2626';
+            const bg     = ok ? '#ecfdf5' : '#fef2f2';
+            const border = ok ? '#a7f3d0' : '#fecaca';
+
+            result.innerHTML = `
+                <div style="background:${bg}; border:1px solid ${border}; border-radius:6px; padding:11px 15px; display:flex; align-items:flex-start; gap:9px; font-size:12.5px; color:${color}; line-height:1.5;">
+                    <svg width="16" height="16" fill="none" stroke="${color}" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:2px;">
+                        ${ok
+                            ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+                            : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'}
+                    </svg>
+                    <span>${data.message}</span>
+                </div>`;
+        })
+        .catch(() => {
+            result.innerHTML = `
+                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:11px 15px; font-size:12.5px; color:#dc2626;">
+                    Gagal menghubungi server web untuk melakukan uji coba.
+                </div>`;
+        })
+        .finally(() => {
+            btn.disabled  = false;
+            btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Uji Coba Koneksi`;
         });
     }
 

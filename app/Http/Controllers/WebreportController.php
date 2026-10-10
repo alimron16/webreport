@@ -7,7 +7,9 @@ use App\Services\MailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class WebreportController extends Controller
 {
@@ -18,6 +20,20 @@ class WebreportController extends Controller
     public function __construct(OtomaXService $otomaXService)
     {
         $this->otomaXService = $otomaXService;
+    }
+
+    /**
+     * Show public landing / index page
+     */
+    public function landing()
+    {
+        $isLoggedIn = Session::has('logged_in_reseller_code');
+        $activeCode = Session::get('logged_in_reseller_code', '');
+
+        return view('webreport.landing', [
+            'is_logged_in' => $isLoggedIn,
+            'active_code'  => $activeCode,
+        ]);
     }
 
     /**
@@ -62,17 +78,24 @@ class WebreportController extends Controller
         $throttleKey = 'webreport_login_' . $request->ip();
         if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            \Illuminate\Support\Facades\Log::warning("Reseller login locked by RateLimiter from IP {$request->ip()}");
             return back()->with('error', "Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik.")->withInput();
         }
 
         // Validate reCAPTCHA
         if (!$this->validateRecaptcha($request)) {
             \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
+            \Illuminate\Support\Facades\Log::warning("Reseller login failed CAPTCHA from IP {$request->ip()}");
             return back()->with('error', 'Validasi CAPTCHA gagal. Silakan centang kotak "I\'m not a robot".')->withInput();
         }
 
-        $kode = strtolower($request->input('kode_reseller'));
-        $pin = $request->input('pin');
+        $request->validate([
+            'kode_reseller' => 'required|string|max:50',
+            'pin'           => 'required|string|max:50',
+        ]);
+
+        $kode = strip_tags(trim(strtolower((string)$request->input('kode_reseller'))));
+        $pin = (string)$request->input('pin');
 
         // Check if reseller exists in OtomaX
         $resResult = $this->otomaXService->call('GetRs', ['kode' => $kode]);
@@ -87,41 +110,24 @@ class WebreportController extends Controller
 
             if ($this->parseResponse($verification)) {
                 \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
+                $request->session()->regenerate(); // Prevent Session Fixation
                 Session::put('logged_in_reseller_code', $kode);
                 $displayName = $reseller['nama'] ?? $reseller['name'] ?? $kode;
+
+                \Illuminate\Support\Facades\Log::info("AUDIT: Reseller login SUCCESS for [{$kode}] from IP: {$request->ip()}");
                 return redirect()->route('webreport.dashboard')->with('success', 'Selamat datang kembali, ' . $displayName);
             }
         }
 
-        // If OtomaX login failed or reseller not found, check local Registration table for pending users
-        // The user might have entered their email or no_hp instead of a Kode Reseller
-        $pendingUser = \App\Models\Registration::where(function($query) use ($kode) {
-                $query->where('email', $kode)->orWhere('no_hp', $kode);
-            })
-            ->where('pin', $pin)
-            ->first();
-
-        if ($pendingUser) {
-            if ($pendingUser->status === 'pending') {
-                \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
-                Session::put('pending_login_id', $pendingUser->id);
-                return redirect()->route('webreport.dashboard');
-            } elseif ($pendingUser->status === 'approved') {
-                \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
-                return back()->with('error', 'Akun Anda sudah disetujui. Silakan login menggunakan Kode Reseller yang telah dikirim ke email/WA Anda.');
-            } elseif ($pendingUser->status === 'rejected') {
-                \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
-                return back()->with('error', 'Pendaftaran Anda ditolak. Silakan hubungi admin.');
-            }
-        }
-
-        // If both OtomaX and local check fail, log hit and return appropriate error
+        // If OtomaX check fails, return error
         \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
-        $errorDesc = 'PIN yang Anda masukkan salah atau Akun tidak ditemukan!';
+        \Illuminate\Support\Facades\Log::warning("AUDIT: Reseller login FAILED for [{$kode}] from IP: {$request->ip()}");
+
+        $errorDesc = 'PIN yang Anda masukkan salah atau Kode Reseller tidak ditemukan!';
         if (isset($verification)) {
             $errorDesc = $verification['desc'] ?? $verification['message'] ?? $errorDesc;
         } elseif (!$reseller) {
-            $errorDesc = $resResult['desc'] ?? $resResult['message'] ?? 'Kode Reseller / Email / No. HP tidak terdaftar!';
+            $errorDesc = $resResult['desc'] ?? $resResult['message'] ?? 'Kode Reseller tidak terdaftar!';
         }
         
         return back()->with('error', $errorDesc);
@@ -130,10 +136,15 @@ class WebreportController extends Controller
     /**
      * Handle logout request
      */
-    public function logout()
+    public function logout(Request $request)
     {
+        $current = Session::get('logged_in_reseller_code', 'unknown');
+        \Illuminate\Support\Facades\Log::info("AUDIT: Reseller logout for [{$current}] from IP: {$request->ip()}");
+
         Session::forget('logged_in_reseller_code');
-        Session::forget('pending_login_id');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('webreport.login')->with('success', 'Anda telah berhasil keluar.');
     }
 
@@ -142,74 +153,10 @@ class WebreportController extends Controller
      */
     protected function checkAuth()
     {
-        if (Session::has('pending_login_id')) {
-            return null; // Let the action handle it
-        }
         if (!Session::has('logged_in_reseller_code')) {
             return redirect()->route('webreport.login');
         }
         return null;
-    }
-
-    /**
-     * Handle document uploads for pending registrations
-     */
-    public function uploadDocuments(Request $request)
-    {
-        if (!Session::has('pending_login_id')) {
-            return redirect()->route('webreport.login');
-        }
-
-        $reg = \App\Models\Registration::find(Session::get('pending_login_id'));
-        if (!$reg || $reg->status !== 'pending') {
-            Session::forget('pending_login_id');
-            return redirect()->route('webreport.login');
-        }
-
-        $request->validate([
-            'jenis_pks' => 'required|in:perorangan,badan_usaha',
-            'foto_ktp'  => 'required|file|mimes:jpg,jpeg,png|max:3072',
-            'berkas'    => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:3072',
-            'foto_npwp' => 'nullable|file|mimes:jpg,jpeg,png|max:3072',
-        ], [
-            'jenis_pks.required' => 'Jenis PKS wajib dipilih.',
-            'jenis_pks.in'       => 'Jenis PKS tidak valid.',
-            'foto_ktp.required' => 'Foto KTP wajib diunggah.',
-            'foto_ktp.mimes'    => 'Foto KTP harus berformat JPG atau PNG.',
-            'foto_ktp.max'      => 'Ukuran Foto KTP maksimal 3MB.',
-            'berkas.required'   => 'Berkas PKS wajib diunggah.',
-            'berkas.mimes'      => 'Berkas PKS harus berformat PDF, JPG, PNG, atau DOC/DOCX.',
-            'berkas.max'        => 'Ukuran berkas PKS maksimal 3MB.',
-            'foto_npwp.mimes'   => 'Foto NPWP harus berformat JPG atau PNG.',
-            'foto_npwp.max'     => 'Ukuran Foto NPWP maksimal 3MB.',
-        ]);
-
-        $reg->jenis_pks = $request->input('jenis_pks');
-
-        $safeName = str_replace(' ', '_', $reg->nama);
-
-        if ($request->hasFile('foto_ktp')) {
-            $fileKtp = $request->file('foto_ktp');
-            $nameKtp = time() . '_ktp_' . $safeName . '.' . $fileKtp->getClientOriginalExtension();
-            $reg->foto_ktp_path = $fileKtp->storeAs('registrations', $nameKtp, 'local');
-        }
-
-        if ($request->hasFile('berkas')) {
-            $fileBerkas = $request->file('berkas');
-            $nameBerkas = time() . '_berkas_' . $safeName . '.' . $fileBerkas->getClientOriginalExtension();
-            $reg->berkas_path = $fileBerkas->storeAs('registrations', $nameBerkas, 'local');
-            $reg->berkas_nama = $fileBerkas->getClientOriginalName();
-        }
-
-        if ($request->hasFile('foto_npwp')) {
-            $fileNpwp = $request->file('foto_npwp');
-            $nameNpwp = time() . '_npwp_' . $safeName . '.' . $fileNpwp->getClientOriginalExtension();
-            $reg->foto_npwp_path = $fileNpwp->storeAs('registrations', $nameNpwp, 'local');
-        }
-
-        $reg->save();
-
-        return redirect()->back()->with('success', 'Berkas berhasil diunggah. Tim kami akan segera meninjau akun Anda.');
     }
 
     /**
@@ -229,15 +176,6 @@ class WebreportController extends Controller
             return $redirect;
         }
 
-        if (Session::has('pending_login_id')) {
-            $reg = \App\Models\Registration::find(Session::get('pending_login_id'));
-            if (!$reg || $reg->status !== 'pending') {
-                Session::forget('pending_login_id');
-                return redirect()->route('webreport.login');
-            }
-            return view('webreport.pending-review', compact('reg'));
-        }
-
         $activeCode = $this->getActiveReseller();
         
         // Fetch Rs Info
@@ -254,12 +192,11 @@ class WebreportController extends Controller
         $walletBRes = $this->otomaXService->call('GetSaldoDompet', ['kode_reseller' => $activeCode, 'kode_dompet' => 'B']);
         $walletB = $this->parseResponse($walletBRes);
 
-        // List all registered resellers (for switcher)
+        // List reseller options
         $resellerList = [];
-        if (env('OTOMAX_MOCK_MODE', true) || empty(env('OTOMAX_API_URL'))) {
+        if (filter_var(env('OTOMAX_MOCK_MODE', false), FILTER_VALIDATE_BOOLEAN)) {
             $resellerList = Session::get('otomax_mock_resellers', []);
         } else {
-            // For live mode, we can show the logged in user as the switcher options
             $resellerList = [
                 $activeCode => [
                     'kode' => $activeCode,
@@ -308,16 +245,18 @@ class WebreportController extends Controller
         
         $startDate = $request->input('start_date', now()->subDays(7)->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
-        $limit = (int)$request->input('limit', 20);
+        $limit = $request->input('limit', '50');
         $tujuan = $request->input('tujuan', '');
         $produk = $request->input('produk', '');
         $refId = $request->input('ref_id', '');
         $status = $request->input('status', '');
 
-        // Jika request untuk ekspor excel, ambil seluruh data (limit diset besar)
-        $queryLimit = $limit;
+        // Hitung queryLimit berdasarkan opsi limit
+        $queryLimit = ($limit === 'semua' || $limit === 'all' || (int)$limit <= 0) ? 999999 : (int)$limit;
         if ($request->input('export') === 'excel') {
-            $queryLimit = 999999;
+            if (!$request->has('limit')) {
+                $queryLimit = 999999;
+            }
         }
 
         $trxResult = $this->otomaXService->call('GetTrxHistory', [
@@ -389,6 +328,26 @@ class WebreportController extends Controller
         $pendingTiket = $this->parseResponse($pendingResult, []);
         $banks = \Illuminate\Support\Facades\Cache::get('deposit_banks', []);
 
+        if (is_array($pendingTiket)) {
+            foreach ($pendingTiket as &$p) {
+                $pKode = $p['kode'] ?? null;
+                $pJumlah = $p['jumlah'] ?? null;
+                $meta = null;
+                if ($pKode) {
+                    $meta = \Illuminate\Support\Facades\Cache::get('deposit_ticket_meta_id_' . $pKode);
+                }
+                if (!$meta && $pJumlah) {
+                    $meta = \Illuminate\Support\Facades\Cache::get('deposit_ticket_meta_' . $pJumlah);
+                }
+                if ($meta) {
+                    $p['bank'] = $meta['bank'] ?? ($p['bank'] ?? '');
+                    $p['rekening'] = $meta['rekening'] ?? ($p['rekening'] ?? '');
+                    $p['atas_nama'] = $meta['atas_nama'] ?? ($p['atas_nama'] ?? '');
+                }
+            }
+            unset($p);
+        }
+
         return view('webreport.deposit', [
             'active_tab' => 'deposit',
             'active_reseller_code' => $activeCode,
@@ -409,24 +368,53 @@ class WebreportController extends Controller
 
         $request->validate([
             'nominal' => 'required|numeric|min:10000',
-            'bank' => 'required|string',
+            'bank' => 'required',
         ]);
 
         $activeCode = $this->getActiveReseller();
         $nominal = $request->input('nominal');
-        $bank = $request->input('bank');
+        $bankInput = $request->input('bank');
+        $banks = \Illuminate\Support\Facades\Cache::get('deposit_banks', []);
+
+        $selectedBank = null;
+        if (is_numeric($bankInput) && isset($banks[(int)$bankInput])) {
+            $selectedBank = $banks[(int)$bankInput];
+        } else {
+            foreach ($banks as $b) {
+                if (isset($b['rekening']) && $b['rekening'] === $bankInput) {
+                    $selectedBank = $b;
+                    break;
+                }
+                if (isset($b['bank']) && strcasecmp($b['bank'], $bankInput) === 0) {
+                    $selectedBank = $b;
+                    break;
+                }
+            }
+        }
+
+        if (!$selectedBank) {
+            $selectedBank = [
+                'bank' => is_string($bankInput) ? $bankInput : 'BCA',
+                'rekening' => '',
+                'atas_nama' => ''
+            ];
+        }
 
         $res = $this->otomaXService->call('RequestTiketDeposit', [
             'kode_reseller' => $activeCode,
             'nominal' => $nominal,
-            'bank' => $bank
+            'bank' => $selectedBank['bank'],
+            'rekening' => $selectedBank['rekening'],
+            'atas_nama' => $selectedBank['atas_nama'],
         ]);
 
         if ($res['ok']) {
             $data = $res['result'];
             return back()->with('tiket_success', [
                 'nominal' => $data['nominal'],
-                'bank' => $data['bank']
+                'bank' => $selectedBank['bank'],
+                'rekening' => $selectedBank['rekening'],
+                'atas_nama' => $selectedBank['atas_nama'],
             ]);
         }
 
@@ -484,7 +472,7 @@ class WebreportController extends Controller
     }
 
     /**
-     * Product price list page
+     * Product price list page (Member logged-in)
      */
     public function prices(Request $request)
     {
@@ -495,20 +483,98 @@ class WebreportController extends Controller
         $activeCode = $this->getActiveReseller();
         $filter = $request->input('filter', 'semua');
         $productCode = $request->input('product_code', '');
+        $kodeLevel = $request->input('level', '');
 
         $pricesRes = $this->otomaXService->call('GetDaftarHargaRs', [
             'kode_reseller' => $activeCode,
-            'kode_produk' => $productCode,
-            'sort_filter' => $filter
+            'kode_level'    => $kodeLevel,
+            'kode_produk'   => $productCode,
+            'sort_filter'   => $filter
         ]);
         $prices = $this->parseResponse($pricesRes, []);
+        $levelsRes = $this->otomaXService->call('GetLevels');
+        $levels = $this->parseResponse($levelsRes, []);
 
         return view('webreport.prices', [
-            'active_tab' => 'prices',
+            'active_tab'           => 'prices',
             'active_reseller_code' => $activeCode,
-            'filter' => $filter,
-            'product_code' => $productCode,
-            'prices' => is_array($prices) ? $prices : []
+            'filter'               => $filter,
+            'product_code'         => $productCode,
+            'kode_level'           => $kodeLevel,
+            'levels'               => is_array($levels) ? $levels : [],
+            'prices'               => is_array($prices) ? $prices : [],
+            'is_public'            => false
+        ]);
+    }
+
+    /**
+     * Public Price List page (Bisa di-share & dilihat publik tanpa login)
+     */
+    public function publicPricesToken(Request $request, $token)
+    {
+        $request->merge(['token' => $token]);
+        return $this->publicPrices($request);
+    }
+
+    public function publicPrices(Request $request)
+    {
+        $token = $request->input('token') ?? $request->route('token');
+        $activeLink = null;
+
+        if ($token) {
+            $links = Cache::get('generated_price_links', []);
+            $updated = false;
+            foreach ($links as &$item) {
+                if (($item['token'] ?? '') === $token) {
+                    $activeLink = $item;
+                    
+                    // Cek masa berlaku kadaluarsa
+                    if (!empty($item['expires_at'])) {
+                        if (Carbon::now()->greaterThan(Carbon::parse($item['expires_at']))) {
+                            return view('webreport.price-expired', [
+                                'link' => $item,
+                                'is_public' => true
+                            ]);
+                        }
+                    }
+
+                    // Tambah statistik kunjungan (hits)
+                    $item['hits'] = ($item['hits'] ?? 0) + 1;
+                    $updated = true;
+                    break;
+                }
+            }
+            if ($updated) {
+                Cache::forever('generated_price_links', $links);
+            }
+        }
+
+        $filter = $request->input('filter', 'semua');
+        $productCode = $request->input('product_code', '');
+        
+        // Jika tautan dibuat untuk level tertentu, utamakan level tersebut
+        $kodeLevel = $activeLink ? ($activeLink['level'] ?? '') : $request->input('level', '');
+
+        $pricesRes = $this->otomaXService->call('GetDaftarHargaRs', [
+            'kode_reseller' => '',
+            'kode_level'    => $kodeLevel,
+            'kode_produk'   => $productCode,
+            'sort_filter'   => $filter
+        ]);
+        $prices = $this->parseResponse($pricesRes, []);
+        $levelsRes = $this->otomaXService->call('GetLevels');
+        $levels = $this->parseResponse($levelsRes, []);
+
+        return view('webreport.prices', [
+            'active_tab'           => 'prices',
+            'active_reseller_code' => '',
+            'filter'               => $filter,
+            'product_code'         => $productCode,
+            'kode_level'           => $kodeLevel,
+            'levels'               => is_array($levels) ? $levels : [],
+            'prices'               => is_array($prices) ? $prices : [],
+            'is_public'            => true,
+            'active_link'          => $activeLink
         ]);
     }
 
@@ -613,8 +679,24 @@ class WebreportController extends Controller
     {
         $logoPath = \Illuminate\Support\Facades\Cache::get('site_logo_path');
         if ($logoPath && \Illuminate\Support\Facades\Storage::disk('local')->exists($logoPath)) {
-            return response()->file(\Illuminate\Support\Facades\Storage::disk('local')->path($logoPath));
+            $path = \Illuminate\Support\Facades\Storage::disk('local')->path($logoPath);
+            $mime = mime_content_type($path) ?: 'image/png';
+            return response()->file($path, [
+                'Content-Type' => $mime,
+                'Cache-Control' => 'no-cache, must-revalidate',
+            ]);
         }
+
+        $files = \Illuminate\Support\Facades\Storage::disk('local')->files('branding');
+        if (!empty($files)) {
+            $path = \Illuminate\Support\Facades\Storage::disk('local')->path($files[0]);
+            $mime = mime_content_type($path) ?: 'image/png';
+            return response()->file($path, [
+                'Content-Type' => $mime,
+                'Cache-Control' => 'no-cache, must-revalidate',
+            ]);
+        }
+
         return response()->json(['error' => 'Not found'], 404);
     }
 

@@ -1,207 +1,202 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light-style" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk - OtomaX Webreport</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>Masuk Reseller - {{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX') }} Webreport</title>
+    @php $memberLoginFavicon = $portal_logo_url ?? \Illuminate\Support\Facades\Cache::get('site_logo_url'); @endphp
+    @if($memberLoginFavicon)
+    <link rel="icon" type="image/x-icon" href="{{ $memberLoginFavicon }}">
+    <link rel="shortcut icon" href="{{ $memberLoginFavicon }}">
+    @endif
     
-    <!-- Fonts: Inter & Outfit -->
+    <!-- Clean Typography: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Icons: Boxicons -->
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         :root {
-            --bg-primary: #f3f4f6; /* Slate/Gray-100 like Laravel Breeze default background */
-            --bg-card: #ffffff;
-            --accent-primary: #2563eb; /* Blue-600 */
-            --accent-hover: #1d4ed8;
-            --text-primary: #1f2937; /* Gray-800 */
-            --text-secondary: #4b5563; /* Gray-600 */
-            --text-muted: #9ca3af; /* Gray-400 */
-            --danger: #e11d48; /* Red-600 */
-            --success: #059669; /* Green-600 */
-            --border-color: #e5e7eb; /* Gray-200 */
-            --radius: 8px;
-            --transition: all 0.15s ease-in-out;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --bs-primary: #2563eb;
+            --bs-body-bg: #f8fafc;
+            --bs-body-color: #334155;
+            --bs-border-color: #e2e8f0;
+            --theme-heading: #0f172a;
+            --theme-card-border: #e2e8f0;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
+            margin: 0;
+            font-size: 0.875rem;
         }
 
-        .auth-wrapper {
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .logo-wrap {
+        .authentication-wrapper {
             display: flex;
-            flex-direction: column;
+            width: 100%;
             align-items: center;
-            margin-bottom: 2rem;
+            justify-content: center;
         }
 
-        .logo-icon {
-            width: 48px;
-            height: 48px;
+        .authentication-inner {
+            max-width: 410px;
+            width: 100%;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            background: #e11d48; /* Accent Red */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-body {
+            padding: 2.25rem;
+        }
+
+        .app-brand-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #0f172a;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
-            margin-bottom: 0.75rem;
+            color: #ffffff;
         }
 
-        .logo-text {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #111827;
-            letter-spacing: -0.5px;
-        }
-
-        .logo-desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 2px;
-        }
-
-        .auth-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 0.4rem;
-        }
-
-        .form-control {
-            width: 100%;
-            background: #ffffff;
-            border: 1px solid #d1d5db; /* Gray-300 */
-            border-radius: var(--radius);
-            padding: 0.65rem 0.85rem;
-            color: var(--text-primary);
-            outline: none;
-            transition: var(--transition);
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        .form-control:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 1px var(--accent-primary);
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: var(--accent-primary);
-            color: #fff;
-            border: none;
-            padding: 0.65rem;
-            border-radius: var(--radius);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 0.5rem;
-            font-family: inherit;
-        }
-
-        .btn-submit:hover {
-            background: var(--accent-hover);
-        }
-
-        /* Alerts */
-        .alert {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            border-radius: var(--radius);
-            font-size: 13px;
-            margin-bottom: 1.25rem;
-            border: 1px solid transparent;
-        }
-
-        .alert-danger {
-            background: #fef2f2;
-            color: #991b1b;
-            border-color: #fca5a5;
-        }
-
-        .alert-success {
-            background: #ecfdf5;
-            color: #065f46;
-            border-color: #a7f3d0;
-        }
-
-        .alert svg {
-            flex-shrink: 0;
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 13.5px;
-            color: var(--text-secondary);
-        }
-
-        .auth-footer a {
-            color: var(--accent-primary);
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .demo-box {
-            margin-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            padding-top: 1.25rem;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .demo-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
+        .form-label {
+            font-size: 0.725rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.45rem;
+            display: block;
+        }
+
+        /* Seamless Modern Input Group */
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            overflow: hidden;
+        }
+
+        .input-group:focus-within {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .input-group-text {
+            background-color: #ffffff;
+            border: none;
+            color: #64748b;
+            padding: 0.65rem 0.75rem 0.65rem 0.9rem;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group .form-control {
+            border: none;
+            border-radius: 0;
+            font-size: 0.875rem;
+            color: #0f172a;
+            padding: 0.65rem 0.75rem 0.65rem 0.25rem;
+            background-color: transparent;
+            box-shadow: none !important;
+            flex-grow: 1;
+        }
+
+        .input-group .form-control:focus {
+            outline: none;
+            border: none;
+            box-shadow: none;
+        }
+
+        .input-group .btn-eye-toggle {
+            background-color: transparent;
+            border: none;
+            color: #64748b;
+            padding: 0 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            transition: color 0.15s ease;
+        }
+
+        .input-group .btn-eye-toggle:hover {
+            color: #0f172a;
+        }
+
+        .input-group .btn-eye-toggle:focus {
+            outline: none;
+            color: #2563eb;
+        }
+
+        .btn-primary {
+            background-color: #2563eb;
+            border: 1px solid #2563eb;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.7rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.15s ease-in-out;
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.99);
+        }
+
+        /* reCAPTCHA centering and responsiveness */
+        .recaptcha-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 1.25rem 0 0.5rem;
+            overflow: hidden;
+        }
+
+        .recaptcha-wrapper .g-recaptcha {
+            margin: 0 auto;
+            display: inline-block;
+        }
+
+        @media (max-width: 380px) {
+            .recaptcha-wrapper .g-recaptcha {
+                transform: scale(0.88);
+                transform-origin: center center;
+            }
         }
     </style>
 
@@ -225,69 +220,116 @@
 </head>
 <body>
 
-    <div class="auth-wrapper">
-        
-        <!-- Logo -->
-        <div class="logo-wrap">
-            @if(\Illuminate\Support\Facades\Cache::get('site_logo_url'))
-                <img src="{{ \Illuminate\Support\Facades\Cache::get('site_logo_url') }}" alt="Logo" style="height: 48px; max-width: 160px; object-fit: contain; margin-bottom: 0.5rem;">
-            @else
-                <div class="logo-icon">Ω</div>
-            @endif
-            <div class="logo-text">{{ \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX Portal') }}</div>
-            <div class="logo-desc">{{ \Illuminate\Support\Facades\Cache::get('site_subtitle', 'Webreport Reseller Network') }}</div>
-        </div>
-
-        <!-- Auth Card -->
-        <div class="auth-card">
+    <div class="authentication-wrapper">
+        <div class="authentication-inner">
             
-            <!-- Notifications -->
-            @if(session('error'))
-                <div class="alert alert-danger">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <span>{{ session('error') }}</span>
+            <div class="card">
+                <div class="card-body">
+                    
+                    <!-- App Brand -->
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                        @if($memberLoginFavicon)
+                            <img src="{{ $memberLoginFavicon }}" alt="Logo" style="height: 46px; max-width: 180px; object-fit: contain;">
+                        @else
+                            <div class="app-brand-logo">
+                                <i class="bx bx-bolt-circle fs-4"></i>
+                            </div>
+                            <span class="fs-4 fw-bold text-dark">{{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX') }}</span>
+                        @endif
+                    </div>
+
+                    <h5 class="mb-1 text-center fw-bold text-dark">Portal Reseller</h5>
+                    <p class="mb-4 text-center text-muted small">Silakan masuk untuk cek transaksi, saldo & mutasi.</p>
+
+                    <!-- Notifications -->
+                    @if(session('error'))
+                    <div class="alert alert-danger d-flex align-items-center py-2 px-3 mb-3 small" role="alert">
+                        <i class="bx bx-error-circle fs-5 me-2"></i>
+                        <div>{{ session('error') }}</div>
+                    </div>
+                    @endif
+
+                    @if(session('success'))
+                    <div class="alert alert-success d-flex align-items-center py-2 px-3 mb-3 small" role="alert">
+                        <i class="bx bx-check-circle fs-5 me-2"></i>
+                        <div>{{ session('success') }}</div>
+                    </div>
+                    @endif
+
+                    <!-- Form -->
+                    <form action="{{ route('webreport.login.post') }}" method="POST" id="loginForm">
+                        @csrf
+                        
+                        <div class="mb-3">
+                            <label for="kode_reseller" class="form-label">Kode Reseller / No. HP / Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-user"></i></span>
+                                <input type="text" name="kode_reseller" id="kode_reseller" class="form-control" placeholder="Contoh: RS0001 atau 081234xxx" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="pin" class="form-label">PIN Keamanan</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-lock-alt"></i></span>
+                                <input type="password" name="pin" id="pin" class="form-control" placeholder="••••••" required>
+                                <button class="btn-eye-toggle" type="button" onclick="togglePinVisibility()" title="Lihat PIN" tabindex="-1">
+                                    <i class="bx bx-show" id="pinEyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        @if(\Illuminate\Support\Facades\Cache::get('recaptcha_enabled') && \Illuminate\Support\Facades\Cache::get('recaptcha_site_key'))
+                        <div class="recaptcha-wrapper">
+                            <div class="g-recaptcha" data-sitekey="{{ \Illuminate\Support\Facades\Cache::get('recaptcha_site_key') }}"></div>
+                        </div>
+                        @endif
+
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 mt-3 fw-semibold">
+                            Masuk Sekarang
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3 pt-3 border-top">
+                        @php
+                            $loginRegUrl = !empty($portal_whatsapp_reg_url) && ($portal_registration_mode ?? 'whatsapp') !== 'form'
+                                ? $portal_whatsapp_reg_url
+                                : route('webreport.register');
+                            $isLoginWaReg = !empty($portal_whatsapp_reg_url) && ($portal_registration_mode ?? 'whatsapp') !== 'form';
+                        @endphp
+                        <p class="small text-muted mb-2">
+                            Belum memiliki akun? <a href="{{ $loginRegUrl }}" {{ $isLoginWaReg ? 'target="_blank" rel="noopener noreferrer"' : '' }} class="fw-semibold text-primary text-decoration-none">
+                                @if($isLoginWaReg)<i class="bx bxl-whatsapp text-success"></i>@endif Daftar Mitra Baru
+                            </a>
+                        </p>
+                        <a href="{{ route('webreport.landing') }}" class="small text-muted text-decoration-none d-inline-flex align-items-center gap-1">
+                            <i class="bx bx-arrow-back"></i> Kembali ke Beranda
+                        </a>
+                    </div>
+
                 </div>
-            @endif
-
-            @if(session('success'))
-                <div class="alert alert-success">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
-
-            <form action="{{ route('webreport.login.post') }}" method="POST" id="loginForm">
-                @csrf
-                <div class="form-group">
-                    <label for="kode_reseller">Kode Reseller / No. HP / Email</label>
-                    <input type="text" name="kode_reseller" id="kode_reseller" class="form-control" placeholder="Contoh: CMP001 atau 0812345678" required autofocus>
-                </div>
-
-                <div class="form-group">
-                    <label for="pin">PIN Keamanan</label>
-                    <input type="password" name="pin" id="pin" class="form-control" placeholder="••••••" required>
-                </div>
-
-                @if(\Illuminate\Support\Facades\Cache::get('recaptcha_enabled') && \Illuminate\Support\Facades\Cache::get('recaptcha_site_key'))
-                <div class="form-group" style="display: flex; justify-content: center; margin-bottom: 20px;">
-                    <div class="g-recaptcha" data-sitekey="{{ \Illuminate\Support\Facades\Cache::get('recaptcha_site_key') }}"></div>
-                </div>
-                @endif
-
-                <button type="submit" class="btn-submit">Masuk</button>
-            </form>
-
-            <div class="auth-footer">
-                Belum terdaftar? <a href="{{ route('webreport.register') }}">Daftar Reseller Baru</a>
             </div>
 
-        </div>
+            <!-- Footer Copyright -->
+            <p class="text-center text-muted small mt-3 mb-0">
+                &copy; {{ date('Y') }} {{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX') }} Webreport. All rights reserved.
+            </p>
 
+        </div>
     </div>
 
+    <script>
+        function togglePinVisibility() {
+            const pinInput = document.getElementById('pin');
+            const eyeIcon = document.getElementById('pinEyeIcon');
+            if (pinInput.type === 'password') {
+                pinInput.type = 'text';
+                eyeIcon.className = 'bx bx-hide';
+            } else {
+                pinInput.type = 'password';
+                eyeIcon.className = 'bx bx-show';
+            }
+        }
+    </script>
 </body>
 </html>

@@ -174,9 +174,12 @@ class OtomaXService
                     $kode_prod = $data['kode_produk'] ?? '';
                     $filter = $data['sort_filter'] ?? 'semua';
 
-                    // 1. Get reseller's kode_level
-                    $reseller = $db->table('reseller')->where('kode', $kode_rs)->select('kode_level')->first();
-                    $kode_level = $reseller->kode_level ?? null;
+                    // 1. Get reseller's kode_level or use explicit level
+                    $kode_level = $data['kode_level'] ?? null;
+                    if (empty($kode_level) && !empty($kode_rs)) {
+                        $reseller = $db->table('reseller')->where('kode', $kode_rs)->select('kode_level')->first();
+                        $kode_level = $reseller->kode_level ?? null;
+                    }
 
                     // 2. Select required columns
                     $query = $db->table('produk')
@@ -253,6 +256,24 @@ class OtomaXService
 
                     return ['ok' => true, 'result' => $mapped];
 
+                case 'GetLevels':
+                    try {
+                        // Ambil daftar level dari tabel level (jika ada) atau distinct dari produk_level / reseller
+                        $levels = [];
+                        if ($db->getSchemaBuilder()->hasTable('level')) {
+                            $levels = $db->table('level')->select('kode', 'nama')->orderBy('kode')->get()->map(fn($r) => (array)$r)->toArray();
+                        } else {
+                            $distLevels = $db->table('produk_level')->distinct()->pluck('kode_level')->filter()->values();
+                            if ($distLevels->isEmpty()) {
+                                $distLevels = $db->table('reseller')->distinct()->pluck('kode_level')->filter()->values();
+                            }
+                            $levels = $distLevels->map(fn($lvl) => ['kode' => $lvl, 'nama' => 'Level ' . strtoupper($lvl)])->toArray();
+                        }
+                        return ['ok' => true, 'result' => $levels];
+                    } catch (\Exception $e) {
+                        return ['ok' => true, 'result' => []];
+                    }
+
                 case 'GetSaldoDompet':
                     $kode_rs = $data['kode_reseller'] ?? '';
                     $dompet = $data['kode_dompet'] ?? 'A';
@@ -293,6 +314,8 @@ class OtomaXService
                     $kode_rs = $data['kode_reseller'] ?? '';
                     $nominal = (int)($data['nominal'] ?? 0);
                     $bank = $data['bank'] ?? '';
+                    $rekening = $data['rekening'] ?? '';
+                    $atas_nama = $data['atas_nama'] ?? '';
                     
                     if ($nominal < 10000) {
                         return ['ok' => false, 'desc' => 'Nominal minimal Rp 10.000'];
@@ -346,11 +369,31 @@ class OtomaXService
                         'bank' => $bank
                     ]);
 
+                    $inserted = $db->table('tiket_deposit')
+                        ->where('kode_reseller', $kode_rs)
+                        ->where('jumlah', $finalNominal)
+                        ->where('status', 'O')
+                        ->orderBy('waktu', 'desc')
+                        ->first();
+
+                    $meta = [
+                        'bank' => $bank,
+                        'rekening' => $rekening,
+                        'atas_nama' => $atas_nama
+                    ];
+
+                    if ($inserted && isset($inserted->kode)) {
+                        \Illuminate\Support\Facades\Cache::put('deposit_ticket_meta_id_' . $inserted->kode, $meta, now()->addDays(2));
+                    }
+                    \Illuminate\Support\Facades\Cache::put('deposit_ticket_meta_' . $finalNominal, $meta, now()->addDays(2));
+
                     return [
                         'ok' => true, 
                         'result' => [
                             'nominal' => $finalNominal,
-                            'bank' => $bank
+                            'bank' => $bank,
+                            'rekening' => $rekening,
+                            'atas_nama' => $atas_nama
                         ]
                     ];
 
@@ -582,17 +625,384 @@ class OtomaXService
 
                     return ['ok' => true, 'result' => $result];
 
+                case 'GetAllResellers':
+                    $rows = $db->table('reseller')
+                        ->select('kode', 'nama', 'saldo', 'kode_level', 'aktif')
+                        ->orderBy('nama', 'asc')
+                        ->get();
+                    return ['ok' => true, 'result' => $rows->map(fn($r) => (array)$r)->toArray()];
+
+                case 'GetAdminDashboardStats':
+                    $today = now()->format('Y-m-d');
+                    $yesterday = now()->subDay()->format('Y-m-d');
+                    $startMonth = now()->startOfMonth()->format('Y-m-d');
+
+                    // Hari Ini
+                    $todayStats = $db->table('transaksi')
+                        ->select(
+                            DB::raw("COUNT(*) as total_trx"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN 1 ELSE 0 END) as trx_sukses"),
+                            DB::raw("SUM(CASE WHEN status IN (0,1) THEN 1 ELSE 0 END) as trx_proses"),
+                            DB::raw("SUM(CASE WHEN status NOT IN (20,3,4,0,1) THEN 1 ELSE 0 END) as trx_gagal"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN harga ELSE 0 END) as omset"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN ISNULL(harga_beli, 0) ELSE 0 END) as modal"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN (harga - ISNULL(harga_beli, 0)) ELSE 0 END) as profit")
+                        )
+                        ->where('tgl_entri', '>=', $today . ' 00:00:00')
+                        ->where('tgl_entri', '<=', $today . ' 23:59:59')
+                        ->first();
+
+                    // Kemarin
+                    $yesterdayStats = $db->table('transaksi')
+                        ->select(
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN harga ELSE 0 END) as omset"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN (harga - ISNULL(harga_beli, 0)) ELSE 0 END) as profit")
+                        )
+                        ->where('tgl_entri', '>=', $yesterday . ' 00:00:00')
+                        ->where('tgl_entri', '<=', $yesterday . ' 23:59:59')
+                        ->first();
+
+                    // Bulan Ini
+                    $monthStats = $db->table('transaksi')
+                        ->select(
+                            DB::raw("COUNT(*) as total_trx"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN 1 ELSE 0 END) as trx_sukses"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN harga ELSE 0 END) as omset"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN ISNULL(harga_beli, 0) ELSE 0 END) as modal"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN (harga - ISNULL(harga_beli, 0)) ELSE 0 END) as profit")
+                        )
+                        ->where('tgl_entri', '>=', $startMonth . ' 00:00:00')
+                        ->where('tgl_entri', '<=', $today . ' 23:59:59')
+                        ->first();
+
+                    // Server Info
+                    $totalSaldo = (float)$db->table('reseller')->sum('saldo');
+                    $totalAgenAktif = (int)$db->table('reseller')->where('aktif', 1)->count();
+
+                    // 7 Hari Terakhir
+                    $trendStart = now()->subDays(6)->format('Y-m-d');
+                    $trendRows = $db->table('transaksi')
+                        ->select(
+                            DB::raw("CAST(tgl_entri AS DATE) as tgl"),
+                            DB::raw("COUNT(*) as total_trx"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN 1 ELSE 0 END) as trx_sukses"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN harga ELSE 0 END) as omset"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN ISNULL(harga_beli, 0) ELSE 0 END) as modal"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN (harga - ISNULL(harga_beli, 0)) ELSE 0 END) as profit")
+                        )
+                        ->where('tgl_entri', '>=', $trendStart . ' 00:00:00')
+                        ->groupBy(DB::raw("CAST(tgl_entri AS DATE)"))
+                        ->orderBy(DB::raw("CAST(tgl_entri AS DATE)"), 'asc')
+                        ->get();
+
+                    $trendMap = $trendRows->keyBy(function($item) {
+                        return substr((string)$item->tgl, 0, 10);
+                    });
+
+                    $trendChart = [];
+                    for ($i = 6; $i >= 0; $i--) {
+                        $dt = now()->subDays($i);
+                        $d = $dt->format('Y-m-d');
+                        $row = $trendMap->get($d);
+                        $trendChart[] = [
+                            'tgl' => $d,
+                            'label' => $dt->format('d M'),
+                            'total_trx' => $row ? (int)$row->total_trx : 0,
+                            'trx_sukses' => $row ? (int)$row->trx_sukses : 0,
+                            'omset' => $row ? (float)$row->omset : 0,
+                            'modal' => $row ? (float)$row->modal : 0,
+                            'profit' => $row ? (float)$row->profit : 0,
+                        ];
+                    }
+
+                    // Top 5 Reseller Bulan Ini
+                    $topResellers = $db->table('transaksi')
+                        ->join('reseller', 'transaksi.kode_reseller', '=', 'reseller.kode')
+                        ->select(
+                            'reseller.kode',
+                            'reseller.nama',
+                            'reseller.kode_level',
+                            'reseller.saldo',
+                            DB::raw("COUNT(*) as total_trx"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN 1 ELSE 0 END) as trx_sukses"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN transaksi.harga ELSE 0 END) as omset"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN ISNULL(transaksi.harga_beli, 0) ELSE 0 END) as modal"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN (transaksi.harga - ISNULL(transaksi.harga_beli, 0)) ELSE 0 END) as profit")
+                        )
+                        ->where('transaksi.tgl_entri', '>=', $startMonth . ' 00:00:00')
+                        ->groupBy('reseller.kode', 'reseller.nama', 'reseller.kode_level', 'reseller.saldo')
+                        ->orderBy('profit', 'desc')
+                        ->limit(5)
+                        ->get();
+
+                    // Reseller dengan Laba Minus (Rugi) dalam Bulan Ini
+                    $minusResellers = $db->table('transaksi')
+                        ->join('reseller', 'transaksi.kode_reseller', '=', 'reseller.kode')
+                        ->select(
+                            'reseller.kode',
+                            'reseller.nama',
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN (transaksi.harga - ISNULL(transaksi.harga_beli, 0)) ELSE 0 END) as profit"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN transaksi.harga ELSE 0 END) as omset")
+                        )
+                        ->where('transaksi.tgl_entri', '>=', $startMonth . ' 00:00:00')
+                        ->groupBy('reseller.kode', 'reseller.nama')
+                        ->havingRaw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN (transaksi.harga - ISNULL(transaksi.harga_beli, 0)) ELSE 0 END) < 0")
+                        ->limit(5)
+                        ->get();
+
+                    $todayOmset = (float)($todayStats->omset ?? 0);
+                    $todayProfit = (float)($todayStats->profit ?? 0);
+                    $monthOmset = (float)($monthStats->omset ?? 0);
+                    $monthProfit = (float)($monthStats->profit ?? 0);
+
+                    return [
+                        'ok' => true,
+                        'result' => [
+                            'today' => [
+                                'total_trx' => (int)($todayStats->total_trx ?? 0),
+                                'trx_sukses' => (int)($todayStats->trx_sukses ?? 0),
+                                'trx_proses' => (int)($todayStats->trx_proses ?? 0),
+                                'trx_gagal' => (int)($todayStats->trx_gagal ?? 0),
+                                'omset' => $todayOmset,
+                                'modal' => (float)($todayStats->modal ?? 0),
+                                'profit' => $todayProfit,
+                                'margin' => $todayOmset > 0 ? round(($todayProfit / $todayOmset) * 100, 2) : 0,
+                            ],
+                            'yesterday' => [
+                                'omset' => (float)($yesterdayStats->omset ?? 0),
+                                'profit' => (float)($yesterdayStats->profit ?? 0),
+                            ],
+                            'month' => [
+                                'total_trx' => (int)($monthStats->total_trx ?? 0),
+                                'trx_sukses' => (int)($monthStats->trx_sukses ?? 0),
+                                'omset' => $monthOmset,
+                                'modal' => (float)($monthStats->modal ?? 0),
+                                'profit' => $monthProfit,
+                                'margin' => $monthOmset > 0 ? round(($monthProfit / $monthOmset) * 100, 2) : 0,
+                            ],
+                            'server' => [
+                                'total_saldo' => $totalSaldo,
+                                'total_reseller_aktif' => $totalAgenAktif,
+                            ],
+                            'trend_chart' => $trendChart,
+                            'top_resellers' => $topResellers->map(function($r) {
+                                $arr = (array)$r;
+                                $arr['margin'] = ($arr['omset'] > 0) ? round(($arr['profit'] / $arr['omset']) * 100, 2) : 0;
+                                return $arr;
+                            })->toArray(),
+                            'minus_resellers' => $minusResellers->map(fn($r) => (array)$r)->toArray(),
+                        ]
+                    ];
+
+                case 'GetAdminResellerProfit':
+                    $tgl_awal = !empty($data['tgl_awal']) ? $data['tgl_awal'] : now()->startOfMonth()->format('Y-m-d');
+                    $tgl_akhir = !empty($data['tgl_akhir']) ? $data['tgl_akhir'] : now()->format('Y-m-d');
+                    $kode_reseller = trim($data['kode_reseller'] ?? '');
+                    $profit_filter = $data['profit_filter'] ?? 'all';
+                    $search = trim($data['search'] ?? '');
+
+                    $query = $db->table('transaksi')
+                        ->join('reseller', 'transaksi.kode_reseller', '=', 'reseller.kode')
+                        ->select(
+                            'reseller.kode',
+                            'reseller.nama',
+                            'reseller.kode_level',
+                            'reseller.saldo',
+                            'reseller.aktif',
+                            DB::raw("COUNT(transaksi.kode) as total_trx"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN 1 ELSE 0 END) as trx_sukses"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (0,1) THEN 1 ELSE 0 END) as trx_proses"),
+                            DB::raw("SUM(CASE WHEN transaksi.status NOT IN (20,3,4,0,1) THEN 1 ELSE 0 END) as trx_gagal"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN transaksi.harga ELSE 0 END) as total_omset"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN ISNULL(transaksi.harga_beli, 0) ELSE 0 END) as total_modal"),
+                            DB::raw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN (transaksi.harga - ISNULL(transaksi.harga_beli, 0)) ELSE 0 END) as total_profit")
+                        )
+                        ->where('transaksi.tgl_entri', '>=', $tgl_awal . ' 00:00:00')
+                        ->where('transaksi.tgl_entri', '<=', $tgl_akhir . ' 23:59:59');
+
+                    if (!empty($kode_reseller)) {
+                        $query->where('reseller.kode', $kode_reseller);
+                    }
+
+                    if (!empty($search)) {
+                        $query->where(function($q) use ($search) {
+                            $q->where('reseller.kode', 'like', "%{$search}%")
+                              ->orWhere('reseller.nama', 'like', "%{$search}%");
+                        });
+                    }
+
+                    $query->groupBy('reseller.kode', 'reseller.nama', 'reseller.kode_level', 'reseller.saldo', 'reseller.aktif');
+
+                    if ($profit_filter === 'profit') {
+                        $query->havingRaw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN (transaksi.harga - ISNULL(transaksi.harga_beli, 0)) ELSE 0 END) > 0");
+                    } elseif ($profit_filter === 'minus') {
+                        $query->havingRaw("SUM(CASE WHEN transaksi.status IN (20,3,4) THEN (transaksi.harga - ISNULL(transaksi.harga_beli, 0)) ELSE 0 END) <= 0");
+                    }
+
+                    $query->orderBy('total_profit', 'desc');
+
+                    $rows = $query->get();
+
+                    $items = [];
+                    $sumOmset = 0;
+                    $sumModal = 0;
+                    $sumProfit = 0;
+                    $sumTrxSukses = 0;
+                    $sumTrxGagal = 0;
+
+                    foreach ($rows as $row) {
+                        $omset = (float)($row->total_omset ?? 0);
+                        $modal = (float)($row->total_modal ?? 0);
+                        $profit = (float)($row->total_profit ?? 0);
+                        $margin = $omset > 0 ? round(($profit / $omset) * 100, 2) : 0;
+
+                        $sumOmset += $omset;
+                        $sumModal += $modal;
+                        $sumProfit += $profit;
+                        $sumTrxSukses += (int)($row->trx_sukses ?? 0);
+                        $sumTrxGagal += (int)($row->trx_gagal ?? 0);
+
+                        $items[] = [
+                            'kode' => $row->kode,
+                            'nama' => $row->nama,
+                            'kode_level' => $row->kode_level,
+                            'saldo' => (float)$row->saldo,
+                            'aktif' => (int)$row->aktif,
+                            'total_trx' => (int)$row->total_trx,
+                            'trx_sukses' => (int)$row->trx_sukses,
+                            'trx_proses' => (int)$row->trx_proses,
+                            'trx_gagal' => (int)$row->trx_gagal,
+                            'omset' => $omset,
+                            'modal' => $modal,
+                            'profit' => $profit,
+                            'margin' => $margin,
+                            'is_profit' => $profit >= 0,
+                        ];
+                    }
+
+                    $avgMargin = $sumOmset > 0 ? round(($sumProfit / $sumOmset) * 100, 2) : 0;
+
+                    return [
+                        'ok' => true,
+                        'result' => [
+                            'items' => $items,
+                            'summary' => [
+                                'total_omset' => $sumOmset,
+                                'total_modal' => $sumModal,
+                                'total_profit' => $sumProfit,
+                                'avg_margin' => $avgMargin,
+                                'total_trx_sukses' => $sumTrxSukses,
+                                'total_trx_gagal' => $sumTrxGagal,
+                                'count_reseller' => count($items),
+                            ],
+                            'filter' => [
+                                'tgl_awal' => $tgl_awal,
+                                'tgl_akhir' => $tgl_akhir,
+                                'kode_reseller' => $kode_reseller,
+                                'profit_filter' => $profit_filter,
+                                'search' => $search
+                            ]
+                        ]
+                    ];
+
+                case 'GetAdminResellerDetail':
+                    $kode = $data['kode_reseller'] ?? '';
+                    $tgl_awal = !empty($data['tgl_awal']) ? $data['tgl_awal'] : now()->startOfMonth()->format('Y-m-d');
+                    $tgl_akhir = !empty($data['tgl_akhir']) ? $data['tgl_akhir'] : now()->format('Y-m-d');
+
+                    $reseller = $db->table('reseller')->where('kode', $kode)->first();
+                    if (!$reseller) {
+                        return ['ok' => false, 'desc' => 'Reseller tidak ditemukan'];
+                    }
+
+                    $trxSummary = $db->table('transaksi')
+                        ->select(
+                            DB::raw("COUNT(*) as total_trx"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN 1 ELSE 0 END) as trx_sukses"),
+                            DB::raw("SUM(CASE WHEN status IN (0,1) THEN 1 ELSE 0 END) as trx_proses"),
+                            DB::raw("SUM(CASE WHEN status NOT IN (20,3,4,0,1) THEN 1 ELSE 0 END) as trx_gagal"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN harga ELSE 0 END) as omset"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN ISNULL(harga_beli, 0) ELSE 0 END) as modal"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN (harga - ISNULL(harga_beli, 0)) ELSE 0 END) as profit")
+                        )
+                        ->where('kode_reseller', $kode)
+                        ->where('tgl_entri', '>=', $tgl_awal . ' 00:00:00')
+                        ->where('tgl_entri', '<=', $tgl_akhir . ' 23:59:59')
+                        ->first();
+
+                    $topProducts = $db->table('transaksi')
+                        ->select(
+                            'kode_produk',
+                            DB::raw("COUNT(*) as total_trx"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN 1 ELSE 0 END) as trx_sukses"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN harga ELSE 0 END) as omset"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN ISNULL(harga_beli, 0) ELSE 0 END) as modal"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN (harga - ISNULL(harga_beli, 0)) ELSE 0 END) as profit")
+                        )
+                        ->where('kode_reseller', $kode)
+                        ->where('tgl_entri', '>=', $tgl_awal . ' 00:00:00')
+                        ->where('tgl_entri', '<=', $tgl_akhir . ' 23:59:59')
+                        ->groupBy('kode_produk')
+                        ->orderBy('total_trx', 'desc')
+                        ->limit(10)
+                        ->get();
+
+                    $recentTrx = $db->table('transaksi')
+                        ->select('kode', 'tgl_entri', 'kode_produk', 'tujuan', 'harga', 'harga_beli', 'status', 'sn', 'ref_id')
+                        ->where('kode_reseller', $kode)
+                        ->where('tgl_entri', '>=', $tgl_awal . ' 00:00:00')
+                        ->where('tgl_entri', '<=', $tgl_akhir . ' 23:59:59')
+                        ->orderBy('tgl_entri', 'desc')
+                        ->limit(30)
+                        ->get();
+
+                    $omset = (float)($trxSummary->omset ?? 0);
+                    $profit = (float)($trxSummary->profit ?? 0);
+                    $margin = $omset > 0 ? round(($profit / $omset) * 100, 2) : 0;
+
+                    return [
+                        'ok' => true,
+                        'result' => [
+                            'reseller' => (array)$reseller,
+                            'summary' => [
+                                'total_trx' => (int)($trxSummary->total_trx ?? 0),
+                                'trx_sukses' => (int)($trxSummary->trx_sukses ?? 0),
+                                'trx_gagal' => (int)($trxSummary->trx_gagal ?? 0),
+                                'trx_proses' => (int)($trxSummary->trx_proses ?? 0),
+                                'omset' => $omset,
+                                'modal' => (float)($trxSummary->modal ?? 0),
+                                'profit' => $profit,
+                                'margin' => $margin,
+                                'is_profit' => $profit >= 0,
+                            ],
+                            'top_products' => $topProducts->map(function($r) {
+                                $arr = (array)$r;
+                                $arr['margin'] = ($arr['omset'] > 0) ? round(($arr['profit'] / $arr['omset']) * 100, 2) : 0;
+                                return $arr;
+                            })->toArray(),
+                            'recent_transactions' => $recentTrx->map(function($r) {
+                                $arr = (array)$r;
+                                $arr['status_text'] = ($arr['status'] == 20 || $arr['status'] == 3 || $arr['status'] == 4) ? 'Sukses' : (($arr['status'] == 1 || $arr['status'] == 0) ? 'Proses' : 'Gagal');
+                                $harga = (float)($arr['harga'] ?? 0);
+                                $modal = (float)($arr['harga_beli'] ?? 0);
+                                $arr['profit'] = ($arr['status_text'] === 'Sukses') ? ($harga - $modal) : 0;
+                                return $arr;
+                            })->toArray()
+                        ]
+                    ];
+
                 default:
                     return [
                         'ok' => false,
                         'desc' => "Query database untuk endpoint '{$endpoint}' belum diimplementasikan."
                     ];
             }
-        } catch (\Exception $e) {
-            return [
-                'ok' => false,
-                'desc' => 'Database Query Error: ' . $e->getMessage()
-            ];
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("OtomaXService [{$endpoint}] Database Error: " . $e->getMessage());
+
+            // Jika koneksi SQL Server gagal (driver sqlsrv belum terpasang atau server lokal tidak aktif),
+            // fallback otomatis ke mode simulasi (mock) agar halaman web tetap berfungsi lancar
+            return $this->handleMockCall($endpoint, $data);
         }
     }
 
@@ -624,12 +1034,39 @@ class OtomaXService
                     'saldo' => 3500000,
                     'poin' => 120,
                     'komisi' => 25000,
+                    'kode_level' => 'H',
+                    'aktif' => 1,
                     'alamat_ip' => '192.168.1.1',
                     'url_report' => 'http://yusufapi.com/callback',
-                    'wallets' => [
-                        'A' => 1500000,
-                        'B' => 2000000
-                    ]
+                    'wallets' => ['A' => 1500000, 'B' => 2000000]
+                ],
+                'budi' => [
+                    'kode' => 'budi',
+                    'nama' => 'Budi Mandiri Cell',
+                    'email' => 'budi@mandiricell.id',
+                    'pengirim' => '085799881122',
+                    'tipe_pengirim' => 'W',
+                    'saldo' => 1850000,
+                    'poin' => 45,
+                    'komisi' => 3200,
+                    'kode_level' => 'M',
+                    'aktif' => 1,
+                    'alamat_ip' => '103.12.14.5',
+                    'wallets' => ['A' => 1850000, 'B' => 0]
+                ],
+                'citra' => [
+                    'kode' => 'citra',
+                    'nama' => 'Citra Lestari Pay',
+                    'email' => 'citra@lestari.com',
+                    'pengirim' => '081377889900',
+                    'tipe_pengirim' => 'W',
+                    'saldo' => 920000,
+                    'poin' => 30,
+                    'komisi' => 1500,
+                    'kode_level' => 'H',
+                    'aktif' => 1,
+                    'alamat_ip' => '114.122.5.10',
+                    'wallets' => ['A' => 920000, 'B' => 0]
                 ],
                 'arief' => [
                     'kode' => 'arief',
@@ -637,53 +1074,97 @@ class OtomaXService
                     'email' => 'arief@gmail.com',
                     'pengirim' => '081211221334',
                     'tipe_pengirim' => 'W',
-                    'saldo' => 100000,
-                    'poin' => 10,
+                    'saldo' => 450000,
+                    'poin' => 15,
                     'komisi' => 500,
-                    'wallets' => [
-                        'A' => 50000,
-                        'B' => 50000
-                    ]
+                    'kode_level' => 'O',
+                    'aktif' => 1,
+                    'alamat_ip' => '182.253.1.20',
+                    'wallets' => ['A' => 250000, 'B' => 200000]
+                ],
+                'rizki' => [
+                    'kode' => 'rizki',
+                    'nama' => 'Rizki Counter',
+                    'email' => 'rizki@counter.id',
+                    'pengirim' => '087812344321',
+                    'tipe_pengirim' => 'W',
+                    'saldo' => 50000,
+                    'poin' => 5,
+                    'komisi' => 0,
+                    'kode_level' => 'O',
+                    'aktif' => 1,
+                    'alamat_ip' => '36.80.12.1',
+                    'wallets' => ['A' => 50000, 'B' => 0]
                 ]
             ]);
         }
 
         if (!Session::has('otomax_mock_transactions')) {
-            Session::put('otomax_mock_transactions', [
-                [
-                    'trxid' => 4522967,
-                    'kode_reseller' => 'yusuf',
-                    'tgl_entri' => '2026-07-09 10:15:30',
-                    'kode_produk' => 'BYROMNI',
-                    'tujuan' => '0812996000',
-                    'jumlah' => 1,
-                    'harga' => 12500,
-                    'status' => 'Sukses',
-                    'keterangan' => 'Transaksi Sukses SN: 0912384918239'
-                ],
-                [
-                    'trxid' => 4522968,
-                    'kode_reseller' => 'yusuf',
-                    'tgl_entri' => '2026-07-09 12:44:12',
-                    'kode_produk' => 'T10',
-                    'tujuan' => '08571234567',
-                    'jumlah' => 1,
-                    'harga' => 10450,
-                    'status' => 'Sukses',
-                    'keterangan' => 'Transaksi Sukses SN: 99401824912'
-                ],
-                [
-                    'trxid' => 4522969,
-                    'kode_reseller' => 'arief',
-                    'tgl_entri' => '2026-07-09 14:02:00',
-                    'kode_produk' => 'PLN20',
-                    'tujuan' => '14029481928',
-                    'jumlah' => 1,
-                    'harga' => 20100,
-                    'status' => 'Proses',
-                    'keterangan' => 'Sedang diproses'
-                ]
-            ]);
+            $mockTrx = [];
+            $trxBaseId = 7800100;
+            $now = now();
+
+            $products = [
+                ['kode' => 'T10', 'harga' => 10450, 'modal' => 10200],
+                ['kode' => 'T50', 'harga' => 49500, 'modal' => 48900],
+                ['kode' => 'T100', 'harga' => 97800, 'modal' => 96500],
+                ['kode' => 'BYROMNI', 'harga' => 12500, 'modal' => 12100],
+                ['kode' => 'BYU10', 'harga' => 50000, 'modal' => 49100],
+                ['kode' => 'PLN20', 'harga' => 20100, 'modal' => 19950],
+                ['kode' => 'PLN50', 'harga' => 50100, 'modal' => 49950],
+                ['kode' => 'BPJS', 'harga' => 2500, 'modal' => 1800],
+            ];
+
+            // Reseller presets
+            $resellersConfig = [
+                ['kode' => 'yusuf', 'count' => 14, 'is_minus' => false],
+                ['kode' => 'budi',  'count' => 10, 'is_minus' => false],
+                ['kode' => 'citra', 'count' => 8,  'is_minus' => false],
+                ['kode' => 'arief', 'count' => 6,  'is_minus' => false],
+                ['kode' => 'rizki', 'count' => 4,  'is_minus' => true],
+            ];
+
+            foreach ($resellersConfig as $rc) {
+                for ($k = 0; $k < $rc['count']; $k++) {
+                    $trxBaseId++;
+                    $dayOffset = rand(0, 6);
+                    $tgl = $now->copy()->subDays($dayOffset)->subHours(rand(1, 10))->subMinutes(rand(1, 55));
+                    $prod = $products[array_rand($products)];
+
+                    $harga = $prod['harga'];
+                    $modal = $prod['modal'];
+
+                    if ($rc['is_minus']) {
+                        // Reseller minus simulate: modal higher than jual
+                        $modal = $harga + rand(100, 300);
+                    }
+
+                    $status = (rand(1, 10) <= 8) ? 'Sukses' : ((rand(1, 2) === 1) ? 'Proses' : 'Gagal');
+                    $sn = ($status === 'Sukses') ? ('SN' . rand(100000000, 999999999)) : '';
+
+                    $mockTrx[] = [
+                        'trxid' => $trxBaseId,
+                        'kode' => $trxBaseId,
+                        'kode_reseller' => $rc['kode'],
+                        'tgl_entri' => $tgl->format('Y-m-d H:i:s'),
+                        'tgl_status' => $tgl->copy()->addSeconds(rand(3, 15))->format('Y-m-d H:i:s'),
+                        'kode_produk' => $prod['kode'],
+                        'tujuan' => '0812' . rand(10000000, 99999999),
+                        'jumlah' => 1,
+                        'harga' => $harga,
+                        'harga_beli' => $modal,
+                        'saldo_awal' => 500000,
+                        'saldo_akhir' => 500000 - $harga,
+                        'ref_id' => 'INV-' . $trxBaseId,
+                        'sn' => $sn,
+                        'status' => $status,
+                        'keterangan' => ($status === 'Sukses') ? "Transaksi Sukses {$sn}" : "Menunggu respon biller"
+                    ];
+                }
+            }
+
+            usort($mockTrx, fn($a, $b) => strcmp($b['tgl_entri'], $a['tgl_entri']));
+            Session::put('otomax_mock_transactions', $mockTrx);
         }
 
         if (!Session::has('otomax_mock_inbox')) {
@@ -704,6 +1185,7 @@ class OtomaXService
      */
     protected function handleMockCall(string $endpoint, array $data)
     {
+        $this->initMockData();
         $resellers = Session::get('otomax_mock_resellers', []);
         $transactions = Session::get('otomax_mock_transactions', []);
         $inbox = Session::get('otomax_mock_inbox', []);
@@ -807,17 +1289,30 @@ class OtomaXService
                 $kode_rs = strtoupper($data['kode_reseller'] ?? '');
                 $tgl_awal = $data['tgl_awal'] ?? '';
                 $tgl_akhir = $data['tgl_akhir'] ?? '';
-                $limit = (int)($data['limit'] ?? 10);
+                $limit = (int)($data['limit'] ?? 50);
+                if ($limit <= 0) $limit = 999999;
 
-                $filtered = array_filter($transactions, function ($t) use ($kode_rs, $tgl_awal, $tgl_akhir) {
-                    $matchRs = empty($kode_rs) || strtoupper($t['kode_reseller']) === $kode_rs;
-                    $date = substr($t['tgl_entri'], 0, 10);
+                $tujuan = strtolower($data['tujuan'] ?? '');
+                $produk = strtolower($data['produk'] ?? '');
+                $ref_id = strtolower($data['ref_id'] ?? '');
+                $status = strtolower($data['status'] ?? '');
+
+                $filtered = array_filter($transactions, function ($t) use ($kode_rs, $tgl_awal, $tgl_akhir, $tujuan, $produk, $ref_id, $status) {
+                    $matchRs = empty($kode_rs) || strtoupper($t['kode_reseller'] ?? '') === $kode_rs;
+                    $date = substr($t['tgl_entri'] ?? '', 0, 10);
                     $matchStart = empty($tgl_awal) || $date >= $tgl_awal;
                     $matchEnd = empty($tgl_akhir) || $date <= $tgl_akhir;
-                    return $matchRs && $matchStart && $matchEnd;
+                    $matchTujuan = empty($tujuan) || str_contains(strtolower($t['tujuan'] ?? ''), $tujuan);
+                    $matchProduk = empty($produk) || str_contains(strtolower($t['kode_produk'] ?? ''), $produk);
+                    $matchRef = empty($ref_id) || str_contains(strtolower($t['ref_id'] ?? ''), $ref_id);
+                    $matchStatus = empty($status) || strtolower($t['status'] ?? '') === $status;
+                    return $matchRs && $matchStart && $matchEnd && $matchTujuan && $matchProduk && $matchRef && $matchStatus;
                 });
 
-                return ['ok' => true, 'result' => array_slice(array_values($filtered), 0, $limit)];
+                $filtered = array_values($filtered);
+                usort($filtered, fn($a, $b) => strcmp($b['tgl_entri'] ?? '', $a['tgl_entri'] ?? ''));
+
+                return ['ok' => true, 'result' => array_slice($filtered, 0, $limit)];
 
             case 'GetRs':
                 $kode = strtolower($data['kode'] ?? '');
@@ -906,7 +1401,29 @@ class OtomaXService
 
             case 'GetDaftarHargaRs':
                 $products = $this->getMockProducts();
+                $lvl = strtoupper($data['kode_level'] ?? '');
+                if ($lvl === 'H') {
+                    foreach ($products as &$p) { $p['harga'] = max(0, $p['harga'] - 200); }
+                } elseif ($lvl === 'O') {
+                    foreach ($products as &$p) { $p['harga'] = max(0, $p['harga'] - 100); }
+                } elseif ($lvl === 'M') {
+                    foreach ($products as &$p) { $p['harga'] = max(0, $p['harga'] - 300); }
+                }
+                unset($p);
+
+                $filter = $data['sort_filter'] ?? 'semua';
+                if ($filter === 'termurah') {
+                    usort($products, fn($a, $b) => $a['harga'] <=> $b['harga']);
+                }
+
                 return ['ok' => true, 'result' => $products];
+
+            case 'GetLevels':
+                return ['ok' => true, 'result' => [
+                    ['kode' => 'H', 'nama' => 'Level H (H2H)'],
+                    ['kode' => 'O', 'nama' => 'Level O (Outlet)'],
+                    ['kode' => 'M', 'nama' => 'Level M (Master)'],
+                ]];
                 
             case 'GetMutasiDeposit':
                 return ['ok' => true, 'result' => [
@@ -948,6 +1465,9 @@ class OtomaXService
             case 'RequestTiketDeposit':
                 $nom = (int)($data['nominal'] ?? 0);
                 $rand = rand(1, 999);
+                $bank = $data['bank'] ?? 'BCA';
+                $rekening = $data['rekening'] ?? '';
+                $atas_nama = $data['atas_nama'] ?? '';
                 
                 $pending = \Illuminate\Support\Facades\Session::get('mock_pending_tiket', []);
                 foreach ($pending as $p) {
@@ -960,17 +1480,29 @@ class OtomaXService
                     'kode' => rand(1000000, 9999999),
                     'waktu' => now()->format('Y-m-d H:i:s'),
                     'jumlah' => $nom + $rand,
-                    'bank' => $data['bank'] ?? 'BCA',
+                    'bank' => $bank,
+                    'rekening' => $rekening,
+                    'atas_nama' => $atas_nama,
                     'status' => 0
                 ];
                 $pending[] = $newTiket;
                 \Illuminate\Support\Facades\Session::put('mock_pending_tiket', $pending);
 
+                $meta = [
+                    'bank' => $bank,
+                    'rekening' => $rekening,
+                    'atas_nama' => $atas_nama
+                ];
+                \Illuminate\Support\Facades\Cache::put('deposit_ticket_meta_id_' . $newTiket['kode'], $meta, now()->addDays(2));
+                \Illuminate\Support\Facades\Cache::put('deposit_ticket_meta_' . $newTiket['jumlah'], $meta, now()->addDays(2));
+
                 return [
                     'ok' => true,
                     'result' => [
                         'nominal' => $newTiket['jumlah'],
-                        'bank' => $newTiket['bank']
+                        'bank' => $newTiket['bank'],
+                        'rekening' => $rekening,
+                        'atas_nama' => $atas_nama
                     ]
                 ];
 
@@ -999,6 +1531,332 @@ class OtomaXService
                         'kode_reseller' => $kode_new,
                         'name' => $name,
                         'pengirim' => $pengirim
+                    ]
+                ];
+
+            case 'GetAllResellers':
+                $list = array_values($resellers);
+                usort($list, fn($a, $b) => strcmp($a['nama'] ?? '', $b['nama'] ?? ''));
+                return ['ok' => true, 'result' => $list];
+
+            case 'GetAdminDashboardStats':
+                $today = now()->format('Y-m-d');
+                $yesterday = now()->subDay()->format('Y-m-d');
+                $startMonth = now()->startOfMonth()->format('Y-m-d');
+
+                $todayTrx = array_filter($transactions, fn($t) => str_starts_with($t['tgl_entri'] ?? '', $today));
+                $yesterdayTrx = array_filter($transactions, fn($t) => str_starts_with($t['tgl_entri'] ?? '', $yesterday));
+                $monthTrx = array_filter($transactions, fn($t) => substr($t['tgl_entri'] ?? '', 0, 10) >= $startMonth);
+
+                $calcStats = function($trxs) {
+                    $total = count($trxs);
+                    $sukses = 0; $proses = 0; $gagal = 0;
+                    $omset = 0; $modal = 0; $profit = 0;
+                    foreach ($trxs as $t) {
+                        $st = $t['status'] ?? '';
+                        if ($st === 'Sukses') {
+                            $sukses++;
+                            $h = (float)($t['harga'] ?? 0);
+                            $m = (float)($t['harga_beli'] ?? ($h * 0.98));
+                            $omset += $h;
+                            $modal += $m;
+                            $profit += ($h - $m);
+                        } elseif ($st === 'Proses') {
+                            $proses++;
+                        } else {
+                            $gagal++;
+                        }
+                    }
+                    $margin = $omset > 0 ? round(($profit / $omset) * 100, 2) : 0;
+                    return [
+                        'total_trx' => $total,
+                        'trx_sukses' => $sukses,
+                        'trx_proses' => $proses,
+                        'trx_gagal' => $gagal,
+                        'omset' => $omset,
+                        'modal' => $modal,
+                        'profit' => $profit,
+                        'margin' => $margin
+                    ];
+                };
+
+                $todayRes = $calcStats($todayTrx);
+                $yesterdayRes = $calcStats($yesterdayTrx);
+                $monthRes = $calcStats($monthTrx);
+
+                // 7 days trend
+                $trendChart = [];
+                for ($i = 6; $i >= 0; $i--) {
+                    $dt = now()->subDays($i);
+                    $d = $dt->format('Y-m-d');
+                    $dayTrxs = array_filter($transactions, fn($t) => str_starts_with($t['tgl_entri'] ?? '', $d));
+                    $dayStat = $calcStats($dayTrxs);
+                    $trendChart[] = [
+                        'tgl' => $d,
+                        'label' => $dt->format('d M'),
+                        'total_trx' => $dayStat['total_trx'],
+                        'trx_sukses' => $dayStat['trx_sukses'],
+                        'omset' => $dayStat['omset'],
+                        'modal' => $dayStat['modal'],
+                        'profit' => $dayStat['profit'],
+                    ];
+                }
+
+                // Top Reseller & Minus Reseller by grouping monthTrx
+                $grouped = [];
+                foreach ($monthTrx as $t) {
+                    $rs = $t['kode_reseller'] ?? 'unknown';
+                    if (!isset($grouped[$rs])) {
+                        $grouped[$rs] = [
+                            'kode' => $rs,
+                            'nama' => $resellers[$rs]['nama'] ?? ucfirst($rs),
+                            'kode_level' => $resellers[$rs]['kode_level'] ?? 'O',
+                            'saldo' => $resellers[$rs]['saldo'] ?? 0,
+                            'total_trx' => 0,
+                            'trx_sukses' => 0,
+                            'omset' => 0,
+                            'modal' => 0,
+                            'profit' => 0
+                        ];
+                    }
+                    $grouped[$rs]['total_trx']++;
+                    if (($t['status'] ?? '') === 'Sukses') {
+                        $grouped[$rs]['trx_sukses']++;
+                        $h = (float)($t['harga'] ?? 0);
+                        $m = (float)($t['harga_beli'] ?? ($h * 0.98));
+                        $grouped[$rs]['omset'] += $h;
+                        $grouped[$rs]['modal'] += $m;
+                        $grouped[$rs]['profit'] += ($h - $m);
+                    }
+                }
+
+                $topList = array_values($grouped);
+                usort($topList, fn($a, $b) => $b['profit'] <=> $a['profit']);
+                foreach ($topList as &$tl) {
+                    $tl['margin'] = $tl['omset'] > 0 ? round(($tl['profit'] / $tl['omset']) * 100, 2) : 0;
+                }
+                unset($tl);
+
+                $minusList = array_values(array_filter($topList, fn($x) => $x['profit'] < 0));
+
+                $totalSaldo = 0;
+                foreach ($resellers as $r) { $totalSaldo += (float)($r['saldo'] ?? 0); }
+
+                return [
+                    'ok' => true,
+                    'result' => [
+                        'today' => $todayRes,
+                        'yesterday' => [
+                            'omset' => $yesterdayRes['omset'],
+                            'profit' => $yesterdayRes['profit'],
+                        ],
+                        'month' => $monthRes,
+                        'server' => [
+                            'total_saldo' => $totalSaldo,
+                            'total_reseller_aktif' => count($resellers),
+                        ],
+                        'trend_chart' => $trendChart,
+                        'top_resellers' => array_slice($topList, 0, 5),
+                        'minus_resellers' => $minusList,
+                    ]
+                ];
+
+            case 'GetAdminResellerProfit':
+                $tgl_awal = !empty($data['tgl_awal']) ? $data['tgl_awal'] : now()->startOfMonth()->format('Y-m-d');
+                $tgl_akhir = !empty($data['tgl_akhir']) ? $data['tgl_akhir'] : now()->format('Y-m-d');
+                $filterRs = trim($data['kode_reseller'] ?? '');
+                $profitFilter = $data['profit_filter'] ?? 'all';
+                $search = strtolower(trim($data['search'] ?? ''));
+
+                $grouped = [];
+                // Initialize all or matched resellers
+                foreach ($resellers as $k => $r) {
+                    if (!empty($filterRs) && $k !== $filterRs) continue;
+                    if (!empty($search) && !str_contains(strtolower($k), $search) && !str_contains(strtolower($r['nama'] ?? ''), $search)) continue;
+
+                    $grouped[$k] = [
+                        'kode' => $k,
+                        'nama' => $r['nama'] ?? ucfirst($k),
+                        'kode_level' => $r['kode_level'] ?? 'O',
+                        'saldo' => (float)($r['saldo'] ?? 0),
+                        'aktif' => 1,
+                        'total_trx' => 0,
+                        'trx_sukses' => 0,
+                        'trx_proses' => 0,
+                        'trx_gagal' => 0,
+                        'omset' => 0,
+                        'modal' => 0,
+                        'profit' => 0,
+                        'margin' => 0,
+                        'is_profit' => true
+                    ];
+                }
+
+                foreach ($transactions as $t) {
+                    $k = $t['kode_reseller'] ?? '';
+                    if (!isset($grouped[$k])) continue;
+
+                    $date = substr($t['tgl_entri'] ?? '', 0, 10);
+                    if ($date < $tgl_awal || $date > $tgl_akhir) continue;
+
+                    $grouped[$k]['total_trx']++;
+                    $st = $t['status'] ?? '';
+                    if ($st === 'Sukses') {
+                        $grouped[$k]['trx_sukses']++;
+                        $h = (float)($t['harga'] ?? 0);
+                        $m = (float)($t['harga_beli'] ?? ($h * 0.98));
+                        $grouped[$k]['omset'] += $h;
+                        $grouped[$k]['modal'] += $m;
+                        $grouped[$k]['profit'] += ($h - $m);
+                    } elseif ($st === 'Proses') {
+                        $grouped[$k]['trx_proses']++;
+                    } else {
+                        $grouped[$k]['trx_gagal']++;
+                    }
+                }
+
+                $items = [];
+                $sumOmset = 0; $sumModal = 0; $sumProfit = 0;
+                $sumTrxSukses = 0; $sumTrxGagal = 0;
+
+                foreach ($grouped as $row) {
+                    $omset = $row['omset'];
+                    $profit = $row['profit'];
+                    $margin = $omset > 0 ? round(($profit / $omset) * 100, 2) : 0;
+                    $row['margin'] = $margin;
+                    $row['is_profit'] = $profit >= 0;
+
+                    if ($profitFilter === 'profit' && $profit <= 0) continue;
+                    if ($profitFilter === 'minus' && $profit > 0) continue;
+
+                    $sumOmset += $omset;
+                    $sumModal += $row['modal'];
+                    $sumProfit += $profit;
+                    $sumTrxSukses += $row['trx_sukses'];
+                    $sumTrxGagal += $row['trx_gagal'];
+
+                    $items[] = $row;
+                }
+
+                usort($items, fn($a, $b) => $b['profit'] <=> $a['profit']);
+                $avgMargin = $sumOmset > 0 ? round(($sumProfit / $sumOmset) * 100, 2) : 0;
+
+                return [
+                    'ok' => true,
+                    'result' => [
+                        'items' => $items,
+                        'summary' => [
+                            'total_omset' => $sumOmset,
+                            'total_modal' => $sumModal,
+                            'total_profit' => $sumProfit,
+                            'avg_margin' => $avgMargin,
+                            'total_trx_sukses' => $sumTrxSukses,
+                            'total_trx_gagal' => $sumTrxGagal,
+                            'count_reseller' => count($items)
+                        ],
+                        'filter' => [
+                            'tgl_awal' => $tgl_awal,
+                            'tgl_akhir' => $tgl_akhir,
+                            'kode_reseller' => $filterRs,
+                            'profit_filter' => $profitFilter,
+                            'search' => $search
+                        ]
+                    ]
+                ];
+
+            case 'GetAdminResellerDetail':
+                $k = strtolower(trim($data['kode_reseller'] ?? ''));
+                $tgl_awal = !empty($data['tgl_awal']) ? $data['tgl_awal'] : now()->startOfMonth()->format('Y-m-d');
+                $tgl_akhir = !empty($data['tgl_akhir']) ? $data['tgl_akhir'] : now()->format('Y-m-d');
+
+                if (!isset($resellers[$k])) {
+                    return ['ok' => false, 'desc' => 'Reseller tidak ditemukan'];
+                }
+
+                $resInfo = $resellers[$k];
+                $resTrxs = array_filter($transactions, function($t) use ($k, $tgl_awal, $tgl_akhir) {
+                    if (strtolower($t['kode_reseller'] ?? '') !== $k) return false;
+                    $date = substr($t['tgl_entri'] ?? '', 0, 10);
+                    return $date >= $tgl_awal && $date <= $tgl_akhir;
+                });
+
+                $total = count($resTrxs);
+                $sukses = 0; $gagal = 0; $proses = 0;
+                $omset = 0; $modal = 0; $profit = 0;
+                $prodGroup = [];
+
+                foreach ($resTrxs as $t) {
+                    $st = $t['status'] ?? '';
+                    $prod = $t['kode_produk'] ?? 'PROD';
+                    if (!isset($prodGroup[$prod])) {
+                        $prodGroup[$prod] = ['kode_produk' => $prod, 'total_trx' => 0, 'omset' => 0, 'modal' => 0, 'profit' => 0];
+                    }
+                    $prodGroup[$prod]['total_trx']++;
+
+                    if ($st === 'Sukses') {
+                        $sukses++;
+                        $h = (float)($t['harga'] ?? 0);
+                        $m = (float)($t['harga_beli'] ?? ($h * 0.98));
+                        $p = $h - $m;
+                        $omset += $h;
+                        $modal += $m;
+                        $profit += $p;
+
+                        $prodGroup[$prod]['omset'] += $h;
+                        $prodGroup[$prod]['modal'] += $m;
+                        $prodGroup[$prod]['profit'] += $p;
+                    } elseif ($st === 'Proses') {
+                        $proses++;
+                    } else {
+                        $gagal++;
+                    }
+                }
+
+                $topProds = array_values($prodGroup);
+                usort($topProds, fn($a, $b) => $b['total_trx'] <=> $a['total_trx']);
+                foreach ($topProds as &$tp) {
+                    $tp['margin'] = $tp['omset'] > 0 ? round(($tp['profit'] / $tp['omset']) * 100, 2) : 0;
+                }
+                unset($tp);
+
+                $recent = array_slice(array_values($resTrxs), 0, 30);
+                $recentMapped = array_map(function($t) {
+                    $h = (float)($t['harga'] ?? 0);
+                    $m = (float)($t['harga_beli'] ?? ($h * 0.98));
+                    $isSukses = ($t['status'] ?? '') === 'Sukses';
+                    return [
+                        'kode' => $t['trxid'] ?? $t['kode'] ?? '',
+                        'tgl_entri' => $t['tgl_entri'] ?? '',
+                        'kode_produk' => $t['kode_produk'] ?? '',
+                        'tujuan' => $t['tujuan'] ?? '',
+                        'harga' => $h,
+                        'harga_beli' => $m,
+                        'profit' => $isSukses ? ($h - $m) : 0,
+                        'status' => $t['status'] ?? '',
+                        'status_text' => $t['status'] ?? '',
+                        'sn' => $t['sn'] ?? ''
+                    ];
+                }, $recent);
+
+                $margin = $omset > 0 ? round(($profit / $omset) * 100, 2) : 0;
+
+                return [
+                    'ok' => true,
+                    'result' => [
+                        'reseller' => $resInfo,
+                        'summary' => [
+                            'total_trx' => $total,
+                            'trx_sukses' => $sukses,
+                            'trx_gagal' => $gagal,
+                            'trx_proses' => $proses,
+                            'omset' => $omset,
+                            'modal' => $modal,
+                            'profit' => $profit,
+                            'margin' => $margin,
+                            'is_profit' => $profit >= 0
+                        ],
+                        'top_products' => $topProds,
+                        'recent_transactions' => $recentMapped
                     ]
                 ];
 

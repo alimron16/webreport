@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40">
+  <rect x="6" y="8" width="28" height="24" rx="6" fill="#092C5E"/>
+  <path d="M15 17v6M12 20h6M25 18a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3M28 21a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3" stroke="#C89B3C" stroke-width="2" stroke-linecap="round"/>
+  <text x="42" y="26" font-family="'IBM Plex Sans', sans-serif" font-weight="700" font-size="15" fill="#092C5E">Voucher Game</text>
+</svg>

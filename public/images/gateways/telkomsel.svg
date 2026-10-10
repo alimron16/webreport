@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40">
+  <!-- Telkomsel Stylized Logo -->
+  <circle cx="20" cy="20" r="14" fill="#ED0226"/>
+  <circle cx="24" cy="18" r="8" fill="#FFC900"/>
+  <circle cx="21" cy="21" r="5" fill="#FFFFFF"/>
+  <text x="44" y="26" font-family="'IBM Plex Sans', sans-serif" font-weight="800" font-size="18" fill="#1A1A1A" letter-spacing="-0.5">Telkomsel</text>
+</svg>

@@ -126,6 +126,7 @@ return [
             'prefix_indexes' => true,
             'encrypt' => 'yes',
             'trust_server_certificate' => 'true',
+            'login_timeout' => (int) env('DB_LOGIN_TIMEOUT_OTOMAX', 2),
         ],
 
     ],
