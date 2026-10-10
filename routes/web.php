@@ -44,6 +44,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/',                                    [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard',                           [AdminController::class, 'dashboard'])->name('dashboard.main');
+    Route::get('/resellers',                           [AdminController::class, 'resellersView'])->name('resellers');
+    Route::get('/resellers/export',                    [AdminController::class, 'resellersExport'])->name('resellers.export');
+    Route::get('/resellers/profile/{kode}',            [AdminController::class, 'resellerProfileAjax'])->name('resellers.profile');
     Route::get('/reseller-profit',                     [AdminController::class, 'resellerProfitView'])->name('reseller-profit');
     Route::get('/reseller-profit/export',              [AdminController::class, 'resellerProfitExport'])->name('reseller-profit.export');
     Route::get('/reseller-profit/detail/{kode}',       [AdminController::class, 'resellerProfitDetailAjax'])->name('reseller-profit.detail');

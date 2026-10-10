@@ -1016,6 +1016,15 @@
                         </a>
                     </li>
 
+                    <li class="menu-header">Member & Agen</li>
+
+                    <li class="menu-item {{ ($active_tab ?? '') === 'resellers' ? 'active' : '' }}">
+                        <a href="{{ route('admin.resellers') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-group"></i>
+                            <div>Data Member / Agen</div>
+                        </a>
+                    </li>
+
                     <li class="menu-header">Laporan & Analisis</li>
 
                     <li class="menu-item {{ ($active_tab ?? '') === 'reseller-profit' ? 'active' : '' }}">

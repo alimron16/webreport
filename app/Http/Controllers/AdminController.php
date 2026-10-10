@@ -365,6 +365,132 @@ class AdminController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    // ── Manajemen Data Member & Agen ──────────────────────────
+    public function resellersView(Request $request)
+    {
+        if ($r = $this->guardAdmin()) return $r;
+
+        $search = trim($request->input('search', ''));
+        $status = $request->input('status', 'all');
+        $level = trim($request->input('level', 'all'));
+        $saldo_filter = $request->input('saldo_filter', 'all');
+        $sort = $request->input('sort', 'saldo_desc');
+        $page = max((int)$request->input('page', 1), 1);
+        $per_page = min(max((int)$request->input('per_page', 25), 10), 100);
+
+        $res = $this->otomaXService->call('GetAdminResellersList', [
+            'search' => $search,
+            'status' => $status,
+            'level' => $level,
+            'saldo_filter' => $saldo_filter,
+            'sort' => $sort,
+            'page' => $page,
+            'per_page' => $per_page,
+        ]);
+
+        $data = ($res['ok'] ?? false) ? ($res['result'] ?? []) : [
+            'items' => [], 'total' => 0, 'page' => 1, 'per_page' => $per_page, 'last_page' => 1,
+            'kpi' => ['total_member' => 0, 'total_aktif' => 0, 'total_nonaktif' => 0, 'total_suspend' => 0, 'total_saldo' => 0, 'total_saldo_nol' => 0, 'total_saldo_kritis' => 0],
+            'levels' => []
+        ];
+
+        $items = $data['items'] ?? [];
+        $total = $data['total'] ?? 0;
+        $last_page = $data['last_page'] ?? 1;
+        $kpi = $data['kpi'] ?? [];
+        $levels = $data['levels'] ?? [];
+        $active_tab = 'resellers';
+
+        return view('admin.resellers', compact('items', 'total', 'page', 'per_page', 'last_page', 'kpi', 'levels', 'search', 'status', 'level', 'saldo_filter', 'sort', 'active_tab'));
+    }
+
+    public function resellerProfileAjax(Request $request, $kode)
+    {
+        if ($r = $this->guardAdmin()) return response()->json(['ok' => false, 'desc' => 'Unauthorized'], 401);
+
+        $res = $this->otomaXService->call('GetAdminResellerFullProfile', ['kode' => $kode]);
+        if (!($res['ok'] ?? false)) {
+            return response()->json(['ok' => false, 'desc' => $res['desc'] ?? 'Reseller tidak ditemukan'], 404);
+        }
+
+        return response()->json($res);
+    }
+
+    public function resellersExport(Request $request)
+    {
+        if ($r = $this->guardAdmin()) return $r;
+
+        $search = trim($request->input('search', ''));
+        $status = $request->input('status', 'all');
+        $level = trim($request->input('level', 'all'));
+        $saldo_filter = $request->input('saldo_filter', 'all');
+        $sort = $request->input('sort', 'saldo_desc');
+
+        $res = $this->otomaXService->call('GetAdminResellersList', [
+            'search' => $search,
+            'status' => $status,
+            'level' => $level,
+            'saldo_filter' => $saldo_filter,
+            'sort' => $sort,
+            'page' => 1,
+            'per_page' => 10000,
+        ]);
+
+        $items = ($res['ok'] ?? false) ? ($res['result']['items'] ?? []) : [];
+        $filename = "daftar-member-agen-" . date('Y-m-d') . ".csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($items) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+
+            fputcsv($handle, ['DATA MEMBER DAN AGEN OTOMAX']);
+            fputcsv($handle, ['Tanggal Ekspor', date('Y-m-d H:i:s')]);
+            fputcsv($handle, []);
+
+            fputcsv($handle, [
+                'No', 'Kode Reseller', 'Nama Reseller', 'Nama Pemilik', 'Level',
+                'Status', 'Nomor HP/WA', 'Saldo Saat Ini (Rp)', 'Komisi (Rp)', 'Poin',
+                'Alamat', 'Tanggal Terdaftar'
+            ]);
+
+            $no = 1;
+            foreach ($items as $r) {
+                $statusText = 'Nonaktif';
+                if (!empty($r['suspend'])) {
+                    $statusText = 'Suspend';
+                } elseif (!empty($r['aktif'])) {
+                    $statusText = 'Aktif';
+                }
+
+                fputcsv($handle, [
+                    $no++,
+                    $r['kode'] ?? '',
+                    $r['nama'] ?? '',
+                    $r['nama_pemilik'] ?? '',
+                    $r['kode_level'] ?? '',
+                    $statusText,
+                    $r['nomor_hp'] ?? '',
+                    $r['saldo'] ?? 0,
+                    $r['komisi'] ?? 0,
+                    $r['poin'] ?? 0,
+                    $r['alamat'] ?? '',
+                    $r['tgl_daftar'] ?? ''
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     // ── Price Links Management ──────────────────────────────
     public function priceLinksView(Request $request)
     {

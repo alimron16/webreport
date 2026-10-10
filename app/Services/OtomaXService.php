@@ -996,6 +996,208 @@ class OtomaXService
                         ]
                     ];
 
+                case 'GetAdminResellersList':
+                    $search = trim($data['search'] ?? '');
+                    $status = $data['status'] ?? 'all';
+                    $level = trim($data['level'] ?? 'all');
+                    $saldoFilter = $data['saldo_filter'] ?? 'all';
+                    $sort = $data['sort'] ?? 'saldo_desc';
+                    $page = max((int)($data['page'] ?? 1), 1);
+                    $perPage = min(max((int)($data['per_page'] ?? 25), 10), 100);
+
+                    // Hitung KPI ringkasan seluruh reseller
+                    $kpi = $db->table('reseller')->select(
+                        DB::raw("COUNT(*) as total_member"),
+                        DB::raw("SUM(CASE WHEN aktif = 1 AND (suspend = 0 OR suspend IS NULL) THEN 1 ELSE 0 END) as total_aktif"),
+                        DB::raw("SUM(CASE WHEN aktif = 0 THEN 1 ELSE 0 END) as total_nonaktif"),
+                        DB::raw("SUM(CASE WHEN suspend = 1 THEN 1 ELSE 0 END) as total_suspend"),
+                        DB::raw("SUM(ISNULL(saldo, 0)) as total_saldo"),
+                        DB::raw("SUM(CASE WHEN ISNULL(saldo, 0) <= 0 THEN 1 ELSE 0 END) as total_saldo_nol"),
+                        DB::raw("SUM(CASE WHEN ISNULL(saldo, 0) > 0 AND ISNULL(saldo, 0) < 50000 THEN 1 ELSE 0 END) as total_saldo_kritis")
+                    )->first();
+
+                    // Ambil daftar level yang unik untuk dropdown filter
+                    $levels = [];
+                    try {
+                        $levels = $db->table('reseller')
+                            ->whereNotNull('kode_level')
+                            ->where('kode_level', '!=', '')
+                            ->distinct()
+                            ->pluck('kode_level')
+                            ->toArray();
+                    } catch (\Throwable $e) {}
+
+                    // Query daftar reseller dengan filter
+                    $query = $db->table('reseller');
+
+                    if (!empty($search)) {
+                        $query->where(function($q) use ($search) {
+                            $q->where('reseller.kode', 'like', "%{$search}%")
+                              ->orWhere('reseller.nama', 'like', "%{$search}%");
+                            // Tambahkan search pada kolom nomor_hp jika ada
+                            try {
+                                $q->orWhere('reseller.nomor_hp', 'like', "%{$search}%")
+                                  ->orWhere('reseller.alamat', 'like', "%{$search}%");
+                            } catch (\Throwable $e) {}
+                        });
+                    }
+
+                    if ($status === 'active') {
+                        $query->where('aktif', 1)->where(function($q) {
+                            $q->where('suspend', 0)->orWhereNull('suspend');
+                        });
+                    } elseif ($status === 'inactive') {
+                        $query->where('aktif', 0);
+                    } elseif ($status === 'suspend') {
+                        $query->where('suspend', 1);
+                    }
+
+                    if ($level !== 'all' && !empty($level)) {
+                        $query->where('kode_level', $level);
+                    }
+
+                    if ($saldoFilter === 'positive') {
+                        $query->where('saldo', '>', 0);
+                    } elseif ($saldoFilter === 'zero') {
+                        $query->where(function($q) {
+                            $q->where('saldo', '<=', 0)->orWhereNull('saldo');
+                        });
+                    } elseif ($saldoFilter === 'low') {
+                        $query->where('saldo', '>', 0)->where('saldo', '<', 50000);
+                    } elseif ($saldoFilter === 'minus') {
+                        $query->where('saldo', '<', 0);
+                    }
+
+                    $totalFiltered = (clone $query)->count();
+
+                    switch ($sort) {
+                        case 'saldo_asc':
+                            $query->orderBy('saldo', 'asc');
+                            break;
+                        case 'nama_asc':
+                            $query->orderBy('nama', 'asc');
+                            break;
+                        case 'tgl_desc':
+                            $query->orderBy('tgl_daftar', 'desc');
+                            break;
+                        case 'kode_asc':
+                            $query->orderBy('kode', 'asc');
+                            break;
+                        case 'saldo_desc':
+                        default:
+                            $query->orderBy('saldo', 'desc');
+                            break;
+                    }
+
+                    $rows = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+                    // Ambil nomor pengirim / WA dari tabel pengirim
+                    $kodes = $rows->pluck('kode')->toArray();
+                    $sendersMap = [];
+                    if (!empty($kodes)) {
+                        try {
+                            $senders = $db->table('pengirim')
+                                ->whereIn('kode_reseller', $kodes)
+                                ->select('kode_reseller', 'pengirim', 'tipe_pengirim')
+                                ->get();
+                            foreach ($senders as $s) {
+                                if (!isset($sendersMap[$s->kode_reseller])) {
+                                    $sendersMap[$s->kode_reseller] = [];
+                                }
+                                $sendersMap[$s->kode_reseller][] = [
+                                    'pengirim' => $s->pengirim,
+                                    'tipe' => $s->tipe_pengirim ?? ''
+                                ];
+                            }
+                        } catch (\Throwable $e) {}
+                    }
+
+                    $items = [];
+                    foreach ($rows as $row) {
+                        $arr = (array)$row;
+                        $k = $arr['kode'] ?? '';
+                        $arr['senders'] = $sendersMap[$k] ?? [];
+                        if (empty($arr['nomor_hp']) && !empty($arr['senders'])) {
+                            $arr['nomor_hp'] = $arr['senders'][0]['pengirim'] ?? '';
+                        }
+                        $items[] = $arr;
+                    }
+
+                    return [
+                        'ok' => true,
+                        'result' => [
+                            'items' => $items,
+                            'total' => $totalFiltered,
+                            'page' => $page,
+                            'per_page' => $perPage,
+                            'last_page' => (int)ceil($totalFiltered / $perPage) ?: 1,
+                            'kpi' => [
+                                'total_member' => (int)($kpi->total_member ?? 0),
+                                'total_aktif' => (int)($kpi->total_aktif ?? 0),
+                                'total_nonaktif' => (int)($kpi->total_nonaktif ?? 0),
+                                'total_suspend' => (int)($kpi->total_suspend ?? 0),
+                                'total_saldo' => (float)($kpi->total_saldo ?? 0),
+                                'total_saldo_nol' => (int)($kpi->total_saldo_nol ?? 0),
+                                'total_saldo_kritis' => (int)($kpi->total_saldo_kritis ?? 0),
+                            ],
+                            'levels' => $levels,
+                        ]
+                    ];
+
+                case 'GetAdminResellerFullProfile':
+                    $kode = trim($data['kode'] ?? '');
+                    $reseller = $db->table('reseller')->where('kode', $kode)->first();
+                    if (!$reseller) {
+                        return ['ok' => false, 'desc' => 'Reseller tidak ditemukan'];
+                    }
+
+                    $senders = [];
+                    try {
+                        $senders = $db->table('pengirim')
+                            ->where('kode_reseller', $kode)
+                            ->select('pengirim', 'tipe_pengirim')
+                            ->get()
+                            ->map(fn($s) => (array)$s)
+                            ->toArray();
+                    } catch (\Throwable $e) {}
+
+                    // Rekap transaksi 30 hari terakhir
+                    $thirtyDaysAgo = now()->subDays(30)->startOfDay();
+                    $trxStats = $db->table('transaksi')
+                        ->where('kode_reseller', $kode)
+                        ->where('tgl_entri', '>=', $thirtyDaysAgo)
+                        ->select(
+                            DB::raw("COUNT(*) as total_30d"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN 1 ELSE 0 END) as sukses_30d"),
+                            DB::raw("SUM(CASE WHEN status IN (20,3,4) THEN harga ELSE 0 END) as omset_30d")
+                        )->first();
+
+                    $recentTrx = $db->table('transaksi')
+                        ->where('kode_reseller', $kode)
+                        ->select('kode', 'tgl_entri', 'kode_produk', 'tujuan', 'harga', 'status')
+                        ->orderBy('tgl_entri', 'desc')
+                        ->limit(5)
+                        ->get()
+                        ->map(function($t) {
+                            $arr = (array)$t;
+                            $arr['status_text'] = ($arr['status'] == 20 || $arr['status'] == 3 || $arr['status'] == 4) ? 'Sukses' : (($arr['status'] == 1 || $arr['status'] == 0) ? 'Proses' : 'Gagal');
+                            return $arr;
+                        })->toArray();
+
+                    return [
+                        'ok' => true,
+                        'result' => [
+                            'reseller' => (array)$reseller,
+                            'senders' => $senders,
+                            'stats_30d' => [
+                                'total_trx' => (int)($trxStats->total_30d ?? 0),
+                                'trx_sukses' => (int)($trxStats->sukses_30d ?? 0),
+                                'omset' => (float)($trxStats->omset_30d ?? 0),
+                            ],
+                            'recent_trx' => $recentTrx
+                        ]
+                    ];
+
                 default:
                     return [
                         'ok' => false,
@@ -1866,6 +2068,180 @@ class OtomaXService
                         ],
                         'top_products' => $topProds,
                         'recent_transactions' => $recentMapped
+                    ]
+                ];
+
+            case 'GetAdminResellersList':
+                $search = strtolower(trim($data['search'] ?? ''));
+                $status = $data['status'] ?? 'all';
+                $level = trim($data['level'] ?? 'all');
+                $saldoFilter = $data['saldo_filter'] ?? 'all';
+                $sort = $data['sort'] ?? 'saldo_desc';
+                $page = max((int)($data['page'] ?? 1), 1);
+                $perPage = min(max((int)($data['per_page'] ?? 25), 10), 100);
+
+                $allList = [];
+                $totalSaldo = 0;
+                $totalAktif = 0;
+                $totalNonaktif = 0;
+                $totalSuspend = 0;
+                $totalSaldoNol = 0;
+                $totalSaldoKritis = 0;
+                $distinctLevels = [];
+
+                foreach ($resellers as $k => $r) {
+                    $saldo = (float)($r['saldo'] ?? 0);
+                    $lvl = $r['kode_level'] ?? 'O';
+                    $isAktif = (int)($r['aktif'] ?? 1);
+                    $isSuspend = (int)($r['suspend'] ?? 0);
+
+                    if (!in_array($lvl, $distinctLevels)) $distinctLevels[] = $lvl;
+
+                    $totalSaldo += $saldo;
+                    if ($isSuspend) $totalSuspend++;
+                    elseif ($isAktif) $totalAktif++;
+                    else $totalNonaktif++;
+
+                    if ($saldo <= 0) $totalSaldoNol++;
+                    elseif ($saldo < 50000) $totalSaldoKritis++;
+
+                    // Filter search
+                    if (!empty($search)) {
+                        $matchCode = str_contains(strtolower($k), $search);
+                        $matchName = str_contains(strtolower($r['nama'] ?? ''), $search);
+                        $matchHp = str_contains(strtolower($r['nomor_hp'] ?? ($r['pengirim'] ?? '')), $search);
+                        if (!$matchCode && !$matchName && !$matchHp) continue;
+                    }
+
+                    // Filter status
+                    if ($status === 'active' && (!$isAktif || $isSuspend)) continue;
+                    if ($status === 'inactive' && $isAktif) continue;
+                    if ($status === 'suspend' && !$isSuspend) continue;
+
+                    // Filter level
+                    if ($level !== 'all' && !empty($level) && $lvl !== $level) continue;
+
+                    // Filter saldo
+                    if ($saldoFilter === 'positive' && $saldo <= 0) continue;
+                    if ($saldoFilter === 'zero' && $saldo > 0) continue;
+                    if ($saldoFilter === 'low' && ($saldo <= 0 || $saldo >= 50000)) continue;
+                    if ($saldoFilter === 'minus' && $saldo >= 0) continue;
+
+                    $item = [
+                        'kode' => $k,
+                        'nama' => $r['nama'] ?? ucfirst($k),
+                        'nama_pemilik' => $r['nama_pemilik'] ?? ($r['nama'] ?? ucfirst($k)),
+                        'kode_level' => $lvl,
+                        'saldo' => $saldo,
+                        'poin' => (int)($r['poin'] ?? 0),
+                        'komisi' => (float)($r['komisi'] ?? 0),
+                        'aktif' => $isAktif,
+                        'suspend' => $isSuspend,
+                        'nomor_hp' => $r['nomor_hp'] ?? ($r['pengirim'] ?? '081234567890'),
+                        'alamat' => $r['alamat'] ?? 'Indonesia',
+                        'tgl_daftar' => $r['tgl_daftar'] ?? '2026-01-01 10:00:00',
+                        'senders' => [
+                            ['pengirim' => $r['nomor_hp'] ?? ($r['pengirim'] ?? '081234567890'), 'tipe_pengirim' => 'W']
+                        ]
+                    ];
+                    $allList[] = $item;
+                }
+
+                // Sorting
+                switch ($sort) {
+                    case 'saldo_asc':
+                        usort($allList, fn($a, $b) => $a['saldo'] <=> $b['saldo']);
+                        break;
+                    case 'nama_asc':
+                        usort($allList, fn($a, $b) => strcasecmp($a['nama'], $b['nama']));
+                        break;
+                    case 'kode_asc':
+                        usort($allList, fn($a, $b) => strcasecmp($a['kode'], $b['kode']));
+                        break;
+                    case 'tgl_desc':
+                        usort($allList, fn($a, $b) => strcmp($b['tgl_daftar'], $a['tgl_daftar']));
+                        break;
+                    case 'saldo_desc':
+                    default:
+                        usort($allList, fn($a, $b) => $b['saldo'] <=> $a['saldo']);
+                        break;
+                }
+
+                $totalFiltered = count($allList);
+                $offset = ($page - 1) * $perPage;
+                $pagedItems = array_slice($allList, $offset, $perPage);
+
+                return [
+                    'ok' => true,
+                    'result' => [
+                        'items' => $pagedItems,
+                        'total' => $totalFiltered,
+                        'page' => $page,
+                        'per_page' => $perPage,
+                        'last_page' => (int)ceil($totalFiltered / $perPage) ?: 1,
+                        'kpi' => [
+                            'total_member' => count($resellers),
+                            'total_aktif' => $totalAktif,
+                            'total_nonaktif' => $totalNonaktif,
+                            'total_suspend' => $totalSuspend,
+                            'total_saldo' => $totalSaldo,
+                            'total_saldo_nol' => $totalSaldoNol,
+                            'total_saldo_kritis' => $totalSaldoKritis,
+                        ],
+                        'levels' => $distinctLevels,
+                    ]
+                ];
+
+            case 'GetAdminResellerFullProfile':
+                $k = strtolower(trim($data['kode'] ?? ''));
+                if (!isset($resellers[$k])) {
+                    return ['ok' => false, 'desc' => 'Reseller tidak ditemukan'];
+                }
+                $r = $resellers[$k];
+                $recent = array_slice(array_filter($transactions, fn($t) => strtolower($t['kode_reseller'] ?? '') === $k), 0, 5);
+                $formattedRecent = array_map(function($t) {
+                    return [
+                        'kode' => $t['kode'] ?? 'TRX123',
+                        'tgl_entri' => $t['tgl_entri'] ?? date('Y-m-d H:i:s'),
+                        'kode_produk' => $t['kode_produk'] ?? 'PROD',
+                        'tujuan' => $t['tujuan'] ?? '-',
+                        'harga' => (float)($t['harga'] ?? 0),
+                        'status_text' => $t['status'] ?? 'Sukses'
+                    ];
+                }, $recent);
+
+                return [
+                    'ok' => true,
+                    'result' => [
+                        'reseller' => [
+                            'kode' => $k,
+                            'nama' => $r['nama'] ?? ucfirst($k),
+                            'nama_pemilik' => $r['nama_pemilik'] ?? ($r['nama'] ?? ucfirst($k)),
+                            'kode_level' => $r['kode_level'] ?? 'O',
+                            'saldo' => (float)($r['saldo'] ?? 0),
+                            'poin' => (int)($r['poin'] ?? 0),
+                            'komisi' => (float)($r['komisi'] ?? 0),
+                            'aktif' => (int)($r['aktif'] ?? 1),
+                            'suspend' => (int)($r['suspend'] ?? 0),
+                            'nomor_hp' => $r['nomor_hp'] ?? ($r['pengirim'] ?? '081234567890'),
+                            'alamat' => $r['alamat'] ?? 'Indonesia',
+                            'tgl_daftar' => $r['tgl_daftar'] ?? '2026-01-01 10:00:00',
+                            'alamat_ip' => $r['alamat_ip'] ?? '-',
+                            'email' => $r['email'] ?? '-',
+                            'nomor_ktp' => $r['nomor_ktp'] ?? '-',
+                            'npwp' => $r['npwp'] ?? '-',
+                            'markup' => $r['markup'] ?? 0,
+                            'saldo_minimal' => $r['saldo_minimal'] ?? 0
+                        ],
+                        'senders' => [
+                            ['pengirim' => $r['nomor_hp'] ?? ($r['pengirim'] ?? '081234567890'), 'tipe_pengirim' => 'W']
+                        ],
+                        'stats_30d' => [
+                            'total_trx' => count($recent),
+                            'trx_sukses' => count($recent),
+                            'omset' => array_sum(array_column($recent, 'harga')),
+                        ],
+                        'recent_trx' => $formattedRecent
                     ]
                 ];
 
