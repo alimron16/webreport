@@ -743,7 +743,105 @@ class AdminController extends Controller
             }
         }
 
-        return view('admin.settings', compact('mailConfig', 'logs', 'levels', 'currentAdminUsername', 'adminCredSource', 'otomaxDbConfig', 'recaptchaSecret'));
+        $receiptService = app(\App\Services\ReceiptService::class);
+        $receiptRules = $receiptService->getRules();
+        $receiptStoreTitle = \App\Models\Setting::get('receipt_store_title', 'PAYMENT POINT ONLINE BANKING');
+        $receiptFooterInfo = \App\Models\Setting::get('receipt_footer_info', '');
+
+        return view('admin.settings', compact(
+            'mailConfig', 'logs', 'levels', 'currentAdminUsername', 'adminCredSource', 
+            'otomaxDbConfig', 'recaptchaSecret', 'receiptRules', 'receiptStoreTitle', 'receiptFooterInfo'
+        ));
+    }
+
+    // ── Pengaturan Struk & Logo Produk ─────────────────────────
+    public function updateReceiptSettings(Request $request)
+    {
+        if ($r = $this->guardAdmin()) return $r;
+
+        \App\Models\Setting::set('receipt_store_title', trim($request->input('receipt_store_title', 'PAYMENT POINT ONLINE BANKING')));
+        \App\Models\Setting::set('receipt_footer_info', trim($request->input('receipt_footer_info', '')));
+        
+        return back()->with('receipt_success', 'Pengaturan umum struk berhasil disimpan.');
+    }
+
+    public function storeReceiptRule(Request $request)
+    {
+        if ($r = $this->guardAdmin()) return $r;
+
+        $request->validate([
+            'name'          => 'required|string|max:100',
+            'category'      => 'required|in:PRABAYAR,PASCA BAYAR,BANK,UMUM',
+            'keywords'      => 'required|string|max:255',
+            'default_admin' => 'nullable|numeric|min:0',
+            'logo_file'     => 'nullable|image|max:2048',
+        ]);
+
+        $receiptService = app(\App\Services\ReceiptService::class);
+        $rules = $receiptService->getRules();
+
+        $ruleId = $request->input('rule_id') ?: ('rule_' . Str::slug($request->input('name')) . '_' . uniqid());
+        $logoUrl = $request->input('existing_logo_url', '/images/receipt/pln.svg');
+
+        if ($request->hasFile('logo_file')) {
+            $file = $request->file('logo_file');
+            $ext = $file->getClientOriginalExtension();
+            $fileName = 'logo_' . Str::slug($request->input('name')) . '_' . time() . '.' . $ext;
+            $file->move(public_path('images/receipt'), $fileName);
+            $logoUrl = '/images/receipt/' . $fileName;
+        }
+
+        $newRule = [
+            'id'            => $ruleId,
+            'name'          => trim($request->input('name')),
+            'category'      => $request->input('category'),
+            'bank_name'     => trim($request->input('bank_name', '')),
+            'keywords'      => trim($request->input('keywords')),
+            'logo_url'      => $logoUrl,
+            'default_admin' => (float)($request->input('default_admin', 2500)),
+            'remark'        => trim($request->input('remark', 'Transfer Uang')),
+            'footer_info'   => trim($request->input('footer_info', '')),
+            'is_default'    => false,
+        ];
+
+        // Replace if exists, else append
+        $found = false;
+        foreach ($rules as $idx => $r) {
+            if (($r['id'] ?? '') === $ruleId) {
+                $rules[$idx] = array_merge($r, $newRule);
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            array_unshift($rules, $newRule);
+        }
+
+        $receiptService->saveRules($rules);
+
+        return back()->with('receipt_success', "Aturan logo & struk '{$newRule['name']}' berhasil disimpan.");
+    }
+
+    public function deleteReceiptRule(Request $request, $id)
+    {
+        if ($r = $this->guardAdmin()) return $r;
+
+        $receiptService = app(\App\Services\ReceiptService::class);
+        $rules = $receiptService->getRules();
+        $rules = array_values(array_filter($rules, fn($r) => ($r['id'] ?? '') !== $id));
+        $receiptService->saveRules($rules);
+
+        return back()->with('receipt_success', 'Aturan struk berhasil dihapus.');
+    }
+
+    public function resetReceiptRules(Request $request)
+    {
+        if ($r = $this->guardAdmin()) return $r;
+
+        $receiptService = app(\App\Services\ReceiptService::class);
+        $receiptService->resetRules();
+
+        return back()->with('receipt_success', 'Semua aturan & logo struk berhasil di-reset ke bawaan pabrik.');
     }
 
     public function updateAccountSettings(Request $request)

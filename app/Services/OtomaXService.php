@@ -169,6 +169,42 @@ class OtomaXService
 
                     return ['ok' => true, 'result' => $mapped];
 
+                case 'GetSingleTransaction':
+                    $trxid = trim((string)($data['trxid'] ?? ''));
+                    if (empty($trxid)) {
+                        return ['ok' => false, 'desc' => 'ID Transaksi wajib diisi'];
+                    }
+
+                    $row = $db->table('transaksi')
+                        ->leftJoin('produk', 'transaksi.kode_produk', '=', 'produk.kode')
+                        ->select(
+                            'transaksi.kode',
+                            'transaksi.tgl_entri',
+                            'transaksi.tgl_status',
+                            'transaksi.kode_produk',
+                            'produk.nama as nama_produk',
+                            'transaksi.tujuan',
+                            'transaksi.sn',
+                            'transaksi.harga',
+                            'transaksi.status',
+                            'transaksi.ref_id',
+                            'transaksi.keterangan',
+                            'transaksi.kode_reseller'
+                        )
+                        ->where('transaksi.kode', $trxid)
+                        ->orWhere('transaksi.ref_id', $trxid)
+                        ->first();
+
+                    if (!$row) {
+                        return ['ok' => false, 'desc' => "Transaksi '{$trxid}' tidak ditemukan di database."];
+                    }
+
+                    $arr = (array)$row;
+                    $arr['status_raw'] = $arr['status'];
+                    $arr['status'] = ($arr['status'] == 20 || $arr['status'] == 3 || $arr['status'] == 4) ? 'Sukses' : (($arr['status'] == 1 || $arr['status'] == 0) ? 'Proses' : 'Gagal');
+
+                    return ['ok' => true, 'result' => $arr];
+
                 case 'GetDaftarHargaRs':
                     $kode_rs = $data['kode_reseller'] ?? '';
                     $kode_prod = $data['kode_produk'] ?? '';
@@ -1490,6 +1526,42 @@ class OtomaXService
                 return [
                     'ok' => false,
                     'desc' => 'Transaction not found'
+                ];
+
+            case 'GetSingleTransaction':
+                $trxid = (string)($data['trxid'] ?? '');
+                foreach ($transactions as $t) {
+                    if ((string)($t['trxid'] ?? '') === $trxid || (string)($t['kode'] ?? '') === $trxid || (string)($t['ref_id'] ?? '') === $trxid) {
+                        return ['ok' => true, 'result' => $t];
+                    }
+                }
+
+                // If not found in mock list, generate an appropriate mock transaction for testing
+                $mockType = 'PLN20';
+                $mockSn = 'SN: 2920-3211-4567-8910-0987 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / KWH: 503 / REF: 2TKT23R3D5994E77D4FA6B977F3A1F3';
+                if (stripos($trxid, 'BCA') !== false || stripos($trxid, 'TF') !== false) {
+                    $mockType = 'TFBCA';
+                    $mockSn = 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / REFF: 261021VD3UDD / BERHASIL';
+                } elseif (stripos($trxid, 'PASCA') !== false) {
+                    $mockType = 'PLNPASCA';
+                    $mockSn = 'STAND: 7447-6541 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / BLN: OKT/2026 / TAG: 210345 / ADM: 3750 / REFF: 2TKT23R3D5994E77D4FA6B977F3A1F3';
+                }
+
+                return [
+                    'ok' => true,
+                    'result' => [
+                        'kode' => $trxid,
+                        'tgl_entri' => now()->format('Y-m-d H:i:s'),
+                        'kode_produk' => $mockType,
+                        'nama_produk' => $mockType . ' Pembayaran',
+                        'tujuan' => '098765432100',
+                        'harga' => 1000000,
+                        'sn' => $mockSn,
+                        'status' => 'Sukses',
+                        'ref_id' => '2TKT23R3D5994E77D4FA6B977F3A1F3',
+                        'keterangan' => 'Transaksi Sukses',
+                        'kode_reseller' => 'NPD0001'
+                    ]
                 ];
 
             case 'GetTrxHistory':

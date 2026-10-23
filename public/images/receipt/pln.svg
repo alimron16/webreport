@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">
+  <!-- Yellow square with rounded corners -->
+  <rect x="5" y="5" width="70" height="70" rx="8" fill="#FFEB3B" stroke="#D4AF37" stroke-width="1.5"/>
+  
+  <!-- Blue wave water lines -->
+  <path d="M 14 50 Q 25 46 36 50 T 58 50" fill="none" stroke="#0288D1" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 14 56 Q 25 52 36 56 T 58 56" fill="none" stroke="#0288D1" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 14 62 Q 25 58 36 62 T 58 62" fill="none" stroke="#0288D1" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Red lightning bolt -->
+  <polygon points="48,12 25,38 38,38 28,66 54,34 40,34" fill="#E53935" stroke="#B71C1C" stroke-width="1" stroke-linejoin="round"/>
+  
+  <!-- PLN Bold Blue Typography -->
+  <text x="86" y="58" font-family="'Arial Black', 'Inter', 'Segoe UI Black', Impact, sans-serif" font-weight="900" font-size="52" fill="#0288D1" letter-spacing="1">PLN</text>
+</svg>

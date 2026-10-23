@@ -1069,6 +1069,13 @@
                             </li>
 
                             <li class="sub-item">
+                                <a href="{{ route('admin.settings', ['tab' => 'tab-receipt']) }}" class="sub-link {{ request('tab') === 'tab-receipt' ? 'active' : '' }}">
+                                    <i class="bx bx-receipt"></i>
+                                    <span>Pengaturan Struk & Logo</span>
+                                </a>
+                            </li>
+
+                            <li class="sub-item">
                                 <a href="{{ route('admin.settings', ['tab' => 'tab-account']) }}" class="sub-link {{ request('tab') === 'tab-account' ? 'active' : '' }}">
                                     <i class="bx bx-user-pin"></i>
                                     <span>Akun & Password</span>

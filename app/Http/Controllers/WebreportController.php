@@ -817,4 +817,35 @@ class WebreportController extends Controller
             'active_reseller_code' => $activeCode
         ]);
     }
+
+    /**
+     * Cetak Struk Transaksi (Public Link / Reseller Struk)
+     */
+    public function printReceipt(Request $request, $trxid)
+    {
+        $receiptService = app(\App\Services\ReceiptService::class);
+        
+        $trxRes = $this->otomaXService->call('GetSingleTransaction', ['trxid' => $trxid]);
+        if (!($trxRes['ok'] ?? false)) {
+            return response()->view('errors.404', [
+                'message' => 'Transaksi dengan ID ' . e($trxid) . ' tidak ditemukan di sistem.'
+            ], 404);
+        }
+
+        $trx = $trxRes['result'];
+        
+        // Cari aturan logo & kategori struk yang cocok
+        $rule = $receiptService->findMatchingRule($trx);
+
+        // Jika ada override admin fee via parameter URL (?admin=3500)
+        if ($request->has('admin') && is_numeric($request->input('admin'))) {
+            $rule['default_admin'] = (float)$request->input('admin');
+        }
+
+        // Parse semua data terstruktur struk
+        $receipt = $receiptService->parseReceipt($trx, $rule);
+
+        return view('webreport.receipt', compact('receipt', 'trx', 'rule'));
+    }
 }
+

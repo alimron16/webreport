@@ -36,6 +36,10 @@ Route::get('/settings',                  [WebreportController::class, 'settings'
 Route::post('/settings/send-otp',        [WebreportController::class, 'sendSettingsOtp'])->name('webreport.settings.send-otp');
 Route::post('/settings/update',          [WebreportController::class, 'updateSettings'])->name('webreport.settings.update');
 
+// ── Cetak Struk Transaksi (Public / Direct Link) ───────────────
+Route::get('/struk/{trxid}',              [WebreportController::class, 'printReceipt'])->name('webreport.struk');
+Route::get('/cetak-struk/{trxid}',        [WebreportController::class, 'printReceipt'])->name('webreport.cetak-struk');
+
 // ── Admin Panel ───────────────────────────────────────────────
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login',  [AdminController::class, 'loginView'])->name('login');
@@ -64,5 +68,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/settings/otomax/test',               [AdminController::class, 'testOtomaxConnection'])->name('settings.otomax.test');
     Route::post('/settings/security',                  [AdminController::class, 'updateSecuritySettings'])->name('settings.security');
     Route::post('/settings/apicenter',                 [AdminController::class, 'updateApiCenterSettings'])->name('settings.apicenter');
-    Route::post('/settings/account',                    [AdminController::class, 'updateAccountSettings'])->name('settings.account');
+    Route::post('/settings/account',                   [AdminController::class, 'updateAccountSettings'])->name('settings.account');
+    Route::post('/settings/receipt',                   [AdminController::class, 'updateReceiptSettings'])->name('settings.receipt');
+    Route::post('/settings/receipt/rule',              [AdminController::class, 'storeReceiptRule'])->name('settings.receipt.rule');
+    Route::post('/settings/receipt/rule/delete/{id}',  [AdminController::class, 'deleteReceiptRule'])->name('settings.receipt.rule.delete');
+    Route::post('/settings/receipt/rule/reset',        [AdminController::class, 'resetReceiptRules'])->name('settings.receipt.rule.reset');
 });

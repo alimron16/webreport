@@ -540,6 +540,11 @@ html[data-bs-theme="dark"] .stg-banner-shortcut .banner-desc {
         </button>
     </li>
     <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('tab-receipt', this)">
+            <i class="bx bx-receipt me-1"></i> Pengaturan Struk & Logo
+        </button>
+    </li>
+    <li class="nav-item">
         <button class="nav-link" onclick="switchTab('tab-account', this)">
             <i class="bx bx-user-pin me-1"></i> Akun & Password
         </button>
@@ -1646,6 +1651,265 @@ Tidak ada log tersedia.
     </div>
 </div>
 
+    {{-- ═══════════════════════════════════════════════
+         TAB 9: PENGATURAN STRUK & LOGO PRODUK
+         ═══════════════════════════════════════════════ --}}
+    <div id="tab-receipt" class="stg-tab-pane">
+        <div class="stg-grid">
+
+            @if(session('receipt_success'))
+                <div class="stg-alert success">
+                    <i class="bx bx-check-circle fs-5"></i>
+                    <div>{{ session('receipt_success') }}</div>
+                </div>
+            @endif
+
+            @if($errors->has('name') || $errors->has('keywords') || $errors->has('logo_file'))
+                <div class="stg-alert error">
+                    <i class="bx bx-error-circle fs-5"></i>
+                    <div>{{ $errors->first() }}</div>
+                </div>
+            @endif
+
+            <!-- Card Form Tambah / Edit Aturan Logo Struk -->
+            <div class="stg-card">
+                <div class="stg-card-hdr">
+                    <div class="stg-card-hdr-left">
+                        <div class="stg-icon-box">
+                            <i class="bx bx-receipt fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="stg-card-title" id="ruleFormTitle">Tambah Aturan Logo & Format Struk</div>
+                            <div class="stg-card-sub">Tentukan logo, kategori struk, dan kode produk OtomaX yang cocok</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stg-card-body">
+                    <form method="POST" action="{{ route('admin.settings.receipt.rule') }}" enctype="multipart/form-data" id="formReceiptRule">
+                        @csrf
+                        <input type="hidden" name="rule_id" id="rule_id" value="">
+                        <input type="hidden" name="existing_logo_url" id="existing_logo_url" value="/images/receipt/pln.svg">
+
+                        <div class="row g-3">
+                            <!-- Kategori Struk -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Kategori Format Struk <span class="text-danger">*</span>
+                                </label>
+                                <select name="category" id="rule_category" class="form-select form-control" required onchange="handleCategoryChange(this.value)">
+                                    <option value="PRABAYAR">PRABAYAR (PLN Token / Stroom - Format Gambar 2)</option>
+                                    <option value="PASCA BAYAR">PASCA BAYAR (PLN Tagihan / Rekening - Format Gambar 1)</option>
+                                    <option value="BANK">BANK (Transfer Uang Bank Resmi - Format Gambar 3)</option>
+                                    <option value="UMUM">UMUM (Pulsa, Data, E-Wallet, PPOB Biasa)</option>
+                                </select>
+                                <div class="stg-hint">Pilih layout struk yang cocok persis dengan jenis produk</div>
+                            </div>
+
+                            <!-- Nama Aturan -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Nama Label Provider / Bank <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="name" id="rule_name" class="form-control" placeholder="Contoh: Transfer Bank BCA / PLN Token" required>
+                            </div>
+
+                            <!-- Kata Kunci / Kode Produk -->
+                            <div class="col-12">
+                                <label class="stg-field-lbl">
+                                    Kata Kunci / Kode Produk OtomaX <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="keywords" id="rule_keywords" class="form-control" placeholder="Contoh: BCA, TFBCA, IBCA (Pisahkan dengan tanda koma)" required>
+                                <div class="stg-hint">Transaksi dengan kode produk atau nama yang mengandung kata kunci ini akan otomatis memakai logo & format ini</div>
+                            </div>
+
+                            <!-- File Logo -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Upload File Logo (PNG / JPG / SVG / WebP)
+                                </label>
+                                <input type="file" name="logo_file" id="rule_logo_file" class="form-control" accept="image/*">
+                                <div class="stg-hint">Disarankan gambar transparan dengan resolusi tajam</div>
+                            </div>
+
+                            <!-- Biaya Admin Bawaan -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Biaya Admin Bawaan (Rp)
+                                </label>
+                                <input type="number" name="default_admin" id="rule_admin" class="form-control" value="2500" min="0" step="100">
+                                <div class="stg-hint">Akan otomatis terjumlahkan pada Total Bayar saat cetak</div>
+                            </div>
+
+                            <!-- Khusus Kategori BANK: Nama Bank & Remark -->
+                            <div class="col-12 col-md-6 field-bank-only" style="display: none;">
+                                <label class="stg-field-lbl">
+                                    Nama Resmi Bank (Header Kanan Bar Biru)
+                                </label>
+                                <input type="text" name="bank_name" id="rule_bank_name" class="form-control" placeholder="Contoh: BANK CENTRAL ASIA">
+                            </div>
+
+                            <div class="col-12 col-md-6 field-bank-only" style="display: none;">
+                                <label class="stg-field-lbl">
+                                    Keterangan Transfer (Remark)
+                                </label>
+                                <input type="text" name="remark" id="rule_remark" class="form-control" value="Transfer Uang" placeholder="Contoh: Transfer Uang">
+                            </div>
+
+                            <!-- Catatan Footer -->
+                            <div class="col-12">
+                                <label class="stg-field-lbl">
+                                    Catatan / Kontak di Bawah Struk
+                                </label>
+                                <input type="text" name="footer_info" id="rule_footer" class="form-control" placeholder="Contoh: Call Center 123 • Mobile PLN • PLN Terdekat">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetRuleForm()">
+                                <i class="bx bx-reset me-1"></i>Batal / Reset Form
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bx bx-save me-1"></i>Simpan Aturan Struk
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Card Tabel Daftar Aturan Logo & Struk Aktif -->
+            <div class="stg-card">
+                <div class="stg-card-hdr">
+                    <div class="stg-card-hdr-left">
+                        <div class="stg-icon-box">
+                            <i class="bx bx-list-ul fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="stg-card-title">Daftar Aturan Logo & Format Aktif ({{ count($receiptRules) }})</div>
+                            <div class="stg-card-sub">Urutan prioritas pencocokan transaksi struk otomatis</div>
+                        </div>
+                    </div>
+                    <div>
+                        <form method="POST" action="{{ route('admin.settings.receipt.rule.reset') }}" onsubmit="return confirm('Kembalikan semua aturan logo struk ke setelan bawaan pabrik?')">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Kembalikan Template Default">
+                                <i class="bx bx-refresh me-1"></i>Reset ke Default
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="stg-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;">No</th>
+                                    <th style="width: 100px;">Logo</th>
+                                    <th>Nama & Bank</th>
+                                    <th>Kategori Struk</th>
+                                    <th>Kata Kunci Kode Produk</th>
+                                    <th>Admin Fee</th>
+                                    <th class="text-center" style="width: 110px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($receiptRules as $idx => $r)
+                                    @php
+                                        $cat = $r['category'] ?? 'UMUM';
+                                        $badgeClass = 'bg-label-secondary';
+                                        if ($cat === 'PRABAYAR') $badgeClass = 'bg-label-success';
+                                        elseif ($cat === 'PASCA BAYAR') $badgeClass = 'bg-label-info';
+                                        elseif ($cat === 'BANK') $badgeClass = 'bg-label-primary';
+                                    @endphp
+                                    <tr>
+                                        <td class="small text-muted">{{ $idx + 1 }}</td>
+                                        <td>
+                                            <div class="p-1 bg-white border rounded text-center d-flex align-items-center justify-content-center" style="width: 80px; height: 42px;">
+                                                <img src="{{ asset($r['logo_url'] ?? '/logo') }}" alt="Logo" style="max-height: 34px; max-width: 74px; object-fit: contain;">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ $r['name'] ?? '-' }}</div>
+                                            @if(!empty($r['bank_name']))
+                                                <div class="small text-primary font-monospace">{{ $r['bank_name'] }}</div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ $badgeClass }}">{{ $cat }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="font-monospace small text-dark">
+                                                @foreach(explode(',', $r['keywords'] ?? '') as $kw)
+                                                    @if(trim($kw))
+                                                        <span class="badge bg-light text-secondary border me-1">{{ trim($kw) }}</span>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                        <td class="font-monospace small">
+                                            Rp {{ number_format($r['default_admin'] ?? 0, 0, ',', '.') }}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary" onclick='editReceiptRule(@json($r))' title="Edit Aturan Ini">
+                                                    <i class="bx bx-edit"></i>
+                                                </button>
+                                                <form method="POST" action="{{ route('admin.settings.receipt.rule.delete', $r['id'] ?? '') }}" onsubmit="return confirm('Hapus aturan struk ini?')">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-outline-danger" title="Hapus Aturan">
+                                                        <i class="bx bx-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Pengaturan Umum Header & Footer Struk -->
+            <div class="stg-card">
+                <div class="stg-card-hdr">
+                    <div class="stg-card-hdr-left">
+                        <div class="stg-icon-box">
+                            <i class="bx bx-slider fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="stg-card-title">Pengaturan Umum Struk</div>
+                            <div class="stg-card-sub">Nama brand outlet dan catatan standar pada struk</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stg-card-body">
+                    <form method="POST" action="{{ route('admin.settings.receipt') }}">
+                        @csrf
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">Nama Outlet / Header Struk Umum</label>
+                                <input type="text" name="receipt_store_title" class="form-control" value="{{ $receiptStoreTitle }}" placeholder="Contoh: PAYMENT POINT ONLINE BANKING">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">Catatan Footer Standar</label>
+                                <input type="text" name="receipt_footer_info" class="form-control" value="{{ $receiptFooterInfo }}" placeholder="Contoh: Simpan struk ini sebagai bukti pembayaran sah.">
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bx bx-save me-1"></i>Simpan Pengaturan Umum
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     </div> {{-- End .settings-content-area --}}
 </div> {{-- End .settings-layout --}}
 
@@ -1700,7 +1964,8 @@ Tidak ada log tersedia.
             switchTab(target, null);
         } else {
             const hash = window.location.hash;
-            if (hash === '#account') switchTab('tab-account', null);
+            if (hash === '#receipt') switchTab('tab-receipt', null);
+            else if (hash === '#account') switchTab('tab-account', null);
             else if (hash === '#gmail') switchTab('tab-gmail', null);
             else if (hash === '#bank') switchTab('tab-bank', null);
             else if (hash === '#security') switchTab('tab-security', null);
@@ -1708,7 +1973,9 @@ Tidak ada log tersedia.
             else if (hash === '#apicenter') switchTab('tab-apicenter', null);
         }
 
-        @if(session('account_success') || session('account_error'))
+        @if(session('receipt_success') || session('receipt_error'))
+            switchTab('tab-receipt', null);
+        @elseif(session('account_success') || session('account_error'))
             switchTab('tab-account', null);
         @elseif(session('mail_success') || $errors->any())
             switchTab('tab-gmail', null);
@@ -1722,6 +1989,56 @@ Tidak ada log tersedia.
             switchTab('tab-apicenter', null);
         @endif
     });
+
+    /* ── Receipt Settings & Rule Management ── */
+    function handleCategoryChange(cat) {
+        document.querySelectorAll('.field-bank-only').forEach(el => {
+            el.style.display = (cat === 'BANK') ? 'block' : 'none';
+        });
+    }
+
+    function editReceiptRule(rule) {
+        const titleEl = document.getElementById('ruleFormTitle');
+        if (titleEl) titleEl.innerText = 'Edit Aturan Struk: ' + (rule.name || '');
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+        };
+
+        setVal('rule_id', rule.id || '');
+        setVal('existing_logo_url', rule.logo_url || '');
+        setVal('rule_category', rule.category || 'UMUM');
+        setVal('rule_name', rule.name || '');
+        setVal('rule_keywords', rule.keywords || '');
+        setVal('rule_admin', rule.default_admin || 2500);
+        setVal('rule_bank_name', rule.bank_name || '');
+        setVal('rule_remark', rule.remark || 'Transfer Uang');
+        setVal('rule_footer', rule.footer_info || '');
+
+        handleCategoryChange(rule.category);
+
+        const formCard = document.getElementById('formReceiptRule');
+        if (formCard) {
+            formCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function resetRuleForm() {
+        const form = document.getElementById('formReceiptRule');
+        if (form) form.reset();
+        
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+        };
+
+        setVal('rule_id', '');
+        setVal('existing_logo_url', '/images/receipt/pln.svg');
+        const titleEl = document.getElementById('ruleFormTitle');
+        if (titleEl) titleEl.innerText = 'Tambah Aturan Logo & Format Struk';
+        handleCategoryChange('PRABAYAR');
+    }
 
     /* ── Bank Settings ── */
     let bankIndex = {{ count(\Illuminate\Support\Facades\Cache::get('deposit_banks', [])) }};
