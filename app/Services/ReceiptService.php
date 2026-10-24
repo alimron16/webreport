@@ -319,7 +319,43 @@ class ReceiptService
 
         $parserMode = $rule['parser_mode'] ?? 'auto';
 
-        // 1. Custom Regex Parser Mode
+        // 0. Field-by-Field Regex Extraction (Mapping regex spesifik per kolom struk)
+        $fieldRegexMap = [
+            'regex_meter'   => function($val) use (&$noMeter) { $noMeter = $val; },
+            'regex_idpel'   => function($val) use (&$idPel) { $idPel = $val; },
+            'regex_nama'    => function($val) use (&$custName) { $custName = $val; },
+            'regex_tarif'   => function($val) use (&$tarifDaya) { $tarifDaya = $val; },
+            'regex_token'   => function($val) use (&$token20) { $token20 = $val; },
+            'regex_kwh'     => function($val) use (&$jumlahKwh) { $jumlahKwh = $val; },
+            'regex_stand'   => function($val) use (&$standMeter) { $standMeter = $val; },
+            'regex_blth'    => function($val) use (&$blTh) { $blTh = $val; },
+            'regex_tagihan' => function($val) use (&$harga) { 
+                $n = (float)str_replace(['.', ','], '', $val); 
+                if ($n > 0) $harga = $n; 
+            },
+            'regex_reff'    => function($val) use (&$reff) { $reff = $val; },
+            'regex_norek'   => function($val) use (&$accountNumber) { $accountNumber = $val; },
+        ];
+
+        foreach ($fieldRegexMap as $prop => $setter) {
+            $fPattern = trim($rule[$prop] ?? '');
+            if (!empty($fPattern)) {
+                $pat = $fPattern;
+                if (!str_starts_with($pat, '/')) {
+                    $pat = '/' . $pat . '/i';
+                }
+                try {
+                    if (@preg_match($pat, $sn, $fMatches)) {
+                        $matchedVal = trim($fMatches[1] ?? $fMatches[0] ?? '');
+                        if ($matchedVal !== '') {
+                            $setter($matchedVal);
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        // 1. Custom Regex Parser Mode (Single line named capture groups)
         if ($parserMode === 'regex' && !empty($rule['sn_regex'])) {
             try {
                 if (@preg_match($rule['sn_regex'], $sn, $mCustom)) {

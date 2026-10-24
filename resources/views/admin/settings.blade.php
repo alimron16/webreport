@@ -1782,26 +1782,41 @@ Tidak ada log tersedia.
                             <!-- ═══════════════════════════════════════════════
                                  PENGATURAN POLA & PARSER SN SUPLIER (FULL WIDTH)
                                  ═══════════════════════════════════════════════ -->
+                            <!-- ═══════════════════════════════════════════════
+                                 PENGATURAN POLA & PARSER SN SUPLIER (FULL WIDTH)
+                                 ═══════════════════════════════════════════════ -->
                             <div class="col-12 mt-3 pt-3 border-top">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                     <label class="stg-field-lbl fw-bold mb-0 text-dark">
                                         <i class="bx bx-code-curly me-1 text-primary"></i>Pola Ekstraksi / Parser Balasan SN Suplier
                                     </label>
-                                    <span class="badge bg-label-info font-monospace" style="font-size: 11px;">Fleksibel & Otomatis</span>
+                                    <span class="badge bg-label-info font-monospace" style="font-size: 11px;">Fleksibel & Presisi</span>
+                                </div>
+                                <div class="small text-muted mb-3">
+                                    Pilih cara sistem membaca data dari teks SN balasan suplier. Anda dapat mengatur regex per kolom struk secara mandiri (misal: menentukan regex mana untuk Nomor Meter, ID Pelanggan, Nama, Token, dll).
                                 </div>
 
-                                <!-- Mode Parser Selector -->
+                                <!-- Mode Parser Selector (4 Mode) -->
                                 <div class="row g-2 mb-3">
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-12 col-md-3">
                                         <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
                                             <input class="form-check-input" type="radio" name="parser_mode" id="parser_auto" value="auto" checked onchange="handleParserModeChange(this.value)">
                                             <label class="form-check-label small fw-semibold" for="parser_auto" style="cursor: pointer;">
-                                                Smart Auto-Regex
-                                                <div class="text-muted fw-normal" style="font-size: 11px;">Deteksi otomatis standar PLN, Bank & PPOB</div>
+                                                Smart Auto-Detect
+                                                <div class="text-muted fw-normal" style="font-size: 11px;">Deteksi cerdas otomatis tanpa setting</div>
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-12 col-md-3">
+                                        <div class="form-check border border-primary rounded p-2 px-3 h-100" style="background: #eff6ff; cursor: pointer;">
+                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_fields" value="fields" onchange="handleParserModeChange(this.value)">
+                                            <label class="form-check-label small fw-bold text-primary" for="parser_fields" style="cursor: pointer;">
+                                                Regex Per Kolom Struk
+                                                <div class="text-muted fw-normal" style="font-size: 11px;">Setel regex khusus No Meter, Nama, Token, dll</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
                                         <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
                                             <input class="form-check-input" type="radio" name="parser_mode" id="parser_delimiter" value="delimiter" onchange="handleParserModeChange(this.value)">
                                             <label class="form-check-label small fw-semibold" for="parser_delimiter" style="cursor: pointer;">
@@ -1810,18 +1825,129 @@ Tidak ada log tersedia.
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-12 col-md-3">
                                         <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
                                             <input class="form-check-input" type="radio" name="parser_mode" id="parser_regex" value="regex" onchange="handleParserModeChange(this.value)">
                                             <label class="form-check-label small fw-semibold" for="parser_regex" style="cursor: pointer;">
-                                                Regex Kustom
-                                                <div class="text-muted fw-normal" style="font-size: 11px;">Pola ekspresi reguler tingkat lanjut</div>
+                                                Full Regex (1 Baris)
+                                                <div class="text-muted fw-normal" style="font-size: 11px;">Pola satu baris named capture groups</div>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Sub-Form: Delimiter Template -->
+                                <!-- Sub-Form 1: REGEX PER KOLOM STRUK (SANGAT MUDAH & INTUITIF) -->
+                                <div id="box_parser_fields" class="p-3 border border-primary rounded mb-3" style="background: #f0f7ff; display: none;">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="fw-bold text-primary small">
+                                            <i class="bx bx-slider-alt me-1"></i>Atur Regex untuk Setiap Kolom yang Ada di Struk:
+                                        </div>
+                                        <span class="small text-muted" style="font-size: 11px;">Kolom yang dikosongkan akan otomatis memakai deteksi cerdas bawaan.</span>
+                                    </div>
+
+                                    <div class="row g-2">
+                                        <!-- No Meter -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Nomor Meter (PLN):
+                                            </label>
+                                            <input type="text" name="regex_meter" id="rule_regex_meter" class="form-control form-control-sm font-monospace" placeholder="/(?:METER|NO\.?\s*METER)[:\s]*(\d+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Mengambil nomor meter fisik pelanggan dari teks SN</div>
+                                        </div>
+
+                                        <!-- ID Pelanggan -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex ID Pelanggan (IDPEL):
+                                            </label>
+                                            <input type="text" name="regex_idpel" id="rule_regex_idpel" class="form-control form-control-sm font-monospace" placeholder="/(?:IDPEL|ID\s*PEL)[:\s]*(\d+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Mengambil ID pelanggan PLN / PDAM / BPJS</div>
+                                        </div>
+
+                                        <!-- Nama Pelanggan -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Nama Pelanggan:
+                                            </label>
+                                            <input type="text" name="regex_nama" id="rule_regex_nama" class="form-control form-control-sm font-monospace" placeholder="/(?:NAMA|AN|A\/N)[:\s]*([^\/,;]+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Mengambil nama lengkap pelanggan dari SN</div>
+                                        </div>
+
+                                        <!-- Tarif / Daya -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Tarif & Daya:
+                                            </label>
+                                            <input type="text" name="regex_tarif" id="rule_regex_tarif" class="form-control form-control-sm font-monospace" placeholder="/(?:TARIF|DAYA)[:\s]*([^\/,;]+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Contoh hasil: R1/900VA, R1M/900VA, B1/450VA</div>
+                                        </div>
+
+                                        <!-- Token 20 Digit -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Nomor Token 20 Digit (Prabayar):
+                                            </label>
+                                            <input type="text" name="regex_token" id="rule_regex_token" class="form-control form-control-sm font-monospace" placeholder="/(\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}|\b\d{20}\b)/" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Mengambil 20 digit nomor stroom listrik</div>
+                                        </div>
+
+                                        <!-- Jumlah KWH -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Jumlah kWh (Prabayar):
+                                            </label>
+                                            <input type="text" name="regex_kwh" id="rule_regex_kwh" class="form-control form-control-sm font-monospace" placeholder="/(?:KWH|JML\s*KWH)[:\s]*([\d\.,]+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Mengambil nilai kWh yang diperoleh pembeli</div>
+                                        </div>
+
+                                        <!-- Stand Meter -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Stand Meter (Pascabayar):
+                                            </label>
+                                            <input type="text" name="regex_stand" id="rule_regex_stand" class="form-control form-control-sm font-monospace" placeholder="/(?:STAND|STAND\s*METER)[:\s]*([^\/,;]+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Contoh: 7447-6541</div>
+                                        </div>
+
+                                        <!-- Bulan / Tahun (BL/TH) -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Bulan/Tahun Tagihan (BL/TH):
+                                            </label>
+                                            <input type="text" name="regex_blth" id="rule_regex_blth" class="form-control form-control-sm font-monospace" placeholder="/(?:BLN|BL\/TH|PERIODE)[:\s]*([^\/,;]+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Contoh: OKT/2026 atau OKT26</div>
+                                        </div>
+
+                                        <!-- Tagihan / Nominal -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Tagihan / Nominal Produk:
+                                            </label>
+                                            <input type="text" name="regex_tagihan" id="rule_regex_tagihan" class="form-control form-control-sm font-monospace" placeholder="/(?:TAGIHAN|TAG|RP|NOMINAL)[:\s]*Rp?\s*([\d\.,]+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Mengambil nominal tagihan listrik atau transfer</div>
+                                        </div>
+
+                                        <!-- Kode REFF / Ref Suplier -->
+                                        <div class="col-12 col-md-6">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Kode Referensi (REFF):
+                                            </label>
+                                            <input type="text" name="regex_reff" id="rule_regex_reff" class="form-control form-control-sm font-monospace" placeholder="/(?:REFF|REF|SN)[:\s]*([A-Za-z0-9]+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Kode unik referensi transaksi dari PLN / Bank</div>
+                                        </div>
+
+                                        <!-- No Rekening (Khusus Bank) -->
+                                        <div class="col-12 col-md-6 field-bank-only" style="display: none;">
+                                            <label class="small fw-semibold text-dark mb-1">
+                                                Regex Nomor Rekening Bank:
+                                            </label>
+                                            <input type="text" name="regex_norek" id="rule_regex_norek" class="form-control form-control-sm font-monospace" placeholder="/(?:NOREK|REK|REKENING)[:\s]*(\d+)/i" oninput="updateLivePreview()">
+                                            <div class="text-muted" style="font-size: 10px;">Nomor rekening tujuan penerima transfer</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sub-Form 2: Delimiter Template -->
                                 <div id="box_parser_delimiter" class="p-3 border rounded mb-3 bg-light" style="display: none;">
                                     <div class="row g-2">
                                         <div class="col-12 col-md-3">
@@ -1830,16 +1956,17 @@ Tidak ada log tersedia.
                                         </div>
                                         <div class="col-12 col-md-9">
                                             <label class="small fw-semibold text-secondary mb-1">Susunan Kolom Balasan Suplier</label>
-                                            <input type="text" name="sn_pattern" id="rule_sn_pattern" class="form-control form-control-sm font-monospace" placeholder="[TOKEN]/[KODE]/[IDPEL]/[NAMA]/[TARIF]/[KWH]" oninput="updateLivePreview()">
+                                            <input type="text" name="sn_pattern" id="rule_sn_pattern" class="form-control form-control-sm font-monospace" placeholder="[TOKEN]/[METER]/[IDPEL]/[NAMA]/[TARIF]/[KWH]" oninput="updateLivePreview()">
                                         </div>
                                         <div class="col-12">
                                             <div class="small text-muted mb-1" style="font-size: 11px;">Klik tag untuk menambahkan ke susunan:</div>
                                             <div class="d-flex flex-wrap gap-1">
                                                 <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TOKEN]')">+ [TOKEN]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[METER]')">+ [METER]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[IDPEL]')">+ [IDPEL]</button>
                                                 <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[NAMA]')">+ [NAMA]</button>
                                                 <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TARIF]')">+ [TARIF]</button>
                                                 <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[KWH]')">+ [KWH]</button>
-                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[IDPEL]')">+ [IDPEL]</button>
                                                 <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[NOREK]')">+ [NOREK]</button>
                                                 <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TAGIHAN]')">+ [TAGIHAN]</button>
                                                 <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[STAND]')">+ [STAND]</button>
@@ -1850,12 +1977,12 @@ Tidak ada log tersedia.
                                     </div>
                                 </div>
 
-                                <!-- Sub-Form: Custom Regex -->
+                                <!-- Sub-Form 3: Custom Regex (1 Baris) -->
                                 <div id="box_parser_regex" class="p-3 border rounded mb-3 bg-light" style="display: none;">
-                                    <label class="small fw-semibold text-secondary mb-1">Pola Regex (Named Capture Group)</label>
+                                    <label class="small fw-semibold text-secondary mb-1">Pola Regex (Named Capture Group Satu Baris)</label>
                                     <input type="text" name="sn_regex" id="rule_sn_regex" class="form-control form-control-sm font-monospace" placeholder="/(?P<token>\d{20}).*NAMA:(?P<nama>[^\/]+)/i" oninput="updateLivePreview()">
                                     <div class="stg-hint" style="font-size: 11px;">
-                                        Gunakan named group seperti <code>(?P&lt;token&gt;...)</code>, <code>(?P&lt;nama&gt;...)</code>, <code>(?P&lt;tarif&gt;...)</code>, <code>(?P&lt;kwh&gt;...)</code>, <code>(?P&lt;norek&gt;...)</code>, <code>(?P&lt;tagihan&gt;...)</code>.
+                                        Gunakan named group seperti <code>(?P&lt;token&gt;...)</code>, <code>(?P&lt;meter&gt;...)</code>, <code>(?P&lt;idpel&gt;...)</code>, <code>(?P&lt;nama&gt;...)</code>, <code>(?P&lt;tarif&gt;...)</code>, <code>(?P&lt;kwh&gt;...)</code>.
                                     </div>
                                 </div>
                             </div>
@@ -1923,6 +2050,14 @@ Tidak ada log tersedia.
                                     <i class="bx bx-check-circle me-1 text-success"></i>Data yang Berhasil Terbaca (Real-Time):
                                 </div>
                                 <div class="d-flex flex-column gap-2" id="previewBadges">
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                                        <span class="text-muted">No. Meter (PLN):</span>
+                                        <span class="badge bg-secondary text-white font-monospace" id="badge_meter">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                                        <span class="text-muted">ID Pelanggan:</span>
+                                        <span class="badge bg-secondary text-white font-monospace" id="badge_idpel">-</span>
+                                    </div>
                                     <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
                                         <span class="text-muted">Token 20 Digit:</span>
                                         <span class="badge bg-primary text-white font-monospace" id="badge_token">-</span>
@@ -2367,10 +2502,12 @@ Tidak ada log tersedia.
     }
 
     function handleParserModeChange(mode) {
-        const boxDelim = document.getElementById('box_parser_delimiter');
-        const boxRegex = document.getElementById('box_parser_regex');
-        if (boxDelim) boxDelim.style.display = (mode === 'delimiter') ? 'block' : 'none';
-        if (boxRegex) boxRegex.style.display = (mode === 'regex') ? 'block' : 'none';
+        const boxFields = document.getElementById('box_parser_fields');
+        const boxDelim  = document.getElementById('box_parser_delimiter');
+        const boxRegex  = document.getElementById('box_parser_regex');
+        if (boxFields) boxFields.style.display = (mode === 'fields') ? 'block' : 'none';
+        if (boxDelim)  boxDelim.style.display  = (mode === 'delimiter') ? 'block' : 'none';
+        if (boxRegex)  boxRegex.style.display  = (mode === 'regex') ? 'block' : 'none';
         updateLivePreview();
     }
 
@@ -2459,6 +2596,41 @@ Tidak ada log tersedia.
         let tagihan = (cat === 'PASCA BAYAR') ? 210345 : ((cat === 'BANK') ? 4000000 : 876543);
         let reff = '2TKT23R3D5994E77D4FA6B977F3A1F3';
 
+        // ── Helper: Evaluasi Regex Per Kolom ──
+        const evalFieldRegex = (inputId, setter) => {
+            const patStr = document.getElementById(inputId)?.value?.trim();
+            if (!patStr) return false;
+            try {
+                const reMatch = patStr.match(/^\/(.*)\/([gimsuy]*)$/);
+                const reg = reMatch ? new RegExp(reMatch[1], reMatch[2]) : new RegExp(patStr, 'i');
+                const m = reg.exec(rawSn);
+                if (m) {
+                    const val = (m[1] !== undefined) ? m[1].trim() : m[0].trim();
+                    if (val) {
+                        setter(val);
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        };
+
+        // 0. Jalankan Mapping Regex Per Kolom (Prioritas Tertinggi)
+        evalFieldRegex('rule_regex_meter', v => noMeter = v);
+        evalFieldRegex('rule_regex_idpel', v => idPel = v);
+        evalFieldRegex('rule_regex_nama', v => custName = v);
+        evalFieldRegex('rule_regex_tarif', v => tarifDaya = v);
+        evalFieldRegex('rule_regex_token', v => token = v);
+        evalFieldRegex('rule_regex_kwh', v => kwh = v);
+        evalFieldRegex('rule_regex_stand', v => standMeter = v);
+        evalFieldRegex('rule_regex_blth', v => blth = v);
+        evalFieldRegex('rule_regex_tagihan', v => {
+            const n = parseFloat(v.replace(/[^\d]/g, ''));
+            if (n > 0) tagihan = n;
+        });
+        evalFieldRegex('rule_regex_reff', v => reff = v);
+        evalFieldRegex('rule_regex_norek', v => noRek = v);
+
         // 1. Delimiter mode
         if (parserMode === 'delimiter' && pattern) {
             const snParts = rawSn.split(delim);
@@ -2485,7 +2657,7 @@ Tidak ada log tersedia.
             });
         }
 
-        // 2. Custom Regex mode
+        // 2. Custom Regex mode (1 baris)
         if (parserMode === 'regex' && regexStr) {
             try {
                 const reMatch = regexStr.match(/^\/(.*)\/([gimsuy]*)$/);
@@ -2510,7 +2682,7 @@ Tidak ada log tersedia.
             } catch (e) {}
         }
 
-        // 3. Smart Auto Regex Fallback
+        // 3. Smart Auto Regex Fallback (jika belum terisi dari langkah di atas)
         if (!token) {
             const mTok = rawSn.match(/(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})/) || rawSn.match(/\b\d{20}\b/);
             if (mTok) {
@@ -2556,17 +2728,21 @@ Tidak ada log tersedia.
 
         const totalBayar = (cat === 'PRABAYAR' && tagihan < 1000000) ? 1000000 : (tagihan + adminFee);
 
-        // Update Extracted Status Badges
+        // Update Extracted Status Badges (Real-Time)
+        const elMeter = document.getElementById('badge_meter');
+        if (elMeter) elMeter.innerText = noMeter || '-';
+        const elIdpel = document.getElementById('badge_idpel');
+        if (elIdpel) elIdpel.innerText = idPel || '-';
         const elTok = document.getElementById('badge_token');
-        if (elTok) elTok.innerText = 'Token: ' + (token ? (token.substr(0,9) + '...') : '-');
+        if (elTok) elTok.innerText = token ? (token.substr(0,11) + '...') : '-';
         const elNam = document.getElementById('badge_nama');
-        if (elNam) elNam.innerText = 'Nama: ' + (custName || '-');
+        if (elNam) elNam.innerText = custName || '-';
         const elTrf = document.getElementById('badge_tarif');
-        if (elTrf) elTrf.innerText = 'Tarif: ' + (tarifDaya || '-');
+        if (elTrf) elTrf.innerText = tarifDaya || '-';
         const elKwh = document.getElementById('badge_kwh');
-        if (elKwh) elKwh.innerText = 'Kwh: ' + (kwh || '-');
+        if (elKwh) elKwh.innerText = kwh || '-';
         const elTot = document.getElementById('badge_total');
-        if (elTot) elTot.innerText = 'Total: ' + formatRupiah(totalBayar);
+        if (elTot) elTot.innerText = formatRupiah(totalBayar);
 
         // Update Paper Template Visibility
         const bPra = document.getElementById('pv_body_prabayar');
@@ -2656,6 +2832,19 @@ Tidak ada log tersedia.
             setVal('rule_sample_sn', rule.sample_sn);
         }
 
+        // Field-by-Field Regex
+        setVal('rule_regex_meter', rule.regex_meter || '');
+        setVal('rule_regex_idpel', rule.regex_idpel || '');
+        setVal('rule_regex_nama', rule.regex_nama || '');
+        setVal('rule_regex_tarif', rule.regex_tarif || '');
+        setVal('rule_regex_token', rule.regex_token || '');
+        setVal('rule_regex_kwh', rule.regex_kwh || '');
+        setVal('rule_regex_stand', rule.regex_stand || '');
+        setVal('rule_regex_blth', rule.regex_blth || '');
+        setVal('rule_regex_tagihan', rule.regex_tagihan || '');
+        setVal('rule_regex_reff', rule.regex_reff || '');
+        setVal('rule_regex_norek', rule.regex_norek || '');
+
         // Preview logo
         const pvLogo = document.getElementById('pv_logo');
         if (pvLogo && rule.logo_url) pvLogo.src = rule.logo_url;
@@ -2687,6 +2876,17 @@ Tidak ada log tersedia.
         setVal('rule_sn_delimiter', '/');
         setVal('rule_sn_pattern', '');
         setVal('rule_sn_regex', '');
+        setVal('rule_regex_meter', '');
+        setVal('rule_regex_idpel', '');
+        setVal('rule_regex_nama', '');
+        setVal('rule_regex_tarif', '');
+        setVal('rule_regex_token', '');
+        setVal('rule_regex_kwh', '');
+        setVal('rule_regex_stand', '');
+        setVal('rule_regex_blth', '');
+        setVal('rule_regex_tagihan', '');
+        setVal('rule_regex_reff', '');
+        setVal('rule_regex_norek', '');
 
         const rAuto = document.getElementById('parser_auto');
         if (rAuto) rAuto.checked = true;
