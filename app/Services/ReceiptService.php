@@ -362,6 +362,31 @@ class ReceiptService
             $blTh = trim($mBlth[1]);
         }
 
+        // Extract IDPEL & No Meter from SN if available
+        if (preg_match('/(?:IDPEL|ID\s*PEL|ID\s*PELANGGAN)\s*[:=]\s*(\d{10,13})/i', $sn, $mIdpel)) {
+            $idPel = trim($mIdpel[1]);
+        }
+        if (preg_match('/(?:NOMETER|NO\s*METER|NO\.?\s*MTR|MTR|METER)\s*[:=]\s*(\d{10,13})/i', $sn, $mMeter)) {
+            $noMeter = trim($mMeter[1]);
+        }
+
+        // Extract No Rekening (Khusus Bank) from SN if available
+        $accountNumber = $tujuan;
+        if (preg_match('/(?:NOREK|NO\.?\s*REK|REK|REKENING)\s*[:=]?\s*(\d{8,25})/i', $sn, $mRek)) {
+            $accountNumber = trim($mRek[1]);
+        }
+        if (empty($accountNumber)) {
+            $accountNumber = '614501012345';
+        }
+
+        // Extract Tagihan Pasca / Nominal Transfer from SN if available
+        if (preg_match('/(?:TAG|TAGIHAN|RP|NOMINAL|JML|JUMLAH)\s*[:=]?\s*Rp?\s*([\d\.,]+)/i', $sn, $mTag)) {
+            $parsedNum = (float)str_replace(['.', ','], '', $mTag[1]);
+            if ($parsedNum > 100) {
+                if ($harga <= 0) $harga = $parsedNum;
+            }
+        }
+
         // Math for PLN Prabayar
         $stroomToken = $harga > 0 ? $harga : 876543;
         $totalBayarPra = $stroomToken + $adminFee;
@@ -422,7 +447,7 @@ class ReceiptService
             'remitter_ref'      => $remitterRef,
             'beneficiary_ref'   => '-',
             'trx_id_long'       => $trxIdLong,
-            'account_number'    => $tujuan ?: '614501012345',
+            'account_number'    => $accountNumber,
             'account_name'      => $custName,
 
             // General / Meta
