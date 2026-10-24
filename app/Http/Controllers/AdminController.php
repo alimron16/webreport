@@ -777,6 +777,11 @@ class AdminController extends Controller
             'bank_name'     => 'nullable|string|max:100',
             'default_admin' => 'nullable|numeric|min:0',
             'logo_file'     => 'nullable|image|max:2048',
+            'parser_mode'   => 'nullable|string|in:auto,delimiter,regex',
+            'sn_delimiter'  => 'nullable|string|max:10',
+            'sn_pattern'    => 'nullable|string|max:255',
+            'sn_regex'      => 'nullable|string|max:500',
+            'sample_sn'     => 'nullable|string|max:1000',
         ]);
 
         $provider = trim($request->input('provider', ''));
@@ -823,6 +828,11 @@ class AdminController extends Controller
             'default_admin' => (float)($request->input('default_admin', 2500)),
             'remark'        => trim($request->input('remark', 'Transfer Uang')),
             'footer_info'   => trim($request->input('footer_info', '')),
+            'parser_mode'   => $request->input('parser_mode', 'auto'),
+            'sn_delimiter'  => $request->input('sn_delimiter', '/'),
+            'sn_pattern'    => trim($request->input('sn_pattern', '')),
+            'sn_regex'      => trim($request->input('sn_regex', '')),
+            'sample_sn'     => trim($request->input('sample_sn', '')),
             'is_default'    => false,
         ];
 

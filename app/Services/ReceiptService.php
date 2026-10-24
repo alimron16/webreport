@@ -315,15 +315,109 @@ class ReceiptService
         $jumlahKwh = '503';
         $token20 = '';
         $reff = !empty($trx['ref_id']) ? $trx['ref_id'] : (!empty($trx['kode']) ? '2TKT' . strtoupper(substr(md5($trx['kode']), 0, 22)) : '2TKT23R3D5994E77D4FA6B977F3A1F3');
+        $accountNumber = $tujuan ?: '614501012345';
 
-        // Extract 20-digit token from SN
-        if (preg_match('/(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})/', $sn, $tokenMatch)) {
-            $token20 = "{$tokenMatch[1]} - {$tokenMatch[2]} - {$tokenMatch[3]} - {$tokenMatch[4]} - {$tokenMatch[5]}";
-        } elseif (preg_match('/\b\d{20}\b/', $sn, $tokenMatch)) {
-            $raw = $tokenMatch[0];
+        $parserMode = $rule['parser_mode'] ?? 'auto';
+
+        // 1. Custom Regex Parser Mode
+        if ($parserMode === 'regex' && !empty($rule['sn_regex'])) {
+            try {
+                if (@preg_match($rule['sn_regex'], $sn, $mCustom)) {
+                    if (!empty($mCustom['token']))     $token20 = trim($mCustom['token']);
+                    if (!empty($mCustom['nama']))      $custName = trim($mCustom['nama']);
+                    if (!empty($mCustom['tarif']))     $tarifDaya = trim($mCustom['tarif']);
+                    if (!empty($mCustom['kwh']))       $jumlahKwh = trim($mCustom['kwh']);
+                    if (!empty($mCustom['stand']))     $standMeter = trim($mCustom['stand']);
+                    if (!empty($mCustom['blth']))      $blTh = trim($mCustom['blth']);
+                    if (!empty($mCustom['idpel']))     $idPel = trim($mCustom['idpel']);
+                    if (!empty($mCustom['meter']))     $noMeter = trim($mCustom['meter']);
+                    if (!empty($mCustom['norek']))     $accountNumber = trim($mCustom['norek']);
+                    if (!empty($mCustom['reff']))      $reff = trim($mCustom['reff']);
+                    if (!empty($mCustom['tagihan']))   $harga = (float)str_replace(['.', ','], '', $mCustom['tagihan']);
+                }
+            } catch (\Throwable $e) {}
+        }
+        // 2. Custom Delimiter / Column Template Parser Mode
+        elseif ($parserMode === 'delimiter' && !empty($rule['sn_pattern'])) {
+            $delim = !empty($rule['sn_delimiter']) ? $rule['sn_delimiter'] : '/';
+            $snParts = explode($delim, $sn);
+            $patternParts = explode($delim, $rule['sn_pattern']);
+
+            foreach ($patternParts as $idx => $tag) {
+                if (!isset($snParts[$idx])) break;
+                $val = trim($snParts[$idx]);
+                if (empty($val)) continue;
+
+                $cleanTag = strtoupper(trim($tag, " \t\n\r\0\x0B[]{}()"));
+                switch ($cleanTag) {
+                    case 'TOKEN':
+                        $token20 = $val;
+                        break;
+                    case 'NAMA':
+                    case 'NAMA_PELANGGAN':
+                    case 'NAMA_REK':
+                    case 'AN':
+                        $custName = $val;
+                        break;
+                    case 'TARIF':
+                    case 'DAYA':
+                    case 'TARIF_DAYA':
+                    case 'TRF':
+                        $tarifDaya = $val;
+                        break;
+                    case 'KWH':
+                    case 'JUMLAH_KWH':
+                        $jumlahKwh = $val;
+                        break;
+                    case 'STAND':
+                    case 'STAND_METER':
+                        $standMeter = $val;
+                        break;
+                    case 'BLTH':
+                    case 'PERIODE':
+                    case 'BULAN':
+                        $blTh = $val;
+                        break;
+                    case 'IDPEL':
+                        $idPel = $val;
+                        break;
+                    case 'METER':
+                    case 'NOMETER':
+                        $noMeter = $val;
+                        break;
+                    case 'NOREK':
+                    case 'REKENING':
+                        $accountNumber = $val;
+                        break;
+                    case 'REFF':
+                    case 'REF':
+                    case 'SN':
+                        $reff = $val;
+                        break;
+                    case 'TAGIHAN':
+                    case 'NOMINAL':
+                    case 'TOTAL':
+                    case 'TAG':
+                        $cleanNum = (float)str_replace(['.', ','], '', $val);
+                        if ($cleanNum > 0) $harga = $cleanNum;
+                        break;
+                }
+            }
+        }
+
+        // Smart Auto-Detect Fallback: Extract 20-digit token from SN if not already extracted
+        if (empty($token20)) {
+            if (preg_match('/(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})/', $sn, $tokenMatch)) {
+                $token20 = "{$tokenMatch[1]} - {$tokenMatch[2]} - {$tokenMatch[3]} - {$tokenMatch[4]} - {$tokenMatch[5]}";
+            } elseif (preg_match('/\b\d{20}\b/', $sn, $tokenMatch)) {
+                $raw = $tokenMatch[0];
+                $token20 = substr($raw, 0, 4) . ' - ' . substr($raw, 4, 4) . ' - ' . substr($raw, 8, 4) . ' - ' . substr($raw, 12, 4) . ' - ' . substr($raw, 16, 4);
+            } else {
+                $token20 = '2920 - 3211 - 4567 - 8910 - 0987';
+            }
+        } elseif (preg_match('/^\d{20}$/', preg_replace('/[-\s]/', '', $token20))) {
+            $raw = preg_replace('/[-\s]/', '', $token20);
             $token20 = substr($raw, 0, 4) . ' - ' . substr($raw, 4, 4) . ' - ' . substr($raw, 8, 4) . ' - ' . substr($raw, 12, 4) . ' - ' . substr($raw, 16, 4);
-        } else {
-            $token20 = '2920 - 3211 - 4567 - 8910 - 0987';
         }
 
         // Extract Customer Name from SN
