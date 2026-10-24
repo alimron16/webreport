@@ -2065,11 +2065,8 @@ Tidak ada log tersedia.
                             <i class="bx bx-show fs-5"></i>
                         </div>
                         <div>
-                            <div class="stg-card-title d-flex align-items-center gap-2">
+                            <div class="stg-card-title">
                                 <span>Uji Coba Balasan SN & Live Preview Struk</span>
-                                <span class="badge bg-success font-monospace" style="font-size: 10px; padding: 2px 6px;">
-                                    <span style="display:inline-block; width:6px; height:6px; background:#fff; border-radius:50%; margin-right:3px;"></span>Real-Time
-                                </span>
                             </div>
                             <div class="stg-card-sub">Tes ekstraksi teks SN dan lihat hasil render struk sebelum disimpan</div>
                         </div>
@@ -2099,7 +2096,7 @@ Tidak ada log tersedia.
 
                             <div class="p-3 bg-light border rounded">
                                 <div class="fw-bold text-dark mb-2 small">
-                                    <i class="bx bx-check-circle me-1 text-success"></i>Data yang Berhasil Terbaca (Real-Time):
+                                    <i class="bx bx-check-circle me-1 text-success"></i>Data yang Berhasil Terbaca:
                                 </div>
                                 <div class="d-flex flex-column gap-2" id="previewBadges">
                                     <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
