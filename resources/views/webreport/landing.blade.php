@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     
     @php
-        $siteTitle = $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'NAWASENA');
-        $siteSubtitle = $portal_site_subtitle ?? \Illuminate\Support\Facades\Cache::get('site_subtitle', 'Portal Transaksi Server H2H & Reseller Terpercaya');
+        $siteTitle = $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'Saudagar Host');
+        $siteSubtitle = $portal_site_subtitle ?? \Illuminate\Support\Facades\Cache::get('site_subtitle', 'PT. Saudagar Telekomunika Indonesia - Portal Transaksi Server H2H & Reseller');
         $favIcon = $portal_logo_url ?? (file_exists(public_path('logo.png')) ? asset('logo.png') : \Illuminate\Support\Facades\Cache::get('site_logo_url'));
 
         // Dynamic Registration & WhatsApp Destination
@@ -59,30 +59,58 @@
 
     <style>
         /* ============================================================
-           NAWASENA LUXURY DESIGN SYSTEM (NAVY & GOLD THEME)
-           Focused on H2H (Host-to-Host) Server Architecture
+           SAUDAGAR HOST FINTECH ARCHITECTURE DESIGN SYSTEM
+           Color Palette derived directly from public/logo.png:
+           - Primary Ocean Blue: #0B6FB6 ("Saudagar")
+           - Electric Sky Blue: #1C8CFB ("Host")
+           - Radiant Coral Red: #DE3638 (Emblem Pill)
+           - Deep Tech Slate: #0A2540 / #061829
         ============================================================ */
         :root {
             /* Brand Identity Colors from Logo */
-            --nw-navy: #092C5E;
-            --nw-navy-dark: #072146;
-            --nw-navy-hover: #0c3674;
-            --nw-navy-soft: rgba(9, 44, 94, 0.07);
+            --sh-blue: #0B6FB6;
+            --sh-blue-dark: #08568e;
+            --sh-blue-hover: #074775;
+            --sh-blue-soft: rgba(11, 111, 182, 0.08);
+
+            --sh-sky: #1C8CFB;
+            --sh-sky-dark: #0f7ae3;
+            --sh-sky-light: #4ba6fc;
+            --sh-sky-soft: rgba(28, 140, 251, 0.12);
+            --sh-sky-gradient: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);
+
+            --sh-red: #DE3638;
+            --sh-red-dark: #be2123;
+            --sh-red-soft: rgba(222, 54, 56, 0.12);
+
+            --sh-navy: #0A2540;
+            --sh-navy-dark: #061829;
+            --sh-navy-soft: rgba(10, 37, 64, 0.05);
+
+            /* Compatibility Aliases */
+            --nw-navy: #0A2540;
+            --nw-navy-dark: #061829;
+            --nw-navy-hover: #0B6FB6;
+            --nw-navy-soft: rgba(11, 111, 182, 0.08);
             
-            --nw-gold: #C89B3C;
-            --nw-gold-dark: #B58728;
-            --nw-gold-light: #E0B758;
-            --nw-gold-soft: rgba(200, 155, 60, 0.12);
-            --nw-gold-gradient: linear-gradient(135deg, #D4A446 0%, #B8892A 100%);
+            --nw-gold: #0B6FB6;
+            --nw-gold-dark: #08568e;
+            --nw-gold-light: #1C8CFB;
+            --nw-gold-soft: rgba(28, 140, 251, 0.12);
+            --nw-gold-gradient: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);
 
             --nw-bg-light: #F8FAFD;
             --nw-border: #E2E8F0;
             --nw-border-subtle: #EDF2F7;
             
-            --bs-primary: #C89B3C;
-            --bs-primary-rgb: 200, 155, 60;
-            --bs-secondary: #092C5E;
-            --bs-secondary-rgb: 9, 44, 94;
+            --bs-primary: #0B6FB6;
+            --bs-primary-rgb: 11, 111, 182;
+            --bs-secondary: #0A2540;
+            --bs-secondary-rgb: 10, 37, 64;
+            --bs-info: #1C8CFB;
+            --bs-info-rgb: 28, 140, 251;
+            --bs-danger: #DE3638;
+            --bs-danger-rgb: 222, 54, 56;
             --bs-body-font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             --bs-body-color: #334155;
             --bs-body-bg: #ffffff;
@@ -119,9 +147,12 @@
             color: var(--nw-navy);
         }
 
-        /* Gold highlight text */
+        /* Gradient highlight text (matching Saudagar Host logo) */
         .text-gold {
-            color: var(--nw-gold) !important;
+            color: #0B6FB6 !important;
+            background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .text-navy {
@@ -138,18 +169,18 @@
         }
 
         .btn-primary {
-            background: var(--nw-gold);
-            border-color: var(--nw-gold);
+            background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);
+            border: none;
             color: #ffffff;
             font-weight: 600;
+            box-shadow: 0 4px 14px rgba(28, 140, 251, 0.35);
         }
 
         .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
-            background-color: var(--nw-gold-dark) !important;
-            border-color: var(--nw-gold-dark) !important;
+            background: linear-gradient(135deg, #08568e 0%, #0f7ae3 100%) !important;
             color: #ffffff !important;
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(200, 155, 60, 0.35);
+            box-shadow: 0 8px 24px rgba(28, 140, 251, 0.45);
         }
 
         .btn-secondary {
@@ -541,10 +572,10 @@
         <div class="container">
             <a class="navbar-brand d-inline-flex gap-2 align-items-center lh-1 py-0 my-0" href="{{ url('/') }}">
                 @if($favIcon)
-                    <img src="{{ $favIcon }}" alt="{{ $siteTitle }} Logo" class="img-fluid" style="height: 36px; max-width: 130px; object-fit: contain;">
+                    <img src="{{ $favIcon }}" alt="{{ $siteTitle }} Logo" class="img-fluid" style="height: 38px; max-width: 175px; width: auto; object-fit: contain;">
                 @else
-                    <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 36px; height: 36px; background: var(--nw-navy);">
-                        <i class="ti ti-server fs-5 text-warning"></i>
+                    <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 38px; height: 38px; background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);">
+                        <i class="ti ti-server fs-5 text-white"></i>
                     </div>
                     <span class="brand-title">{{ strtoupper($siteTitle) }}</span>
                 @endif

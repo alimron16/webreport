@@ -44,13 +44,16 @@
     <!-- Clean White Fintech Design Tokens & Core Styles -->
     <style>
         :root {
-            --bs-primary: #2563eb;
-            --bs-primary-rgb: 37, 99, 235;
-            --bs-secondary: #64748b;
+            --bs-primary: #0B6FB6;
+            --bs-primary-rgb: 11, 111, 182;
+            --bs-secondary: #0A2540;
+            --bs-secondary-rgb: 10, 37, 64;
             --bs-success: #10b981;
-            --bs-danger: #ef4444;
+            --bs-danger: #DE3638;
+            --bs-danger-rgb: 222, 54, 56;
             --bs-warning: #f59e0b;
-            --bs-info: #0284c7;
+            --bs-info: #1C8CFB;
+            --bs-info-rgb: 28, 140, 251;
             --bs-dark: #0f172a;
             --bs-body-bg: #f8fafc;
             --bs-body-color: #334155;
@@ -62,6 +65,12 @@
             --theme-sidebar-width: 260px;
             --theme-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
             --theme-radius: 8px;
+            /* Saudagar Host Brand Accents */
+            --sh-blue: #0B6FB6;
+            --sh-sky: #1C8CFB;
+            --sh-red: #DE3638;
+            --sh-navy: #0A2540;
+            --sh-gradient: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);
         }
 
         /* ─── DARK THEME OVERRIDES ──────────────────────── */
@@ -388,9 +397,9 @@
         }
 
         html[data-bs-theme="dark"] .nav-pills .nav-link.active {
-            background-color: #2563eb !important;
+            background-color: #0B6FB6 !important;
             color: #ffffff !important;
-            border-color: #2563eb !important;
+            border-color: #0B6FB6 !important;
         }
 
         html[data-bs-theme="dark"] .stg-banner-shortcut {
@@ -557,11 +566,11 @@
             background: #f1f5f9 !important;
             color: #0f172a !important;
             font-weight: 600;
-            border-left-color: #2563eb !important;
+            border-left-color: #0B6FB6 !important;
         }
 
         .menu-item.active > .menu-link i.menu-icon {
-            color: #2563eb !important;
+            color: #0B6FB6 !important;
         }
 
         /* ─── DROPDOWN SUBMENU STYLES ────────────────────────── */
@@ -583,7 +592,7 @@
 
         .menu-item.open > .menu-link.menu-toggle .submenu-arrow {
             transform: rotate(180deg);
-            color: #2563eb;
+            color: #0B6FB6;
         }
 
         .menu-sub {
@@ -628,17 +637,17 @@
         }
 
         .sub-link:hover i {
-            color: #2563eb;
+            color: #0B6FB6;
         }
 
         .sub-link.active {
-            background-color: #eff6ff;
-            color: #1d4ed8;
+            background-color: #e8f4fd;
+            color: #0B6FB6;
             font-weight: 600;
         }
 
         .sub-link.active i {
-            color: #2563eb;
+            color: #0B6FB6;
         }
 
         /* Sidebar Footer / Admin Info */
@@ -735,7 +744,7 @@
 
         .layout-menu-toggle:hover {
             background-color: #f1f5f9;
-            color: #2563eb;
+            color: #0B6FB6;
         }
 
         .navbar-page-title {
@@ -783,7 +792,7 @@
 
         .card-title i {
             font-size: 1.15rem;
-            color: #2563eb;
+            color: #0B6FB6;
         }
 
         .card-body {
@@ -807,9 +816,9 @@
         }
 
         .bg-label-primary {
-            background-color: #eff6ff !important;
-            color: #1d4ed8 !important;
-            border: 1px solid #bfdbfe;
+            background-color: #e8f4fd !important;
+            color: #0B6FB6 !important;
+            border: 1px solid #bae0fb;
         }
 
         .bg-label-success {
@@ -856,28 +865,28 @@
         }
 
         .btn-primary {
-            background-color: #2563eb;
-            border-color: #2563eb;
+            background-color: #0B6FB6;
+            border-color: #0B6FB6;
             color: #ffffff;
             box-shadow: none;
         }
 
         .btn-primary:hover, .btn-primary:focus {
-            background-color: #1d4ed8;
-            border-color: #1d4ed8;
+            background-color: #08568e;
+            border-color: #08568e;
             color: #ffffff;
             box-shadow: none;
         }
 
         .btn-outline-primary {
-            color: #2563eb;
-            border-color: #2563eb;
+            color: #0B6FB6;
+            border-color: #0B6FB6;
             background: transparent;
         }
 
         .btn-outline-primary:hover {
-            background-color: #2563eb;
-            border-color: #2563eb;
+            background-color: #0B6FB6;
+            border-color: #0B6FB6;
             color: #ffffff;
         }
 
@@ -945,8 +954,8 @@
         }
 
         .form-control:focus, .form-select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+            border-color: #0B6FB6;
+            box-shadow: 0 0 0 2px rgba(11, 111, 182, 0.15);
         }
 
         .input-group-text {
@@ -992,15 +1001,17 @@
         <aside id="layout-menu" class="layout-menu">
             <div class="app-brand">
                 <a href="{{ route('admin.dashboard') }}" class="app-brand-link">
-                    @php $adminBrandLogo = $portal_logo_url ?? \Illuminate\Support\Facades\Cache::get('site_logo_url'); @endphp
+                    @php 
+                        $adminBrandLogo = $portal_logo_url ?? (file_exists(public_path('logo.png')) ? asset('logo.png') : \Illuminate\Support\Facades\Cache::get('site_logo_url')); 
+                    @endphp
                     @if($adminBrandLogo)
-                        <img src="{{ $adminBrandLogo }}" alt="Logo" style="height: 32px; max-width: 38px; object-fit: contain; border-radius: 4px;">
+                        <img src="{{ $adminBrandLogo }}" alt="Logo" style="max-height: 36px; max-width: 145px; width: auto; object-fit: contain;">
                     @else
-                        <span class="app-brand-logo">
-                            <i class="bx bx-shield-quarter fs-5"></i>
+                        <span class="app-brand-logo" style="background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);">
+                            <i class="bx bx-shield-quarter fs-5 text-white"></i>
                         </span>
+                        <span class="app-brand-text">{{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'Saudagar Host') }}</span>
                     @endif
-                    <span class="app-brand-text">{{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX') }}</span>
                 </a>
                 <span class="app-brand-badge">Admin</span>
             </div>

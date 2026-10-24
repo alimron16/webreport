@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <title>Masuk Reseller - {{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX') }} Webreport</title>
-    @php $memberLoginFavicon = $portal_logo_url ?? \Illuminate\Support\Facades\Cache::get('site_logo_url'); @endphp
+    @php 
+        $memberLoginFavicon = $portal_logo_url ?? (file_exists(public_path('logo.png')) ? asset('logo.png') : \Illuminate\Support\Facades\Cache::get('site_logo_url')); 
+    @endphp
     @if($memberLoginFavicon)
     <link rel="icon" type="image/x-icon" href="{{ $memberLoginFavicon }}">
     <link rel="shortcut icon" href="{{ $memberLoginFavicon }}">
@@ -23,7 +25,7 @@
 
     <style>
         :root {
-            --bs-primary: #2563eb;
+            --bs-primary: #0B6FB6;
             --bs-body-bg: #f8fafc;
             --bs-body-color: #334155;
             --bs-border-color: #e2e8f0;
@@ -102,8 +104,8 @@
         }
 
         .input-group:focus-within {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            border-color: #0B6FB6;
+            box-shadow: 0 0 0 3px rgba(11, 111, 182, 0.15);
         }
 
         .input-group-text {
@@ -152,25 +154,25 @@
 
         .input-group .btn-eye-toggle:focus {
             outline: none;
-            color: #2563eb;
+            color: #0B6FB6;
         }
 
         .btn-primary {
-            background-color: #2563eb;
-            border: 1px solid #2563eb;
+            background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);
+            border: none;
             color: #ffffff;
             font-weight: 600;
             padding: 0.7rem 1.25rem;
             border-radius: 8px;
             font-size: 0.9rem;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 0 3px 12px rgba(28, 140, 251, 0.35);
             transition: all 0.15s ease-in-out;
         }
 
         .btn-primary:hover, .btn-primary:focus {
-            background-color: #1d4ed8;
-            border-color: #1d4ed8;
+            background: linear-gradient(135deg, #08568e 0%, #0f7ae3 100%);
             color: #ffffff;
+            box-shadow: 0 6px 16px rgba(28, 140, 251, 0.45);
         }
 
         .btn-primary:active {
@@ -229,12 +231,12 @@
                     <!-- App Brand -->
                     <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
                         @if($memberLoginFavicon)
-                            <img src="{{ $memberLoginFavicon }}" alt="Logo" style="height: 46px; max-width: 180px; object-fit: contain;">
+                            <img src="{{ $memberLoginFavicon }}" alt="Logo" style="height: 48px; max-width: 200px; width: auto; object-fit: contain;">
                         @else
-                            <div class="app-brand-logo">
-                                <i class="bx bx-bolt-circle fs-4"></i>
+                            <div class="app-brand-logo" style="background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%);">
+                                <i class="bx bx-bolt-circle fs-4 text-white"></i>
                             </div>
-                            <span class="fs-4 fw-bold text-dark">{{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX') }}</span>
+                            <span class="fs-4 fw-bold text-dark">{{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'Saudagar Host') }}</span>
                         @endif
                     </div>
 

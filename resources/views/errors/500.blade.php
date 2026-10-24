@@ -34,7 +34,7 @@
             height: 64px;
             border-radius: 50%;
             background-color: #fef2f2;
-            color: #ef4444;
+            color: #DE3638;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -53,7 +53,7 @@
             {{ $message ?? 'Permintaan Anda sementara tidak dapat diproses. Tim kami telah mencatat peristiwa ini untuk ditangani.' }}
         </p>
         <div class="d-flex justify-content-center gap-2">
-            <a href="{{ url('/') }}" class="btn btn-primary px-4 py-2" style="background:#2563eb; border-color:#2563eb; font-weight:600; border-radius:8px;">
+            <a href="{{ url('/') }}" class="btn btn-primary px-4 py-2" style="background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%); border:none; font-weight:600; border-radius:8px; box-shadow: 0 4px 12px rgba(11, 111, 182, 0.3);">
                 <i class="bx bx-home-alt me-1"></i> Kembali ke Beranda
             </a>
         </div>

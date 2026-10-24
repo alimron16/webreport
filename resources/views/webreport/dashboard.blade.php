@@ -228,8 +228,8 @@
         const totalTrx  = raw.map(d => d.total_trx);
         const suksesTrx = raw.map(d => d.trx_sukses);
 
-        const sneatPurple = '#696cff';
-        const sneatGreen  = '#71dd37';
+        const saudagarBlue = '#0B6FB6';
+        const saudagarGreen = '#10b981';
 
         const ctx = document.getElementById('trendChart').getContext('2d');
 
@@ -241,8 +241,8 @@
                     {
                         label: 'Total Transaksi',
                         data: totalTrx,
-                        backgroundColor: 'rgba(105, 108, 255, 0.16)',
-                        borderColor: sneatPurple,
+                        backgroundColor: 'rgba(11, 111, 182, 0.16)',
+                        borderColor: saudagarBlue,
                         borderWidth: 2,
                         borderRadius: 6,
                         borderSkipped: false,
@@ -252,10 +252,10 @@
                         label: 'Transaksi Sukses',
                         data: suksesTrx,
                         type: 'line',
-                        borderColor: sneatGreen,
-                        backgroundColor: 'rgba(113, 221, 55, 0.12)',
+                        borderColor: saudagarGreen,
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
                         borderWidth: 2.5,
-                        pointBackgroundColor: sneatGreen,
+                        pointBackgroundColor: saudagarGreen,
                         pointRadius: 4,
                         pointHoverRadius: 6,
                         tension: 0.35,

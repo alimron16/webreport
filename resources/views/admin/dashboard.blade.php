@@ -349,8 +349,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 {
                     label: 'Omset Penjualan (Rp)',
                     data: omsetData,
-                    backgroundColor: 'rgba(37, 99, 235, 0.75)',
-                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(11, 111, 182, 0.75)',
+                    borderColor: '#0B6FB6',
                     borderWidth: 1,
                     borderRadius: 4,
                     order: 2

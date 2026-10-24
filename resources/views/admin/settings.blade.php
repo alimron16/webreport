@@ -18,8 +18,8 @@
     --color-text-2: #334155;
     --color-text-3: #64748b;
     --color-text-4: #94a3b8;
-    --color-purple: #2563eb;
-    --color-purple-light: #eff6ff;
+    --color-purple: #0B6FB6;
+    --color-purple-light: #e8f4fd;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
@@ -31,8 +31,8 @@ html[data-bs-theme="dark"], html.dark-style {
     --color-text-2: #cbd5e1;
     --color-text-3: #94a3b8;
     --color-text-4: #64748b;
-    --color-purple: #3b82f6;
-    --color-purple-light: rgba(37, 99, 235, 0.15);
+    --color-purple: #1C8CFB;
+    --color-purple-light: rgba(11, 111, 182, 0.2);
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
 }
 
@@ -375,8 +375,8 @@ html[data-bs-theme="dark"], html.dark-style {
     width: 44px;
     height: 44px;
     border-radius: 10px;
-    background: #dbeafe;
-    color: #2563eb;
+    background: #e8f4fd;
+    color: #0B6FB6;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -385,7 +385,7 @@ html[data-bs-theme="dark"], html.dark-style {
 .stg-banner-shortcut .banner-title {
     font-weight: 700;
     font-size: 14.5px;
-    color: #1e3a8a;
+    color: #0A2540;
 }
 .stg-banner-shortcut .banner-desc {
     font-size: 12.5px;
@@ -505,9 +505,9 @@ html[data-bs-theme="dark"] .nav-pills .nav-link:hover {
 }
 
 html[data-bs-theme="dark"] .nav-pills .nav-link.active {
-    background-color: #2563eb !important;
+    background-color: #0B6FB6 !important;
     color: #ffffff !important;
-    border-color: #2563eb !important;
+    border-color: #0B6FB6 !important;
 }
 
 html[data-bs-theme="dark"] .stg-banner-shortcut {
@@ -516,8 +516,8 @@ html[data-bs-theme="dark"] .stg-banner-shortcut {
 }
 
 html[data-bs-theme="dark"] .stg-banner-shortcut .banner-icon {
-    background: rgba(37, 99, 235, 0.2) !important;
-    color: #60a5fa !important;
+    background: rgba(11, 111, 182, 0.25) !important;
+    color: #1C8CFB !important;
 }
 
 html[data-bs-theme="dark"] .stg-banner-shortcut .banner-title {

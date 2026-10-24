@@ -25,6 +25,32 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bs-primary: #0B6FB6;
+            --bs-primary-rgb: 11, 111, 182;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0B6FB6 0%, #1C8CFB 100%) !important;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(11, 111, 182, 0.25);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.95;
+            box-shadow: 0 6px 14px rgba(11, 111, 182, 0.35);
+        }
+
+        .btn-outline-primary {
+            color: #0B6FB6 !important;
+            border-color: #0B6FB6 !important;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0B6FB6 !important;
+            color: #ffffff !important;
+        }
+
         body {
             background-color: #f1f5f9;
             color: #0f172a;

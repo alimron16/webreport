@@ -6,9 +6,9 @@
     <title>Pendaftaran Mitra Baru - {{ $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX') }} Webreport</title>
     
     @php
-        $siteTitle = $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'OtomaX Webreport');
+        $siteTitle = $portal_site_title ?? \Illuminate\Support\Facades\Cache::get('site_title', 'Saudagar Host');
         $siteSubtitle = $portal_site_subtitle ?? \Illuminate\Support\Facades\Cache::get('site_subtitle', 'Portal Reseller & Server Pulsa Terpercaya');
-        $favIcon = $portal_logo_url ?? \Illuminate\Support\Facades\Cache::get('site_logo_url');
+        $favIcon = $portal_logo_url ?? \Illuminate\Support\Facades\Cache::get('site_logo_url', file_exists(public_path('logo.png')) ? asset('logo.png') : null);
         $waAdmin = $portal_whatsapp_number ?? \Illuminate\Support\Facades\Cache::get('whatsapp_number', '');
         
         $cleanWa = preg_replace('/[^0-9]/', '', (string)$waAdmin);
@@ -37,7 +37,10 @@
 
     <style>
         :root {
-            --primary: #4f46e5;
+            --primary: #0B6FB6;
+            --primary-accent: #1C8CFB;
+            --sh-red: #DE3638;
+            --sh-navy: #0A2540;
             --wa-green: #25d366;
             --wa-dark: #128c7e;
             --bg-body: #f8fafc;
@@ -57,7 +60,7 @@
             justify-content: center;
             padding: 2.5rem 1.25rem;
             margin: 0;
-            background-image: radial-gradient(circle at 50% 10%, rgba(37, 211, 102, 0.08) 0%, rgba(79, 70, 229, 0.04) 40%, transparent 70%);
+            background-image: radial-gradient(circle at 50% 10%, rgba(28, 140, 251, 0.08) 0%, rgba(11, 111, 182, 0.05) 40%, transparent 70%);
             background-repeat: no-repeat;
         }
 
