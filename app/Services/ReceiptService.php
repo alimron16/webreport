@@ -294,7 +294,7 @@ class ReceiptService
         }
 
         $category = strtoupper($rule['category'] ?? 'UMUM');
-        $sn = (string)($trx['sn'] ?? '');
+        $sn = !empty($trx['sn']) ? (string)$trx['sn'] : (string)($trx['keterangan'] ?? '');
         $tujuan = (string)($trx['tujuan'] ?? '');
         $harga = (float)($trx['harga'] ?? 0);
         $adminFee = (float)($rule['default_admin'] ?? 2500);

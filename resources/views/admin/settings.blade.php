@@ -2005,6 +2005,7 @@ Tidak ada log tersedia.
                                         </div>
 
                                         <!-- Kolom Kanan: Parameter Wajib & Opsional -->
+                                        <!-- Kolom Kanan: Parameter Wajib & Opsional (Disesuaikan Otomatis Per Kategori) -->
                                         <div class="col-12 col-xl-3 col-lg-3">
                                             <div class="border rounded p-3 bg-light h-100" style="max-height: 480px; overflow-y: auto;">
                                                 <!-- Parameter Wajib -->
@@ -2012,27 +2013,8 @@ Tidak ada log tersedia.
                                                     <span>Parameter Wajib</span>
                                                     <span class="badge bg-danger-subtle text-danger font-monospace" style="font-size: 9.5px;">Wajib</span>
                                                 </div>
-                                                <div class="d-flex flex-column gap-1 mb-3">
-                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[namapelanggan]')" title="Klik untuk masukkan [namapelanggan]">
-                                                        <span class="font-monospace text-dark small">[namapelanggan]</span>
-                                                        <span class="param-pill pill-orange" id="pill_namapelanggan">-</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[golongan]')" title="Klik untuk masukkan [golongan]">
-                                                        <span class="font-monospace text-dark small">[golongan]</span>
-                                                        <span class="param-pill pill-orange" id="pill_golongan">-</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[daya]')" title="Klik untuk masukkan [daya]">
-                                                        <span class="font-monospace text-dark small">[daya]</span>
-                                                        <span class="param-pill pill-orange" id="pill_daya">-</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[kwh]')" title="Klik untuk masukkan [kwh]">
-                                                        <span class="font-monospace text-dark small">[kwh]</span>
-                                                        <span class="param-pill pill-orange" id="pill_kwh">-</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[token]')" title="Klik untuk masukkan [token]">
-                                                        <span class="font-monospace text-dark small">[token]</span>
-                                                        <span class="param-pill pill-orange" id="pill_token">-</span>
-                                                    </div>
+                                                <div class="d-flex flex-column gap-1 mb-3" id="list_param_wajib">
+                                                    <!-- Diisi otomatis oleh JavaScript renderCategoryParams() -->
                                                 </div>
 
                                                 <!-- Parameter Opsional -->
@@ -2040,43 +2022,8 @@ Tidak ada log tersedia.
                                                     <span>Parameter Opsional</span>
                                                     <span class="badge bg-secondary-subtle text-secondary font-monospace" style="font-size: 9.5px;">Opsional</span>
                                                 </div>
-                                                <div class="d-flex flex-column gap-1">
-                                                    @php
-                                                        $optParams = [
-                                                            'nometer' => 'Nomor meter fisik pelanggan PLN',
-                                                            'idpel' => 'ID Pelanggan PLN / PDAM / BPJS',
-                                                            'plnreff' => 'Nomor referensi unik transaksi PLN / Bank',
-                                                            'nominal' => 'Nominal tagihan atau nominal transfer',
-                                                            'ppn' => 'Pajak Pertambahan Nilai',
-                                                            'ppj' => 'Pajak Penerangan Jalan',
-                                                            'angsuran' => 'Biaya angsuran jika ada',
-                                                            'materai' => 'Biaya meterai transaksi',
-                                                            'rptoken' => 'Nilai rupiah pembelian token',
-                                                            'kwhsubsidi' => 'Jumlah kWh subsidi',
-                                                            'kwhkompensasi' => 'Jumlah kWh kompensasi',
-                                                            'admin' => 'Biaya admin bawaan di SN',
-                                                            'subtotal' => 'Subtotal sebelum admin',
-                                                            'totalbayar' => 'Total keseluruhan pembayaran',
-                                                            'tokensubsidi' => 'Token tambahan subsidi',
-                                                            'tokenkompensasi' => 'Token kompensasi PLN',
-                                                            'norek' => 'Nomor rekening bank tujuan transfer',
-                                                            'stand' => 'Stand meter awal/akhir pascabayar',
-                                                            'blth' => 'Bulan & tahun tagihan listrik',
-                                                            'var' => 'Abaikan teks/karakter acak di posisi ini',
-                                                            'var1' => 'Abaikan karakter di tengah reply',
-                                                            'var2' => 'Abaikan karakter tambahan di tengah reply',
-                                                            'var3' => 'Abaikan karakter tambahan di tengah reply',
-                                                        ];
-                                                    @endphp
-                                                    @foreach($optParams as $tag => $hint)
-                                                        <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[{{ $tag }}]')" title="{{ $hint }} (Klik untuk masukkan)">
-                                                            <div class="d-flex align-items-center gap-1">
-                                                                <span class="font-monospace text-dark small">[{{ $tag }}]</span>
-                                                                <span class="badge bg-light text-primary border p-0 px-1" style="font-size: 9px; cursor: help;" title="{{ $hint }}">?</span>
-                                                            </div>
-                                                            <span class="param-pill pill-orange" id="pill_{{ $tag }}">-</span>
-                                                        </div>
-                                                    @endforeach
+                                                <div class="d-flex flex-column gap-1" id="list_param_opsional">
+                                                    <!-- Diisi otomatis oleh JavaScript renderCategoryParams() -->
                                                 </div>
                                             </div>
                                         </div>
@@ -2738,10 +2685,122 @@ Tidak ada log tersedia.
     });
 
     /* ── Receipt Settings & Interactive Live Preview Engine ── */
+    const categoryParamDefs = {
+        'BANK': {
+            wajib: [
+                { tag: 'namapelanggan', label: 'Nama Penerima', hint: 'Nama pemilik rekening / penerima transfer' },
+                { tag: 'norek', label: 'No Rekening', hint: 'Nomor rekening bank tujuan transfer' },
+                { tag: 'nominal', label: 'Nominal Transfer', hint: 'Nominal uang yang ditransfer' },
+                { tag: 'plnreff', label: 'No Referensi Bank', hint: 'Nomor referensi unik / ID transaksi bank' }
+            ],
+            opsional: [
+                { tag: 'admin', label: 'Biaya Admin', hint: 'Biaya admin bank' },
+                { tag: 'totalbayar', label: 'Total Pembayaran', hint: 'Total nominal transfer + biaya admin' },
+                { tag: 'var', label: 'Abaikan Teks Acak', hint: 'Abaikan teks/karakter acak di posisi ini' },
+                { tag: 'var1', label: 'Abaikan Karakter 1', hint: 'Abaikan karakter atau TRXID di tengah reply' },
+                { tag: 'var2', label: 'Abaikan Karakter 2', hint: 'Abaikan karakter tambahan di tengah reply' },
+                { tag: 'var3', label: 'Abaikan Karakter 3', hint: 'Abaikan karakter tambahan di tengah reply' }
+            ]
+        },
+        'PASCA BAYAR': {
+            wajib: [
+                { tag: 'namapelanggan', label: 'Nama Pelanggan', hint: 'Nama lengkap pelanggan terdaftar' },
+                { tag: 'idpel', label: 'ID Pelanggan', hint: 'ID Pelanggan PLN / Tagihan PPOB' },
+                { tag: 'nominal', label: 'Nominal Tagihan', hint: 'Nominal pokok tagihan listrik' },
+                { tag: 'blth', label: 'Bulan Tahun (BLTH)', hint: 'Bulan dan tahun tagihan listrik (misal: OKT26)' }
+            ],
+            opsional: [
+                { tag: 'stand', label: 'Stand Meter', hint: 'Stand meter awal/akhir pascabayar' },
+                { tag: 'golongan', label: 'Tarif / Golongan', hint: 'Tarif golongan listrik (misal: R1)' },
+                { tag: 'daya', label: 'Daya Listrik', hint: 'Besaran daya listrik (misal: 900VA)' },
+                { tag: 'nometer', label: 'No Meter', hint: 'Nomor meter fisik pelanggan' },
+                { tag: 'plnreff', label: 'No Referensi PLN', hint: 'Nomor referensi transaksi PLN' },
+                { tag: 'admin', label: 'Biaya Admin', hint: 'Biaya admin loket/pembayaran' },
+                { tag: 'totalbayar', label: 'Total Bayar', hint: 'Total keseluruhan pembayaran tagihan' },
+                { tag: 'var', label: 'Abaikan Teks Acak', hint: 'Abaikan teks/karakter acak di posisi ini' },
+                { tag: 'var1', label: 'Abaikan Karakter 1', hint: 'Abaikan karakter di tengah reply' },
+                { tag: 'var2', label: 'Abaikan Karakter 2', hint: 'Abaikan karakter tambahan di tengah reply' },
+                { tag: 'var3', label: 'Abaikan Karakter 3', hint: 'Abaikan karakter tambahan di tengah reply' }
+            ]
+        },
+        'PRABAYAR': {
+            wajib: [
+                { tag: 'token', label: 'Token 20 Digit', hint: '20 Digit nomor token stroom listrik PLN' },
+                { tag: 'namapelanggan', label: 'Nama Pelanggan', hint: 'Nama pelanggan PLN' },
+                { tag: 'kwh', label: 'Jumlah kWh', hint: 'Jumlah kWh didapatkan' },
+                { tag: 'golongan', label: 'Tarif Golongan', hint: 'Tarif golongan listrik (misal: R1M)' },
+                { tag: 'daya', label: 'Daya Listrik', hint: 'Daya listrik (misal: 900VA)' }
+            ],
+            opsional: [
+                { tag: 'nometer', label: 'No Meter', hint: 'Nomor meter fisik pelanggan PLN' },
+                { tag: 'idpel', label: 'ID Pelanggan', hint: 'ID Pelanggan PLN' },
+                { tag: 'plnreff', label: 'No Referensi PLN', hint: 'Nomor referensi unik transaksi PLN' },
+                { tag: 'nominal', label: 'Nominal Pembelian', hint: 'Nominal pembelian token' },
+                { tag: 'rptoken', label: 'Rp Token', hint: 'Nilai rupiah pembelian token' },
+                { tag: 'ppn', label: 'PPN', hint: 'Pajak Pertambahan Nilai' },
+                { tag: 'ppj', label: 'PPJ', hint: 'Pajak Penerangan Jalan' },
+                { tag: 'angsuran', label: 'Angsuran', hint: 'Biaya angsuran jika ada' },
+                { tag: 'materai', label: 'Meterai', hint: 'Biaya meterai transaksi' },
+                { tag: 'kwhsubsidi', label: 'kWh Subsidi', hint: 'Jumlah kWh subsidi' },
+                { tag: 'kwhkompensasi', label: 'kWh Kompensasi', hint: 'Jumlah kWh kompensasi' },
+                { tag: 'admin', label: 'Biaya Admin', hint: 'Biaya admin bawaan di SN' },
+                { tag: 'totalbayar', label: 'Total Bayar', hint: 'Total keseluruhan pembayaran' },
+                { tag: 'var', label: 'Abaikan Teks Acak', hint: 'Abaikan teks/karakter acak di posisi ini' },
+                { tag: 'var1', label: 'Abaikan Karakter 1', hint: 'Abaikan karakter di tengah reply' },
+                { tag: 'var2', label: 'Abaikan Karakter 2', hint: 'Abaikan karakter tambahan di tengah reply' },
+                { tag: 'var3', label: 'Abaikan Karakter 3', hint: 'Abaikan karakter tambahan di tengah reply' }
+            ]
+        },
+        'UMUM': {
+            wajib: [
+                { tag: 'namapelanggan', label: 'Nama Pelanggan / Tujuan', hint: 'Nama pelanggan / tujuan transaksi' },
+                { tag: 'nominal', label: 'Nominal / Harga', hint: 'Nominal transaksi atau harga produk' },
+                { tag: 'plnreff', label: 'SN / No Seri / Reff', hint: 'Nomor seri / SN dari provider' }
+            ],
+            opsional: [
+                { tag: 'idpel', label: 'ID Pelanggan / No Tujuan', hint: 'ID Pelanggan atau nomor tujuan' },
+                { tag: 'admin', label: 'Biaya Admin', hint: 'Biaya admin bawaan di SN' },
+                { tag: 'totalbayar', label: 'Total Bayar', hint: 'Total keseluruhan pembayaran' },
+                { tag: 'var', label: 'Abaikan Teks Acak', hint: 'Abaikan teks/karakter acak di posisi ini' },
+                { tag: 'var1', label: 'Abaikan Karakter 1', hint: 'Abaikan karakter di tengah reply' },
+                { tag: 'var2', label: 'Abaikan Karakter 2', hint: 'Abaikan karakter tambahan di tengah reply' },
+                { tag: 'var3', label: 'Abaikan Karakter 3', hint: 'Abaikan karakter tambahan di tengah reply' }
+            ]
+        }
+    };
+
+    function renderCategoryParams(cat) {
+        const wContainer = document.getElementById('list_param_wajib');
+        const oContainer = document.getElementById('list_param_opsional');
+        if (!wContainer || !oContainer) return;
+
+        const defs = categoryParamDefs[cat] || categoryParamDefs['UMUM'];
+
+        wContainer.innerHTML = defs.wajib.map(item => `
+            <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[${item.tag}]')" title="${item.hint} (Klik untuk masukkan)">
+                <span class="font-monospace text-dark small">[${item.tag}]</span>
+                <span class="param-pill pill-orange" id="pill_${item.tag}">-</span>
+            </div>
+        `).join('');
+
+        oContainer.innerHTML = defs.opsional.map(item => `
+            <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[${item.tag}]')" title="${item.hint} (Klik untuk masukkan)">
+                <div class="d-flex align-items-center gap-1">
+                    <span class="font-monospace text-dark small">[${item.tag}]</span>
+                    <span class="badge bg-light text-primary border p-0 px-1" style="font-size: 9px; cursor: help;" title="${item.hint}">?</span>
+                </div>
+                <span class="param-pill pill-orange" id="pill_${item.tag}">-</span>
+            </div>
+        `).join('');
+
+        handleTemplateChange();
+    }
+
     function handleCategoryChange(cat) {
         document.querySelectorAll('.field-bank-only').forEach(el => {
             el.style.display = (cat === 'BANK') ? 'block' : 'none';
         });
+        renderCategoryParams(cat);
         updateLivePreview();
     }
 
@@ -2849,17 +2908,10 @@ Tidak ada log tersedia.
     function handleTemplateChange() {
         const tplVal = document.getElementById('rule_sn_template')?.value || '';
 
-        const allTags = [
-            'namapelanggan', 'golongan', 'daya', 'kwh', 'token',
-            'nometer', 'idpel', 'plnreff', 'nominal', 'ppn', 'ppj', 'angsuran',
-            'materai', 'rptoken', 'kwhsubsidi', 'kwhkompensasi', 'admin',
-            'subtotal', 'totalbayar', 'tokensubsidi', 'tokenkompensasi',
-            'norek', 'stand', 'blth', 'var', 'var1', 'var2', 'var3'
-        ];
-
-        allTags.forEach(tag => {
-            const pill = document.getElementById('pill_' + tag);
-            if (!pill) return;
+        const allPills = document.querySelectorAll('#list_param_wajib .param-pill, #list_param_opsional .param-pill');
+        allPills.forEach(pill => {
+            const tag = pill.id.replace('pill_', '');
+            if (!tag) return;
 
             const re = new RegExp('\\[' + tag + '\\]', 'i');
             if (re.test(tplVal)) {
@@ -3335,6 +3387,9 @@ Tidak ada log tersedia.
 
     document.addEventListener('DOMContentLoaded', function() {
         // Run initial live preview on tab receipt
+        const catSelect = document.getElementById('rule_category');
+        const initialCat = catSelect ? catSelect.value : 'PRABAYAR';
+        handleCategoryChange(initialCat);
         const initialMode = document.querySelector('input[name="parser_mode"]:checked')?.value || 'template';
         handleParserModeChange(initialMode);
         handleTemplateChange();
