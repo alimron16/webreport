@@ -1949,111 +1949,172 @@ Tidak ada log tersedia.
 
                         <!-- Sisi Kanan: Miniatur Struk Kertas Fisik (col-12 col-lg-7) -->
                         <div class="col-12 col-lg-7 d-flex justify-content-center">
-                            <div class="preview-receipt-paper shadow-sm w-100" id="previewPaper" style="background:#ffffff; border:1px solid #71717a; padding: 24px 28px; font-family:'Inter', sans-serif; font-size:12.5px; line-height:1.6; color:#0f172a; max-width: 440px;">
+                            <div class="preview-receipt-paper shadow-sm w-100" id="previewPaper" style="background:#ffffff; border:1px solid #71717a; border-radius:0; padding: 22px 26px; font-size:12px; line-height:1.6; color:#0f172a; max-width: 520px;">
                                 
-                                <!-- Header Struk -->
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div style="font-size: 11.5px; font-weight: 700; color: #1e293b;" id="pv_outlet_name">PAYMENT POINT ONLINE BANKING</div>
-                                    <div style="width: 75px; height: 36px; display:flex; align-items:center; justify-content:flex-end;">
-                                        <img id="pv_logo" src="/images/receipt/pln.svg" alt="Logo" style="max-height: 34px; max-width: 75px; object-fit: contain;">
+                                <!-- ── 1. BODY PLN PRABAYAR (Persis STRUK PRABAYAR.jpeg) ── -->
+                                <div id="pv_body_prabayar" style="font-family:'Courier Prime', 'Roboto Slab', monospace;">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div style="font-size: 11.5px; font-weight: 700; line-height: 1.5;">
+                                            <div>TGL BELI &nbsp;&nbsp;&nbsp;&nbsp;: {{ date('d / m / Y') }} &nbsp;&nbsp;{{ date('H : i : s') }}</div>
+                                            <div>BANK &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span id="pv_pra_bank"></span></div>
+                                        </div>
+                                        <div style="height: 42px; max-width: 130px; display:flex; align-items:center;">
+                                            <img id="pv_logo_pra" src="/images/receipt/pln.svg" alt="PLN Logo" style="max-height: 42px; max-width: 130px; object-fit: contain;">
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center fw-bold my-2" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        STRUK PEMBELIAN LISTRIK PRABAYAR
+                                    </div>
+
+                                    <div class="d-flex justify-content-between gap-3 mt-2" style="font-size: 11px;">
+                                        <!-- Left Col -->
+                                        <div style="flex: 1.1;">
+                                            <div class="d-flex"><span style="width: 100px;">NO METER</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_meter">14512345678</span></div>
+                                            <div class="d-flex"><span style="width: 100px;">ID PEL</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_idpel">098765432100</span></div>
+                                            <div class="d-flex"><span style="width: 100px;">NAMA</span><span class="me-1">:</span><span class="fw-bold text-truncate" id="pv_pra_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
+                                            <div class="d-flex"><span style="width: 100px;">TARIF/DAYA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_tarif">R1/900VA</span></div>
+                                            <div class="d-flex" style="margin-top: 10px;"><span style="width: 100px;">RP STROOM/TOKEN</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_nominal">RP 876.543, 00</span></div>
+                                            <div class="d-flex"><span style="width: 100px;">RP BAYAR</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_total">RP 1.000.000, 00</span></div>
+                                        </div>
+                                        <!-- Right Col -->
+                                        <div style="flex: 0.9;">
+                                            <div class="d-flex"><span style="width: 85px;">ADMIN BANK</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_admin">RP 0, 00</span></div>
+                                            <div class="d-flex"><span style="width: 85px;">MATERAI</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
+                                            <div class="d-flex"><span style="width: 85px;">PPN</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
+                                            <div class="d-flex"><span style="width: 85px;">PPJ</span><span class="me-1">:</span><span class="fw-bold">RP 43.210, 00</span></div>
+                                            <div class="d-flex"><span style="width: 85px;">ANGSURAN</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
+                                            <div class="d-flex" style="margin-top: 10px;"><span style="width: 85px;">JUMLAH KWH</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_kwh">503</span></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Box Token (Persis Struk Prabayar) -->
+                                    <div class="text-center my-3 py-2" style="background:#D8EEFB; border-radius:0;">
+                                        <div style="font-size: 11px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">STROOM / TOKEN</div>
+                                        <div class="fw-bold" style="font-size: 17px; letter-spacing: 1.5px; font-family:'Roboto Slab', monospace; color: #0f172a;" id="pv_pra_token">2920 - 3211 - 4567 - 8910 - 0987</div>
+                                    </div>
+
+                                    <div style="font-size: 10.5px; color: #1e293b;">
+                                        <div style="font-style: italic; font-weight: 600; margin-bottom: 2px;">Informasi Hubungi</div>
+                                        <div>• Call Center 123 &nbsp;&nbsp;&nbsp;• Mobile PLN &nbsp;&nbsp;&nbsp;• PLN Terdekat</div>
                                     </div>
                                 </div>
 
-                                <div class="text-center fw-bold border-bottom pb-2 mb-2" style="font-size: 13px; text-transform: uppercase;" id="pv_struk_title">
-                                    STRUK PEMBELIAN LISTRIK PRABAYAR
-                                </div>
-
-                                <div class="mb-2 pb-2 border-bottom" style="font-size: 11px; color: #475569;">
-                                    <div class="d-flex justify-content-between">
-                                        <span>TGL TRANSAKSI:</span>
-                                        <span class="fw-semibold font-monospace" id="pv_date">{{ date('d/m/Y H:i:s') }}</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span>NO TRANSAKSI / REFF:</span>
-                                        <span class="fw-semibold font-monospace" id="pv_reff">2TKT23R3D5994E77</span>
-                                    </div>
-                                </div>
-
-                                <!-- Body: PLN PRABAYAR -->
-                                <div id="pv_body_prabayar">
-                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
-                                        <tr><td style="width: 100px; color:#64748b;">NO METER</td><td>: <span class="fw-bold font-monospace" id="pv_pra_meter">01112233445</span></td></tr>
-                                        <tr><td style="color:#64748b;">ID PEL</td><td>: <span class="fw-bold font-monospace" id="pv_pra_idpel">01112233445</span></td></tr>
-                                        <tr><td style="color:#64748b;">NAMA</td><td>: <span class="fw-bold" id="pv_pra_nama">BUDI SANTOSO</span></td></tr>
-                                        <tr><td style="color:#64748b;">TARIF / DAYA</td><td>: <span class="fw-bold" id="pv_pra_tarif">R1/900VA</span></td></tr>
-                                        <tr><td style="color:#64748b;">JML KWH</td><td>: <span class="fw-bold" id="pv_pra_kwh">13.2</span></td></tr>
-                                    </table>
-
-                                    <!-- Box Token 20 Digit -->
-                                    <div class="text-center my-3 p-2 border border-2 border-dark rounded" style="background:#f8fafc;">
-                                        <div style="font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 1px;">STROOM / TOKEN PLN</div>
-                                        <div class="fw-bold font-monospace text-dark" style="font-size: 15px; letter-spacing: 1px;" id="pv_pra_token">2920 - 3211 - 4567 - 8910 - 0987</div>
+                                <!-- ── 2. BODY PLN PASCA BAYAR (Persis STRUK PASCABAYAR.jpeg) ── -->
+                                <div id="pv_body_pascabayar" style="display: none; font-family:'Courier Prime', 'Roboto Slab', monospace;">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div style="font-size: 11.5px; font-weight: 700; line-height: 1.5;">
+                                            <div>TGL Bayar &nbsp;&nbsp;&nbsp;&nbsp;: {{ date('d / m / Y') }} &nbsp;&nbsp;{{ date('H : i : s') }}</div>
+                                        </div>
+                                        <div style="height: 42px; max-width: 130px; display:flex; align-items:center;">
+                                            <img id="pv_logo_pasca" src="/images/receipt/pln.svg" alt="PLN Logo" style="max-height: 42px; max-width: 130px; object-fit: contain;">
+                                        </div>
                                     </div>
 
-                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
-                                        <tr><td style="color:#64748b;">NOMINAL</td><td class="text-end font-monospace" id="pv_pra_nominal">Rp 20.000</td></tr>
-                                        <tr><td style="color:#64748b;">ADMIN BANK</td><td class="text-end font-monospace" id="pv_pra_admin">Rp 3.000</td></tr>
-                                        <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL BAYAR</td><td class="text-end font-monospace text-primary" id="pv_pra_total">Rp 23.000</td></tr>
-                                    </table>
-                                </div>
-
-                                <!-- Body: PLN PASCA BAYAR -->
-                                <div id="pv_body_pascabayar" style="display: none;">
-                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
-                                        <tr><td style="width: 100px; color:#64748b;">ID PEL</td><td>: <span class="fw-bold font-monospace" id="pv_pasca_idpel">512345678901</span></td></tr>
-                                        <tr><td style="color:#64748b;">NAMA</td><td>: <span class="fw-bold" id="pv_pasca_nama">BUDI SANTOSO</span></td></tr>
-                                        <tr><td style="color:#64748b;">TARIF / DAYA</td><td>: <span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></td></tr>
-                                        <tr><td style="color:#64748b;">STAND METER</td><td>: <span class="fw-bold font-monospace" id="pv_pasca_stand">7447-6541</span></td></tr>
-                                        <tr><td style="color:#64748b;">BLN / THN</td><td>: <span class="fw-bold" id="pv_pasca_blth">OKT 2026</span></td></tr>
-                                    </table>
-
-                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
-                                        <tr><td style="color:#64748b;">TAGIHAN PLN</td><td class="text-end font-monospace" id="pv_pasca_tagihan">Rp 210.345</td></tr>
-                                        <tr><td style="color:#64748b;">BIAYA ADMIN</td><td class="text-end font-monospace" id="pv_pasca_admin">Rp 3.750</td></tr>
-                                        <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL BAYAR</td><td class="text-end font-monospace text-primary" id="pv_pasca_total">Rp 214.095</td></tr>
-                                    </table>
-                                </div>
-
-                                <!-- Body: BANK TRANSFER -->
-                                <div id="pv_body_bank" style="display: none;">
-                                    <!-- Bar Biru Khas Struk Transfer Bank -->
-                                    <div class="d-flex justify-content-between align-items-center p-2 mb-2 rounded text-white" style="background:#0B6FB6;">
-                                        <span class="fw-bold" style="font-size: 12px;" id="pv_bank_title">BANK CENTRAL ASIA</span>
-                                        <span class="badge bg-white text-primary font-monospace fw-bold" style="font-size: 10px;">BERHASIL</span>
+                                    <div class="text-center fw-bold my-2" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        STRUK PEMBAYARAN LISTRIK PASCABAYAR
                                     </div>
 
-                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
-                                        <tr><td style="width: 110px; color:#64748b;">NO REKENING</td><td>: <span class="fw-bold font-monospace" id="pv_bank_rek">614501012345</span></td></tr>
-                                        <tr><td style="color:#64748b;">NAMA PENERIMA</td><td>: <span class="fw-bold" id="pv_bank_nama">BUDI SANTOSO</span></td></tr>
-                                        <tr><td style="color:#64748b;">REMARK</td><td>: <span id="pv_bank_remark">Transfer Uang</span></td></tr>
+                                    <div class="d-flex justify-content-between gap-3 mt-2" style="font-size: 11px;">
+                                        <!-- Left Col -->
+                                        <div style="flex: 1.1;">
+                                            <div class="d-flex"><span style="width: 95px;">ID PEL</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_idpel">098765432100</span></div>
+                                            <div class="d-flex"><span style="width: 95px;">NAMA</span><span class="me-1">:</span><span class="fw-bold text-truncate" id="pv_pasca_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
+                                            <div class="d-flex"><span style="width: 95px;">TARIF/DAYA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></div>
+                                            <div class="d-flex"><span style="width: 95px;">BL/TH</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_blth">OKT/2026</span></div>
+                                        </div>
+                                        <!-- Right Col -->
+                                        <div style="flex: 0.9;">
+                                            <div class="d-flex"><span style="width: 85px;">STAND METER</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_stand">7447-6541</span></div>
+                                            <div class="d-flex"><span style="width: 85px;">TAGIHAN</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tagihan">Rp 210.345, 00</span></div>
+                                            <div class="d-flex"><span style="width: 85px;">ADMIN BANK</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_admin">Rp 3.750, 00</span></div>
+                                            <div class="d-flex"><span style="width: 85px;">TOTAL BAYAR</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_total">Rp 214.095, 00</span></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Box REFF (Persis Struk Pascabayar) -->
+                                    <div class="text-center my-3 py-2" style="background:#D8EEFB; border-radius:0;">
+                                        <div style="font-size: 11px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">REFF:</div>
+                                        <div class="fw-bold" style="font-size: 16px; letter-spacing: 1px; font-family:'Roboto Slab', monospace; color: #0f172a;" id="pv_reff">2TKT23R3D5994E77D4FA6B977F3A1F3</div>
+                                    </div>
+
+                                    <div style="font-size: 10.5px; color: #1e293b;">
+                                        <div style="font-style: italic; font-weight: 600; margin-bottom: 2px;">Informasi Hubungi</div>
+                                        <div>• Call Center 123 &nbsp;&nbsp;&nbsp;• Mobile PLN &nbsp;&nbsp;&nbsp;• PLN Terdekat</div>
+                                    </div>
+                                </div>
+
+                                <!-- ── 3. BODY BANK TRANSFER (Persis STRUK BANK.jpeg BCA) ── -->
+                                <div id="pv_body_bank" style="display: none; font-family:'Inter', sans-serif;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div style="font-size: 16px; font-weight: 700; color: #1e293b;">Transaction Receipt</div>
+                                        <div style="height: 36px; max-width: 120px; display:flex; align-items:center;">
+                                            <img id="pv_logo_bank" src="/images/receipt/bca.png" alt="Bank Logo" style="max-height: 36px; max-width: 120px; object-fit: contain;">
+                                        </div>
+                                    </div>
+
+                                    <!-- Bar 1: In-House Transfer Result -->
+                                    <div class="d-flex justify-content-between align-items-center px-2 py-1 fw-bold" style="background:#79B5FB; font-size: 11.5px; color: #0f172a;">
+                                        <span>In-House Transfer Result</span>
+                                        <span id="pv_bank_title">BANK CENTRAL ASIA</span>
+                                    </div>
+                                    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; width: 145px; color: #334155;">Amount</td><td style="width: 12px;">:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_bank_nominal">IDR 4.000.000</td></tr>
+                                        <tr style="background:#ffffff;"><td style="padding: 4px 8px; color: #334155;">Remark</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_bank_remark">Transfer Uang</td></tr>
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; color: #334155;">Remitter Reference No.</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_bank_remitter">261021VD3UDD</td></tr>
+                                        <tr style="background:#ffffff;"><td style="padding: 4px 8px; color: #334155;">Completed Time</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;">{{ date('d-m-Y H:i:s') }}</td></tr>
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; color: #334155;">Beneficiary Reference No.</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;">-</td></tr>
+                                        <tr style="background:#ffffff;"><td style="padding: 4px 8px; color: #334155;">Transaction ID</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_bank_trxid">032312023948239990</td></tr>
                                     </table>
 
-                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
-                                        <tr><td style="color:#64748b;">NOMINAL TF</td><td class="text-end font-monospace" id="pv_bank_nominal">Rp 1.000.000</td></tr>
-                                        <tr><td style="color:#64748b;">BIAYA ADMIN</td><td class="text-end font-monospace" id="pv_bank_admin">Rp 2.500</td></tr>
-                                        <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL DEBET</td><td class="text-end font-monospace text-primary" id="pv_bank_total">Rp 1.002.500</td></tr>
+                                    <!-- Bar 2: Beneficiary Information -->
+                                    <div class="px-2 py-1 fw-bold mt-2" style="background:#79B5FB; font-size: 11.5px; color: #0f172a;">
+                                        Beneficiary Information
+                                    </div>
+                                    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; width: 145px; color: #334155;">Account Number</td><td style="width: 12px;">:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_bank_rek">614501012345</td></tr>
+                                        <tr style="background:#ffffff;"><td style="padding: 4px 8px; color: #334155;">Account Name</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_bank_nama">PRABOWO SUBIANTO WARDJOYO</td></tr>
+                                    </table>
+
+                                    <!-- Bar 3: Request Information -->
+                                    <div class="px-2 py-1 fw-bold mt-2" style="background:#79B5FB; font-size: 11.5px; color: #0f172a;">
+                                        Request Information
+                                    </div>
+                                    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; width: 145px; color: #334155;">Request Time</td><td style="width: 12px;">:</td><td class="fw-bold" style="padding: 4px 8px;">{{ date('d-m-Y H:i:s') }}</td></tr>
                                     </table>
                                 </div>
 
-                                <!-- Body: UMUM (PPOB / Pulsa) -->
-                                <div id="pv_body_umum" style="display: none;">
-                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
-                                        <tr><td style="width: 100px; color:#64748b;">NO TUJUAN</td><td>: <span class="fw-bold font-monospace" id="pv_umum_tujuan">081234567890</span></td></tr>
-                                        <tr><td style="color:#64748b;">PRODUK</td><td>: <span class="fw-bold" id="pv_umum_produk">Top Up Saldo</span></td></tr>
-                                        <tr><td style="color:#64748b;">ATAS NAMA</td><td>: <span class="fw-bold" id="pv_umum_nama">BUDI SANTOSO</span></td></tr>
+                                <!-- ── 4. BODY UMUM (PPOB / Pulsa / Standar) ── -->
+                                <div id="pv_body_umum" style="display: none; font-family:'Inter', sans-serif;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <div style="font-size: 15px; font-weight: 700; color: #1e293b;">STRUK PEMBAYARAN</div>
+                                            <div class="small text-muted">PAYMENT POINT SYSTEM</div>
+                                        </div>
+                                        <div style="height: 38px; max-width: 110px; display:flex; align-items:center;">
+                                            <img id="pv_logo_umum" src="/logo" alt="Logo" style="max-height: 38px; max-width: 110px; object-fit: contain;">
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center px-2 py-1 fw-bold" style="background:#79B5FB; font-size: 11.5px; color: #0f172a;">
+                                        <span>Rincian Transaksi</span>
+                                        <span>SUKSES</span>
+                                    </div>
+                                    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; width: 145px; color: #334155;">Nomor Tujuan</td><td style="width: 12px;">:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_umum_tujuan">081234567890</td></tr>
+                                        <tr style="background:#ffffff;"><td style="padding: 4px 8px; color: #334155;">Produk / Layanan</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_umum_produk">Top Up Saldo</td></tr>
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; color: #334155;">Nama Pelanggan</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_umum_nama">PRABOWO SUBIANTO WARDJOYO</td></tr>
+                                        <tr style="background:#ffffff;"><td style="padding: 4px 8px; color: #334155;">Harga / Nominal</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_umum_harga">Rp 50.000</td></tr>
+                                        <tr style="background:#EDF5FF;"><td style="padding: 4px 8px; color: #334155;">Biaya Admin</td><td>:</td><td class="fw-bold" style="padding: 4px 8px;" id="pv_umum_admin">Rp 2.000</td></tr>
+                                        <tr style="background:#dbeafe; font-weight: 700;"><td style="padding: 4px 8px; color: #1e3a8a;">TOTAL BAYAR</td><td>:</td><td class="fw-bold text-primary" style="padding: 4px 8px;" id="pv_umum_total">Rp 52.000</td></tr>
                                     </table>
 
-                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
-                                        <tr><td style="color:#64748b;">HARGA</td><td class="text-end font-monospace" id="pv_umum_harga">Rp 50.000</td></tr>
-                                        <tr><td style="color:#64748b;">ADMIN FEE</td><td class="text-end font-monospace" id="pv_umum_admin">Rp 2.000</td></tr>
-                                        <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL BAYAR</td><td class="text-end font-monospace text-primary" id="pv_umum_total">Rp 52.000</td></tr>
-                                    </table>
+                                    <div class="text-center border-top mt-3 pt-2 text-muted" style="font-size: 10px;" id="pv_footer_info">
+                                        Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat
+                                    </div>
                                 </div>
 
-                                <!-- Footer Info Struk -->
-                                <div class="text-center border-top mt-3 pt-2 text-muted" style="font-size: 10px; line-height: 1.4;" id="pv_footer_info">
-                                    Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat
-                                </div>
                             </div>
                         </div>
 
@@ -2329,8 +2390,10 @@ Tidak ada log tersedia.
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const pvLogo = document.getElementById('pv_logo');
-                if (pvLogo) pvLogo.src = e.target.result;
+                ['pv_logo_pra', 'pv_logo_pasca', 'pv_logo_bank', 'pv_logo_umum'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.src = e.target.result;
+                });
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -2342,13 +2405,13 @@ Tidak ada log tersedia.
         if (!snInput) return;
 
         if (type === 'pln_token') {
-            snInput.value = 'SN: 2920-3211-4567-8910-0987/PLN20/01112233445/BUDI SANTOSO/R1/900VA/13.2/20000';
+            snInput.value = 'SN: 2920-3211-4567-8910-0987/14512345678/098765432100/PRABOWO SUBIANTO WARDJOYO/R1/900VA/503/876543/1000000';
             if (catSelect) catSelect.value = 'PRABAYAR';
         } else if (type === 'pln_pasca') {
-            snInput.value = 'STAND: 7447-6541 / NAMA: BUDI SANTOSO / R1/900VA / BLN: OKT26 / TAG: 210345 / ADM: 3750 / REFF: 2TKT23R3D5994E77';
+            snInput.value = 'STAND: 7447-6541 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / BLN: OKT26 / TAG: 210345 / ADM: 3750 / REFF: 2TKT23R3D5994E77D4FA6B977F3A1F3';
             if (catSelect) catSelect.value = 'PASCA BAYAR';
         } else if (type === 'bank_bca') {
-            snInput.value = 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: BUDI SANTOSO / NOMINAL: 1000000 / REFF: 261021VD3UDD / BERHASIL';
+            snInput.value = 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL';
             if (catSelect) catSelect.value = 'BANK';
         }
 
@@ -2358,6 +2421,14 @@ Tidak ada log tersedia.
 
     function formatRupiah(num) {
         return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    function formatPlnRupiah(num, prefix = 'RP ') {
+        return prefix + Number(num || 0).toLocaleString('id-ID') + ', 00';
+    }
+
+    function formatBankIdr(num) {
+        return 'IDR ' + Number(num || 0).toLocaleString('id-ID');
     }
 
     function updateLivePreview() {
@@ -2375,18 +2446,18 @@ Tidak ada log tersedia.
         const pattern = document.getElementById('rule_sn_pattern')?.value?.trim() || '';
         const regexStr = document.getElementById('rule_sn_regex')?.value?.trim() || '';
 
-        // Parsing state
+        // Default parsing state matching STRUK samples
         let token = '';
-        let custName = 'BUDI SANTOSO';
+        let custName = 'PRABOWO SUBIANTO WARDJOYO';
         let tarifDaya = 'R1/900VA';
-        let kwh = '13.2';
+        let kwh = '503';
         let standMeter = '7447-6541';
-        let blth = 'OKT 2026';
-        let noMeter = '01112233445';
-        let idPel = '01112233445';
+        let blth = 'OKT/2026';
+        let noMeter = '14512345678';
+        let idPel = '098765432100';
         let noRek = '614501012345';
-        let tagihan = (cat === 'PASCA BAYAR') ? 210345 : ((cat === 'BANK') ? 1000000 : 20000);
-        let reff = '2TKT23R3D5994E77';
+        let tagihan = (cat === 'PASCA BAYAR') ? 210345 : ((cat === 'BANK') ? 4000000 : 876543);
+        let reff = '2TKT23R3D5994E77D4FA6B977F3A1F3';
 
         // 1. Delimiter mode
         if (parserMode === 'delimiter' && pattern) {
@@ -2454,25 +2525,25 @@ Tidak ada log tersedia.
         }
 
         const mName = rawSn.match(/(?:NAMA|NAME|NAMA\sPELANGGAN|NAMA\sREK|AN|A\/N)\s*[:=]\s*([^\/,;]+)/i) || rawSn.match(/\/([A-Z\s]{4,35})\//);
-        if (mName && mName[1] && custName === 'BUDI SANTOSO') custName = mName[1].trim();
+        if (mName && mName[1] && custName === 'PRABOWO SUBIANTO WARDJOYO') custName = mName[1].trim();
 
         const mTarif = rawSn.match(/(?:TARIF|DAYA|TARIF\/DAYA|TRF)\s*[:=]\s*([^\/,;]+)/i) || rawSn.match(/\b(R\d[A-Z]?\/\d+[A-Z]*|B\d\/\d+[A-Z]*|I\d\/\d+[A-Z]*)\b/i);
-        if (mTarif && mTarif[1] && tarifDaya === 'R1/900VA') tarifDaya = mTarif[1].trim().toUpperCase();
+        if (mTarif && mTarif[1]) tarifDaya = mTarif[1].trim().toUpperCase();
 
         const mKwh = rawSn.match(/(?:KWH|JML\sKWH|JUMLAH\sKWH)\s*[:=]\s*([\d\.,]+)/i);
-        if (mKwh && mKwh[1] && kwh === '13.2') kwh = mKwh[1].trim();
+        if (mKwh && mKwh[1]) kwh = mKwh[1].trim();
 
         const mStand = rawSn.match(/(?:STAND|STAND\sMETER)\s*[:=]\s*([^\/,;]+)/i);
-        if (mStand && mStand[1] && standMeter === '7447-6541') standMeter = mStand[1].trim();
+        if (mStand && mStand[1]) standMeter = mStand[1].trim();
 
         const mBlth = rawSn.match(/(?:BLN?\/THN?|BL\/TH|PERIODE)\s*[:=]\s*([^\/,;]+)/i);
-        if (mBlth && mBlth[1] && blth === 'OKT 2026') blth = mBlth[1].trim();
+        if (mBlth && mBlth[1]) blth = mBlth[1].trim();
 
         const mIdpel = rawSn.match(/(?:IDPEL|ID\s*PEL|ID\s*PELANGGAN)\s*[:=]\s*(\d{10,13})/i);
-        if (mIdpel && mIdpel[1]) { idPel = mIdpel[1].trim(); if (noMeter === '01112233445') noMeter = idPel; }
+        if (mIdpel && mIdpel[1]) { idPel = mIdpel[1].trim(); }
 
         const mNorek = rawSn.match(/(?:NOREK|NO\.?\s*REK|REK|REKENING)\s*[:=]?\s*(\d{8,25})/i);
-        if (mNorek && mNorek[1] && noRek === '614501012345') noRek = mNorek[1].trim();
+        if (mNorek && mNorek[1]) noRek = mNorek[1].trim();
 
         const mTagihan = rawSn.match(/(?:TAG|TAGIHAN|RP|NOMINAL|JML)\s*[:=]?\s*Rp?\s*([\d\.,]+)/i);
         if (mTagihan && mTagihan[1]) {
@@ -2483,7 +2554,7 @@ Tidak ada log tersedia.
         const mReff = rawSn.match(/(?:REFF|REF|SN)\s*[:=]\s*([A-Za-z0-9]+)/i);
         if (mReff && mReff[1]) reff = mReff[1].trim();
 
-        const totalBayar = tagihan + adminFee;
+        const totalBayar = (cat === 'PRABAYAR' && tagihan < 1000000) ? 1000000 : (tagihan + adminFee);
 
         // Update Extracted Status Badges
         const elTok = document.getElementById('badge_token');
@@ -2507,15 +2578,6 @@ Tidak ada log tersedia.
         if (bBnk) bBnk.style.display = (cat === 'BANK') ? 'block' : 'none';
         if (bUmm) bUmm.style.display = (cat === 'UMUM') ? 'block' : 'none';
 
-        // Update Paper Text
-        const titleEl = document.getElementById('pv_struk_title');
-        if (titleEl) {
-            if (cat === 'PRABAYAR') titleEl.innerText = 'STRUK PEMBELIAN LISTRIK PRABAYAR';
-            else if (cat === 'PASCA BAYAR') titleEl.innerText = 'STRUK PEMBAYARAN TAGIHAN LISTRIK';
-            else if (cat === 'BANK') titleEl.innerText = 'BUKTI TRANSFER ANTAR BANK';
-            else titleEl.innerText = 'STRUK PEMBAYARAN TRANSAKSI';
-        }
-
         const setTxt = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.innerText = val;
@@ -2524,35 +2586,35 @@ Tidak ada log tersedia.
         setTxt('pv_reff', reff);
         setTxt('pv_footer_info', footerInfo);
 
-        // Prabayar fields
+        // Prabayar fields (Persis STRUK PRABAYAR.jpeg)
+        setTxt('pv_pra_bank', (bankName && bankName !== 'PLN PAYMENT POINT' && bankName !== 'BANK CENTRAL ASIA') ? bankName : '');
         setTxt('pv_pra_meter', noMeter);
         setTxt('pv_pra_idpel', idPel);
         setTxt('pv_pra_nama', custName);
         setTxt('pv_pra_tarif', tarifDaya);
         setTxt('pv_pra_kwh', kwh);
         setTxt('pv_pra_token', token);
-        setTxt('pv_pra_nominal', formatRupiah(tagihan));
-        setTxt('pv_pra_admin', formatRupiah(adminFee));
-        setTxt('pv_pra_total', formatRupiah(totalBayar));
+        setTxt('pv_pra_nominal', formatPlnRupiah(tagihan, 'RP '));
+        setTxt('pv_pra_admin', formatPlnRupiah(adminFee, 'RP '));
+        setTxt('pv_pra_total', formatPlnRupiah(totalBayar, 'RP '));
 
-        // Pasca fields
+        // Pasca fields (Persis STRUK PASCABAYAR.jpeg)
         setTxt('pv_pasca_idpel', idPel);
         setTxt('pv_pasca_nama', custName);
         setTxt('pv_pasca_tarif', tarifDaya);
         setTxt('pv_pasca_stand', standMeter);
         setTxt('pv_pasca_blth', blth);
-        setTxt('pv_pasca_tagihan', formatRupiah(tagihan));
-        setTxt('pv_pasca_admin', formatRupiah(adminFee));
-        setTxt('pv_pasca_total', formatRupiah(totalBayar));
+        setTxt('pv_pasca_tagihan', formatPlnRupiah(tagihan, 'Rp '));
+        setTxt('pv_pasca_admin', formatPlnRupiah(adminFee, 'Rp '));
+        setTxt('pv_pasca_total', formatPlnRupiah(totalBayar, 'Rp '));
 
-        // Bank fields
+        // Bank fields (Persis STRUK BANK.jpeg BCA)
         setTxt('pv_bank_title', bankName.toUpperCase());
+        setTxt('pv_bank_nominal', formatBankIdr(tagihan));
+        setTxt('pv_bank_remark', remark);
+        setTxt('pv_bank_remitter', reff.length > 12 ? '261021VD3UDD' : reff);
         setTxt('pv_bank_rek', noRek);
         setTxt('pv_bank_nama', custName);
-        setTxt('pv_bank_remark', remark);
-        setTxt('pv_bank_nominal', formatRupiah(tagihan));
-        setTxt('pv_bank_admin', formatRupiah(adminFee));
-        setTxt('pv_bank_total', formatRupiah(totalBayar));
 
         // Umum fields
         setTxt('pv_umum_tujuan', idPel || '081234567890');

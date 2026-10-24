@@ -91,28 +91,30 @@
             color: #1e293b;
         }
 
-        /* ── TEMPLATE 1 & 2: PLN STYLES ─────────────── */
+        /* ── TEMPLATE 1 & 2: PLN STYLES (Matching STRUK PRABAYAR & PASCABAYAR) ─── */
         .pln-receipt {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Courier Prime', 'Roboto Slab', 'Courier New', Courier, monospace;
             font-size: 13.5px;
-            line-height: 1.6;
-            color: #0f172a;
+            line-height: 1.65;
+            color: #111827;
+            font-weight: 500;
         }
 
         .pln-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .pln-tgl {
             font-size: 13.5px;
             font-weight: 700;
+            line-height: 1.5;
         }
 
         .pln-logo-box img, .pln-logo-box svg {
-            height: 54px;
+            height: 52px;
             max-width: 170px;
             object-fit: contain;
         }
@@ -122,7 +124,7 @@
             font-weight: 700;
             font-size: 15px;
             letter-spacing: 0.5px;
-            margin: 10px 0 18px;
+            margin: 14px 0 18px;
             text-transform: uppercase;
         }
 
@@ -138,82 +140,90 @@
 
         .pln-row {
             display: flex;
-            margin-bottom: 4px;
+            margin-bottom: 3.5px;
+            align-items: baseline;
         }
 
         .pln-lbl {
-            width: 145px;
+            width: 155px;
             flex-shrink: 0;
             font-weight: 500;
+            color: #111827;
+        }
+
+        .pln-lbl-right {
+            width: 140px;
+            flex-shrink: 0;
+            font-weight: 500;
+            color: #111827;
         }
 
         .pln-sep {
             margin-right: 8px;
+            font-weight: 700;
         }
 
         .pln-val {
             flex-grow: 1;
-            font-weight: 600;
-        }
-
-        .pln-val-right {
-            text-align: right;
-            font-weight: 600;
+            font-weight: 700;
+            color: #111827;
         }
 
         /* Blue Highlight Box for REFF / TOKEN */
         .pln-highlight-box {
-            background-color: #daf0fd;
+            background-color: #D8EEFB;
             border: none;
-            border-radius: 4px;
+            border-radius: 0;
             text-align: center;
-            padding: 12px 16px;
+            padding: 10px 16px;
             margin: 20px 0 16px;
         }
 
         .pln-highlight-lbl {
-            font-size: 13px;
+            font-family: 'Courier Prime', 'Roboto Slab', monospace;
+            font-size: 13.5px;
             font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 4px;
-            text-transform: uppercase;
+            color: #0f172a;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
         }
 
         .pln-highlight-code {
-            font-family: 'Roboto Slab', 'Courier Prime', serif;
+            font-family: 'Roboto Slab', 'Courier Prime', Courier, monospace;
             font-size: 24px;
             font-weight: 800;
-            color: #1e293b;
+            color: #0f172a;
             letter-spacing: 1.5px;
             word-break: break-all;
         }
 
         .token-large {
-            font-family: 'Roboto Slab', 'Courier Prime', serif;
-            font-size: 27px;
+            font-family: 'Roboto Slab', 'Courier Prime', Courier, monospace;
+            font-size: 26px;
             font-weight: 800;
             letter-spacing: 2px;
-            color: #1e293b;
+            color: #0f172a;
         }
 
         .pln-footer {
+            font-family: 'Courier Prime', 'Roboto Slab', monospace;
             font-size: 12.5px;
             color: #1e293b;
-            margin-top: 12px;
+            margin-top: 14px;
         }
 
         .pln-footer-title {
             font-style: italic;
             font-weight: 600;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
-        /* ── TEMPLATE 3: BANK TRANSFER (BCA / BANK) ─── */
+        /* ── TEMPLATE 3: BANK TRANSFER (BCA / BANK - Matching STRUK BANK.jpeg) ─── */
         .bank-receipt {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 13.5px;
             color: #0f172a;
-            padding: 24px 28px;
+            padding: 4px;
         }
 
         .bank-top-header {
@@ -224,24 +234,24 @@
         }
 
         .bank-main-title {
-            font-size: 21px;
+            font-size: 20px;
             font-weight: 700;
             color: #1e293b;
         }
 
         .bank-logo img, .bank-logo svg {
-            height: 42px;
+            height: 44px;
             max-width: 150px;
             object-fit: contain;
         }
 
         /* Blue Section Bar */
         .bank-section-bar {
-            background-color: #8bbbf8;
+            background-color: #79B5FB;
             color: #0f172a;
             font-weight: 700;
-            font-size: 14px;
-            padding: 6.5px 16px;
+            font-size: 13.5px;
+            padding: 6px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -255,23 +265,30 @@
         }
 
         .bank-table td {
-            padding: 5.5px 16px;
+            padding: 5px 16px;
             font-size: 13.5px;
+            color: #1e293b;
+        }
+
+        .bank-table tr:nth-child(odd) {
+            background-color: #EDF5FF;
         }
 
         .bank-table tr:nth-child(even) {
-            background-color: #f1f6fd;
+            background-color: #ffffff;
         }
 
         .bank-table td.b-label {
             width: 250px;
-            color: #1e293b;
+            color: #334155;
             font-weight: 500;
         }
 
         .bank-table td.b-sep {
             width: 15px;
             text-align: center;
+            color: #334155;
+            font-weight: 600;
         }
 
         .bank-table td.b-value {
@@ -433,24 +450,24 @@
                         <!-- Right Column -->
                         <div class="pln-col">
                             <div class="pln-row">
-                                <span class="pln-lbl">STAND METER</span>
+                                <span class="pln-lbl-right">STAND METER</span>
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val val-stand">{{ $receipt['stand_meter'] }}</span>
                             </div>
                             <div class="pln-row">
-                                <span class="pln-lbl">TAGIHAN</span>
+                                <span class="pln-lbl-right">TAGIHAN</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">Rp <span class="val-tagihan-fmt">{{ number_format($receipt['tagihan_pasca'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">Rp &nbsp;<span class="val-tagihan-fmt">{{ number_format($receipt['tagihan_pasca'], 0, ',', '.') }}, 00</span></span>
                             </div>
                             <div class="pln-row">
-                                <span class="pln-lbl">ADMIN BANK</span>
+                                <span class="pln-lbl-right">ADMIN BANK</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">Rp <span class="val-admin-fmt">{{ number_format($receipt['admin_fee'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">Rp &nbsp;<span class="val-admin-fmt">{{ number_format($receipt['admin_fee'], 0, ',', '.') }}, 00</span></span>
                             </div>
                             <div class="pln-row">
-                                <span class="pln-lbl">TOTAL BAYAR</span>
+                                <span class="pln-lbl-right">TOTAL BAYAR</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">Rp <span class="val-total-fmt">{{ number_format($receipt['total_bayar_pasca'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">Rp &nbsp;<span class="val-total-fmt">{{ number_format($receipt['total_bayar_pasca'], 0, ',', '.') }}, 00</span></span>
                             </div>
                         </div>
                     </div>
@@ -517,47 +534,47 @@
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val val-tarif">{{ $receipt['tarif_daya'] }}</span>
                             </div>
-                            <div class="pln-row" style="margin-top: 10px;">
+                            <div class="pln-row" style="margin-top: 14px;">
                                 <span class="pln-lbl">RP STROOM/TOKEN</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">RP <span class="val-stroom-fmt">{{ number_format($receipt['stroom_token'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">RP {{ number_format($receipt['stroom_token'], 0, ',', '.') }}, 00</span>
                             </div>
                             <div class="pln-row">
                                 <span class="pln-lbl">RP BAYAR</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">RP <span class="val-total-fmt">{{ number_format($receipt['total_bayar_pra'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">RP {{ number_format($receipt['total_bayar_pra'], 0, ',', '.') }}, 00</span>
                             </div>
                         </div>
 
                         <!-- Right Column -->
                         <div class="pln-col">
                             <div class="pln-row">
-                                <span class="pln-lbl">ADMIN BANK</span>
+                                <span class="pln-lbl-right">ADMIN BANK</span>
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val">RP <span class="val-admin-fmt">{{ number_format($receipt['admin_fee'], 0, ',', '.') }}, 00</span></span>
                             </div>
                             <div class="pln-row">
-                                <span class="pln-lbl">MATERAI</span>
+                                <span class="pln-lbl-right">MATERAI</span>
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val">RP 0, 00</span>
                             </div>
                             <div class="pln-row">
-                                <span class="pln-lbl">PPN</span>
+                                <span class="pln-lbl-right">PPN</span>
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val">RP 0, 00</span>
                             </div>
                             <div class="pln-row">
-                                <span class="pln-lbl">PPJ</span>
+                                <span class="pln-lbl-right">PPJ</span>
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val">RP {{ number_format($receipt['ppj'], 0, ',', '.') }}, 00</span>
                             </div>
                             <div class="pln-row">
-                                <span class="pln-lbl">ANGSURAN</span>
+                                <span class="pln-lbl-right">ANGSURAN</span>
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val">RP 0, 00</span>
                             </div>
-                            <div class="pln-row" style="margin-top: 10px;">
-                                <span class="pln-lbl">JUMLAH KWH</span>
+                            <div class="pln-row" style="margin-top: 14px;">
+                                <span class="pln-lbl-right">JUMLAH KWH</span>
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val val-kwh">{{ $receipt['jumlah_kwh'] }}</span>
                             </div>
