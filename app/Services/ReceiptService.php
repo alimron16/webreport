@@ -680,20 +680,20 @@ class ReceiptService
         }
 
         // Fallbacks for display if still empty
-        if (empty($custName)) $custName = 'PRABOWO SUBIANTO WARDJOYO';
-        if (empty($tarifDaya)) $tarifDaya = 'R1/900VA';
-        if (empty($jumlahKwh)) $jumlahKwh = '503';
-        if (empty($token20)) $token20 = '2920 - 3211 - 4567 - 8910 - 0987';
-        if (empty($reff)) $reff = '2TKT23R3D5994E77D4FA6B977F3A1F3';
+        if (empty($custName)) $custName = ($category === 'UMUM') ? '' : 'PRABOWO SUBIANTO WARDJOYO';
+        if (empty($tarifDaya)) $tarifDaya = ($category === 'UMUM') ? '' : 'R1/900VA';
+        if (empty($jumlahKwh)) $jumlahKwh = ($category === 'UMUM') ? '' : '503';
+        if (empty($token20)) $token20 = ($category === 'UMUM') ? '' : '2920 - 3211 - 4567 - 8910 - 0987';
+        if (empty($reff)) $reff = !empty($trx['sn']) ? $trx['sn'] : (!empty($trx['ref_id']) ? $trx['ref_id'] : ($trx['kode'] ?? '2TKT23R3D5994E77D4FA6B977F3A1F3'));
 
-        // Math for PLN Prabayar
+        // Math for PLN Prabayar & Umum
         if ($rpToken > 0) {
             $stroomToken = $rpToken;
             $totalBayarPra = ($rpToken + $ppj + $ppn + $materai + $angsuran) + $adminFee;
         } else {
-            $stroomToken = $harga > 0 ? $harga : 876543;
+            $stroomToken = $harga;
             if ($ppj <= 0) {
-                $ppj = $harga > 0 ? round($harga * 0.05) : 43210;
+                $ppj = ($category === 'UMUM') ? 0 : ($harga > 0 ? round($harga * 0.05) : 43210);
             }
             $totalBayarPra = $stroomToken + $adminFee;
         }
