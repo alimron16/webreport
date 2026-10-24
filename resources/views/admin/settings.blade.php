@@ -1671,278 +1671,299 @@ Tidak ada log tersedia.
                 </div>
             @endif
 
-            <!-- Row 1: Dual Column (Form + Custom Parser di Kiri, Live Preview Struk di Kanan) -->
-            <div class="row g-4 align-items-start">
-                
-                <!-- Kolom Kiri: Form Aturan & Pengaturan Parser SN (col-12 col-xl-7) -->
-                <div class="col-12 col-xl-7">
-                    <div class="stg-card">
-                        <div class="stg-card-hdr">
-                            <div class="stg-card-hdr-left">
-                                <div class="stg-icon-box">
-                                    <i class="bx bx-receipt fs-5"></i>
-                                </div>
-                                <div>
-                                    <div class="stg-card-title" id="ruleFormTitle">Tambah Aturan Logo & Format Struk</div>
-                                    <div class="stg-card-sub">Tentukan logo, kategori struk, dan target provider atau kode produk yang cocok</div>
-                                </div>
-                            </div>
+            <!-- Card 1: Form Tambah / Edit Aturan Logo Struk (FULL WIDTH) -->
+            <div class="stg-card">
+                <div class="stg-card-hdr">
+                    <div class="stg-card-hdr-left">
+                        <div class="stg-icon-box">
+                            <i class="bx bx-receipt fs-5"></i>
                         </div>
-
-                        <div class="stg-card-body">
-                            <form method="POST" action="{{ route('admin.settings.receipt.rule') }}" enctype="multipart/form-data" id="formReceiptRule">
-                                @csrf
-                                <input type="hidden" name="rule_id" id="rule_id" value="">
-                                <input type="hidden" name="existing_logo_url" id="existing_logo_url" value="/images/receipt/pln.svg">
-
-                                <div class="row g-3">
-                                    <!-- Kategori Struk -->
-                                    <div class="col-12 col-md-6">
-                                        <label class="stg-field-lbl">
-                                            Kategori Format Struk <span class="text-danger">*</span>
-                                        </label>
-                                        <select name="category" id="rule_category" class="form-select form-control" required onchange="handleCategoryChange(this.value)">
-                                            <option value="PRABAYAR">PRABAYAR (PLN Token / Stroom - Format Gambar 2)</option>
-                                            <option value="PASCA BAYAR">PASCA BAYAR (PLN Tagihan / Rekening - Format Gambar 1)</option>
-                                            <option value="BANK">BANK (Transfer Uang Bank Resmi - Format Gambar 3)</option>
-                                            <option value="UMUM">UMUM (Pulsa, Data, E-Wallet, PPOB Biasa)</option>
-                                        </select>
-                                        <div class="stg-hint">Pilih layout struk yang cocok persis dengan jenis produk</div>
-                                    </div>
-
-                                    <!-- Nama Aturan -->
-                                    <div class="col-12 col-md-6">
-                                        <label class="stg-field-lbl">
-                                            Nama Label Struk <span class="text-muted fw-normal">(Opsional)</span>
-                                        </label>
-                                        <input type="text" name="name" id="rule_name" class="form-control" placeholder="Contoh: Transfer Bank BCA / PLN Token (Otomatis jika kosong)">
-                                        <div class="stg-hint">Jika dikosongkan, nama otomatis diambil dari Provider atau Kode Produk</div>
-                                    </div>
-
-                                    <!-- Opsi Target Pencocokan: Provider vs Kode Produk -->
-                                    <div class="col-12 col-md-6">
-                                        <label class="stg-field-lbl d-flex align-items-center justify-content-between">
-                                            <span>Target By Provider / Operator</span>
-                                            <span class="badge bg-label-primary font-monospace fw-normal" style="font-size: 11px;">Otomatis Semua Produk</span>
-                                        </label>
-                                        <input type="text" name="provider" id="rule_provider" class="form-control" placeholder="Contoh: PLN, BCA, BRI, MANDIRI, TELKOMSEL">
-                                        <div class="stg-hint text-primary">
-                                            <i class="bx bx-check-shield me-1"></i>Otomatis berlaku untuk <strong>SEMUA produk</strong> di bawah provider ini.
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 col-md-6">
-                                        <label class="stg-field-lbl d-flex align-items-center justify-content-between">
-                                            <span>Target By Kode Produk OtomaX</span>
-                                            <span class="badge bg-label-secondary font-monospace fw-normal" style="font-size: 11px;">Khusus Kode Tertentu</span>
-                                        </label>
-                                        <input type="text" name="keywords" id="rule_keywords" class="form-control" placeholder="Contoh: PLNPASCA, TFBCA, S10 (Pisahkan tanda koma)">
-                                        <div class="stg-hint">
-                                            <i class="bx bx-target-lock me-1"></i>Hanya berlaku spesifik untuk kode produk tersebut.
-                                        </div>
-                                    </div>
-
-                                    <!-- File Logo -->
-                                    <div class="col-12 col-md-6">
-                                        <label class="stg-field-lbl">
-                                            Upload File Logo (PNG / JPG / SVG / WebP)
-                                        </label>
-                                        <input type="file" name="logo_file" id="rule_logo_file" class="form-control" accept="image/*" onchange="previewSelectedLogo(this)">
-                                        <div class="stg-hint">Disarankan gambar transparan dengan resolusi tajam</div>
-                                    </div>
-
-                                    <!-- Biaya Admin Bawaan -->
-                                    <div class="col-12 col-md-6">
-                                        <label class="stg-field-lbl">
-                                            Biaya Admin Bawaan (Rp)
-                                        </label>
-                                        <input type="number" name="default_admin" id="rule_admin" class="form-control" value="2500" min="0" step="100">
-                                        <div class="stg-hint">Akan otomatis terjumlahkan pada Total Bayar saat cetak</div>
-                                    </div>
-
-                                    <!-- Khusus Kategori BANK: Nama Bank & Remark -->
-                                    <div class="col-12 col-md-6 field-bank-only" style="display: none;">
-                                        <label class="stg-field-lbl">
-                                            Nama Resmi Bank (Header Kanan Bar Biru)
-                                        </label>
-                                        <input type="text" name="bank_name" id="rule_bank_name" class="form-control" placeholder="Contoh: BANK CENTRAL ASIA">
-                                    </div>
-
-                                    <div class="col-12 col-md-6 field-bank-only" style="display: none;">
-                                        <label class="stg-field-lbl">
-                                            Keterangan Transfer (Remark)
-                                        </label>
-                                        <input type="text" name="remark" id="rule_remark" class="form-control" value="Transfer Uang" placeholder="Contoh: Transfer Uang">
-                                    </div>
-
-                                    <!-- Catatan Footer -->
-                                    <div class="col-12">
-                                        <label class="stg-field-lbl">
-                                            Catatan / Kontak di Bawah Struk
-                                        </label>
-                                        <input type="text" name="footer_info" id="rule_footer" class="form-control" placeholder="Contoh: Call Center 123 • Mobile PLN • PLN Terdekat">
-                                    </div>
-
-                                    <!-- ═══════════════════════════════════════════════
-                                         PENGATURAN POLA & PARSER SN SUPLIER
-                                         ═══════════════════════════════════════════════ -->
-                                    <div class="col-12 mt-4 pt-3 border-top">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <label class="stg-field-lbl fw-bold mb-0 text-dark">
-                                                <i class="bx bx-code-curly me-1 text-primary"></i>Pola Ekstraksi / Parser Balasan SN Suplier
-                                            </label>
-                                            <span class="badge bg-label-info font-monospace" style="font-size: 11px;">Fleksibel & Otomatis</span>
-                                        </div>
-
-                                        <!-- Mode Parser Selector -->
-                                        <div class="row g-2 mb-3">
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
-                                                    <input class="form-check-input" type="radio" name="parser_mode" id="parser_auto" value="auto" checked onchange="handleParserModeChange(this.value)">
-                                                    <label class="form-check-label small fw-semibold" for="parser_auto" style="cursor: pointer;">
-                                                        Smart Auto-Regex
-                                                        <div class="text-muted fw-normal" style="font-size: 11px;">Deteksi otomatis standar PLN, Bank & PPOB</div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
-                                                    <input class="form-check-input" type="radio" name="parser_mode" id="parser_delimiter" value="delimiter" onchange="handleParserModeChange(this.value)">
-                                                    <label class="form-check-label small fw-semibold" for="parser_delimiter" style="cursor: pointer;">
-                                                        Pemisah Delimiter
-                                                        <div class="text-muted fw-normal" style="font-size: 11px;">Dipisahkan simbol garis miring (/) atau (#)</div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
-                                                    <input class="form-check-input" type="radio" name="parser_mode" id="parser_regex" value="regex" onchange="handleParserModeChange(this.value)">
-                                                    <label class="form-check-label small fw-semibold" for="parser_regex" style="cursor: pointer;">
-                                                        Regex Kustom
-                                                        <div class="text-muted fw-normal" style="font-size: 11px;">Pola ekspresi reguler tingkat lanjut</div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Sub-Form: Delimiter Template -->
-                                        <div id="box_parser_delimiter" class="p-3 border rounded mb-3 bg-light" style="display: none;">
-                                            <div class="row g-2">
-                                                <div class="col-12 col-md-3">
-                                                    <label class="small fw-semibold text-secondary mb-1">Simbol Pembatas (Delimiter)</label>
-                                                    <input type="text" name="sn_delimiter" id="rule_sn_delimiter" class="form-control form-control-sm font-monospace text-center" value="/" placeholder="/" maxlength="5" oninput="updateLivePreview()">
-                                                </div>
-                                                <div class="col-12 col-md-9">
-                                                    <label class="small fw-semibold text-secondary mb-1">Susunan Kolom Balasan Suplier</label>
-                                                    <input type="text" name="sn_pattern" id="rule_sn_pattern" class="form-control form-control-sm font-monospace" placeholder="[TOKEN]/[KODE]/[IDPEL]/[NAMA]/[TARIF]/[KWH]" oninput="updateLivePreview()">
-                                                </div>
-                                                <div class="col-12">
-                                                    <div class="small text-muted mb-1" style="font-size: 11px;">Klik tag untuk menambahkan ke susunan:</div>
-                                                    <div class="d-flex flex-wrap gap-1">
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TOKEN]')">+ [TOKEN]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[NAMA]')">+ [NAMA]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TARIF]')">+ [TARIF]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[KWH]')">+ [KWH]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[IDPEL]')">+ [IDPEL]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[NOREK]')">+ [NOREK]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TAGIHAN]')">+ [TAGIHAN]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[STAND]')">+ [STAND]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[BLTH]')">+ [BLTH]</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[REFF]')">+ [REFF]</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Sub-Form: Custom Regex -->
-                                        <div id="box_parser_regex" class="p-3 border rounded mb-3 bg-light" style="display: none;">
-                                            <label class="small fw-semibold text-secondary mb-1">Pola Regex (Named Capture Group)</label>
-                                            <input type="text" name="sn_regex" id="rule_sn_regex" class="form-control form-control-sm font-monospace" placeholder="/(?P<token>\d{20}).*NAMA:(?P<nama>[^\/]+)/i" oninput="updateLivePreview()">
-                                            <div class="stg-hint" style="font-size: 11px;">
-                                                Gunakan named group seperti <code>(?P&lt;token&gt;...)</code>, <code>(?P&lt;nama&gt;...)</code>, <code>(?P&lt;tarif&gt;...)</code>, <code>(?P&lt;kwh&gt;...)</code>, <code>(?P&lt;norek&gt;...)</code>, <code>(?P&lt;tagihan&gt;...)</code>.
-                                            </div>
-                                        </div>
-
-                                        <!-- Kotak Tester Input SN -->
-                                        <div class="p-3 border rounded bg-white mt-2" style="border-left: 3px solid #0B6FB6 !important;">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <label class="small fw-bold text-dark mb-0">
-                                                    <i class="bx bx-vial me-1 text-primary"></i>Uji Coba Teks Balasan SN Suplier (Tester)
-                                                </label>
-                                                <div class="d-flex gap-1">
-                                                    <button type="button" class="btn btn-xs btn-light border py-0 px-2" style="font-size: 11px;" onclick="loadSampleSn('pln_token')">Contoh Token PLN</button>
-                                                    <button type="button" class="btn btn-xs btn-light border py-0 px-2" style="font-size: 11px;" onclick="loadSampleSn('pln_pasca')">Contoh Tagihan PLN</button>
-                                                    <button type="button" class="btn btn-xs btn-light border py-0 px-2" style="font-size: 11px;" onclick="loadSampleSn('bank_bca')">Contoh Transfer Bank</button>
-                                                </div>
-                                            </div>
-                                            <textarea name="sample_sn" id="rule_sample_sn" rows="2" class="form-control form-control-sm font-monospace" placeholder="Paste teks SN dari suplier di sini untuk melihat ekstraksi & preview struk secara instan..." oninput="updateLivePreview()">SN: 2920-3211-4567-8910-0987/PLN20/01112233445/BUDI SANTOSO/R1/900VA/13.2/20000</textarea>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetRuleForm()">
-                                        <i class="bx bx-reset me-1"></i>Batal / Reset Form
-                                    </button>
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="bx bx-save me-1"></i>Simpan Aturan Struk
-                                    </button>
-                                </div>
-                            </form>
+                        <div>
+                            <div class="stg-card-title" id="ruleFormTitle">Tambah Aturan Logo & Format Struk</div>
+                            <div class="stg-card-sub">Tentukan logo, kategori struk, dan target provider atau kode produk yang cocok</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Kolom Kanan: LIVE PREVIEW STRUK & EKSTRAKSI (col-12 col-xl-5) -->
-                <div class="col-12 col-xl-5">
-                    <div class="stg-card" style="position: sticky; top: 80px;">
-                        <div class="stg-card-hdr">
-                            <div class="stg-card-hdr-left">
-                                <div class="stg-icon-box" style="background: rgba(11, 111, 182, 0.1); color: #0B6FB6;">
-                                    <i class="bx bx-show fs-5"></i>
+                <div class="stg-card-body">
+                    <form method="POST" action="{{ route('admin.settings.receipt.rule') }}" enctype="multipart/form-data" id="formReceiptRule">
+                        @csrf
+                        <input type="hidden" name="rule_id" id="rule_id" value="">
+                        <input type="hidden" name="existing_logo_url" id="existing_logo_url" value="/images/receipt/pln.svg">
+
+                        <div class="row g-3">
+                            <!-- Kategori Struk -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Kategori Format Struk <span class="text-danger">*</span>
+                                </label>
+                                <select name="category" id="rule_category" class="form-select form-control" required onchange="handleCategoryChange(this.value)">
+                                    <option value="PRABAYAR">PRABAYAR (PLN Token / Stroom - Format Gambar 2)</option>
+                                    <option value="PASCA BAYAR">PASCA BAYAR (PLN Tagihan / Rekening - Format Gambar 1)</option>
+                                    <option value="BANK">BANK (Transfer Uang Bank Resmi - Format Gambar 3)</option>
+                                    <option value="UMUM">UMUM (Pulsa, Data, E-Wallet, PPOB Biasa)</option>
+                                </select>
+                                <div class="stg-hint">Pilih layout struk yang cocok persis dengan jenis produk</div>
+                            </div>
+
+                            <!-- Nama Aturan -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Nama Label Struk <span class="text-muted fw-normal">(Opsional)</span>
+                                </label>
+                                <input type="text" name="name" id="rule_name" class="form-control" placeholder="Contoh: Transfer Bank BCA / PLN Token (Otomatis jika kosong)">
+                                <div class="stg-hint">Jika dikosongkan, nama otomatis diambil dari Provider atau Kode Produk</div>
+                            </div>
+
+                            <!-- Opsi Target Pencocokan: Provider vs Kode Produk -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl d-flex align-items-center justify-content-between">
+                                    <span>Target By Provider / Operator</span>
+                                    <span class="badge bg-label-primary font-monospace fw-normal" style="font-size: 11px;">Otomatis Semua Produk</span>
+                                </label>
+                                <input type="text" name="provider" id="rule_provider" class="form-control" placeholder="Contoh: PLN, BCA, BRI, MANDIRI, TELKOMSEL">
+                                <div class="stg-hint text-primary">
+                                    <i class="bx bx-check-shield me-1"></i>Otomatis berlaku untuk <strong>SEMUA produk</strong> di bawah provider ini.
                                 </div>
-                                <div>
-                                    <div class="stg-card-title d-flex align-items-center gap-2">
-                                        <span>Live Preview Struk</span>
-                                        <span class="badge bg-success font-monospace" style="font-size: 10px; padding: 2px 6px;">
-                                            <span style="display:inline-block; width:6px; height:6px; background:#fff; border-radius:50%; margin-right:3px;"></span>Real-Time
-                                        </span>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl d-flex align-items-center justify-content-between">
+                                    <span>Target By Kode Produk OtomaX</span>
+                                    <span class="badge bg-label-secondary font-monospace fw-normal" style="font-size: 11px;">Khusus Kode Tertentu</span>
+                                </label>
+                                <input type="text" name="keywords" id="rule_keywords" class="form-control" placeholder="Contoh: PLNPASCA, TFBCA, S10 (Pisahkan tanda koma)">
+                                <div class="stg-hint">
+                                    <i class="bx bx-target-lock me-1"></i>Hanya berlaku spesifik untuk transaksi dengan kode produk tersebut.
+                                </div>
+                            </div>
+
+                            <!-- File Logo -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Upload File Logo (PNG / JPG / SVG / WebP)
+                                </label>
+                                <input type="file" name="logo_file" id="rule_logo_file" class="form-control" accept="image/*" onchange="previewSelectedLogo(this)">
+                                <div class="stg-hint">Disarankan gambar transparan dengan resolusi tajam</div>
+                            </div>
+
+                            <!-- Biaya Admin Bawaan -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl">
+                                    Biaya Admin Bawaan (Rp)
+                                </label>
+                                <input type="number" name="default_admin" id="rule_admin" class="form-control" value="2500" min="0" step="100">
+                                <div class="stg-hint">Akan otomatis terjumlahkan pada Total Bayar saat cetak</div>
+                            </div>
+
+                            <!-- Khusus Kategori BANK: Nama Bank & Remark -->
+                            <div class="col-12 col-md-6 field-bank-only" style="display: none;">
+                                <label class="stg-field-lbl">
+                                    Nama Resmi Bank (Header Kanan Bar Biru)
+                                </label>
+                                <input type="text" name="bank_name" id="rule_bank_name" class="form-control" placeholder="Contoh: BANK CENTRAL ASIA">
+                            </div>
+
+                            <div class="col-12 col-md-6 field-bank-only" style="display: none;">
+                                <label class="stg-field-lbl">
+                                    Keterangan Transfer (Remark)
+                                </label>
+                                <input type="text" name="remark" id="rule_remark" class="form-control" value="Transfer Uang" placeholder="Contoh: Transfer Uang">
+                            </div>
+
+                            <!-- Catatan Footer -->
+                            <div class="col-12">
+                                <label class="stg-field-lbl">
+                                    Catatan / Kontak di Bawah Struk
+                                </label>
+                                <input type="text" name="footer_info" id="rule_footer" class="form-control" placeholder="Contoh: Call Center 123 • Mobile PLN • PLN Terdekat">
+                            </div>
+
+                            <!-- ═══════════════════════════════════════════════
+                                 PENGATURAN POLA & PARSER SN SUPLIER (FULL WIDTH)
+                                 ═══════════════════════════════════════════════ -->
+                            <div class="col-12 mt-3 pt-3 border-top">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="stg-field-lbl fw-bold mb-0 text-dark">
+                                        <i class="bx bx-code-curly me-1 text-primary"></i>Pola Ekstraksi / Parser Balasan SN Suplier
+                                    </label>
+                                    <span class="badge bg-label-info font-monospace" style="font-size: 11px;">Fleksibel & Otomatis</span>
+                                </div>
+
+                                <!-- Mode Parser Selector -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
+                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_auto" value="auto" checked onchange="handleParserModeChange(this.value)">
+                                            <label class="form-check-label small fw-semibold" for="parser_auto" style="cursor: pointer;">
+                                                Smart Auto-Regex
+                                                <div class="text-muted fw-normal" style="font-size: 11px;">Deteksi otomatis standar PLN, Bank & PPOB</div>
+                                            </label>
+                                        </div>
                                     </div>
-                                    <div class="stg-card-sub">Visual struk hasil parser balasan SN suplier</div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
+                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_delimiter" value="delimiter" onchange="handleParserModeChange(this.value)">
+                                            <label class="form-check-label small fw-semibold" for="parser_delimiter" style="cursor: pointer;">
+                                                Pemisah Delimiter
+                                                <div class="text-muted fw-normal" style="font-size: 11px;">Dipisahkan simbol garis miring (/) atau (#)</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
+                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_regex" value="regex" onchange="handleParserModeChange(this.value)">
+                                            <label class="form-check-label small fw-semibold" for="parser_regex" style="cursor: pointer;">
+                                                Regex Kustom
+                                                <div class="text-muted fw-normal" style="font-size: 11px;">Pola ekspresi reguler tingkat lanjut</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sub-Form: Delimiter Template -->
+                                <div id="box_parser_delimiter" class="p-3 border rounded mb-3 bg-light" style="display: none;">
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-3">
+                                            <label class="small fw-semibold text-secondary mb-1">Simbol Pembatas (Delimiter)</label>
+                                            <input type="text" name="sn_delimiter" id="rule_sn_delimiter" class="form-control form-control-sm font-monospace text-center" value="/" placeholder="/" maxlength="5" oninput="updateLivePreview()">
+                                        </div>
+                                        <div class="col-12 col-md-9">
+                                            <label class="small fw-semibold text-secondary mb-1">Susunan Kolom Balasan Suplier</label>
+                                            <input type="text" name="sn_pattern" id="rule_sn_pattern" class="form-control form-control-sm font-monospace" placeholder="[TOKEN]/[KODE]/[IDPEL]/[NAMA]/[TARIF]/[KWH]" oninput="updateLivePreview()">
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="small text-muted mb-1" style="font-size: 11px;">Klik tag untuk menambahkan ke susunan:</div>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TOKEN]')">+ [TOKEN]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[NAMA]')">+ [NAMA]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TARIF]')">+ [TARIF]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[KWH]')">+ [KWH]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[IDPEL]')">+ [IDPEL]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[NOREK]')">+ [NOREK]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[TAGIHAN]')">+ [TAGIHAN]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[STAND]')">+ [STAND]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[BLTH]')">+ [BLTH]</button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 11px;" onclick="insertPatternTag('[REFF]')">+ [REFF]</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sub-Form: Custom Regex -->
+                                <div id="box_parser_regex" class="p-3 border rounded mb-3 bg-light" style="display: none;">
+                                    <label class="small fw-semibold text-secondary mb-1">Pola Regex (Named Capture Group)</label>
+                                    <input type="text" name="sn_regex" id="rule_sn_regex" class="form-control form-control-sm font-monospace" placeholder="/(?P<token>\d{20}).*NAMA:(?P<nama>[^\/]+)/i" oninput="updateLivePreview()">
+                                    <div class="stg-hint" style="font-size: 11px;">
+                                        Gunakan named group seperti <code>(?P&lt;token&gt;...)</code>, <code>(?P&lt;nama&gt;...)</code>, <code>(?P&lt;tarif&gt;...)</code>, <code>(?P&lt;kwh&gt;...)</code>, <code>(?P&lt;norek&gt;...)</code>, <code>(?P&lt;tagihan&gt;...)</code>.
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="stg-card-body p-3">
-                            <!-- Hasil Ekstraksi Status Badges -->
-                            <div class="mb-3 p-2 bg-light border rounded" style="font-size: 11.5px;">
-                                <div class="fw-bold text-secondary mb-1">Status Ekstraksi SN Terdeteksi:</div>
-                                <div class="d-flex flex-wrap gap-1" id="previewBadges">
-                                    <span class="badge bg-primary text-white" id="badge_token">Token: -</span>
-                                    <span class="badge bg-info text-white" id="badge_nama">Nama: -</span>
-                                    <span class="badge bg-secondary text-white" id="badge_tarif">Tarif: -</span>
-                                    <span class="badge bg-dark text-white" id="badge_kwh">Kwh: -</span>
-                                    <span class="badge bg-success text-white" id="badge_total">Total: -</span>
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetRuleForm()">
+                                <i class="bx bx-reset me-1"></i>Batal / Reset Form
+                            </button>
+                            <div class="d-flex gap-2">
+                                <a href="#box_live_preview" class="btn btn-outline-primary btn-sm">
+                                    <i class="bx bx-show me-1"></i>Lihat Preview Struk di Bawah
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bx bx-save me-1"></i>Simpan Aturan Struk
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Card 2: Uji Coba Balasan SN Suplier & Live Preview Struk (FULL WIDTH) -->
+            <div class="stg-card" id="box_live_preview">
+                <div class="stg-card-hdr">
+                    <div class="stg-card-hdr-left">
+                        <div class="stg-icon-box" style="background: rgba(11, 111, 182, 0.1); color: #0B6FB6;">
+                            <i class="bx bx-show fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="stg-card-title d-flex align-items-center gap-2">
+                                <span>Uji Coba Balasan SN & Live Preview Struk</span>
+                                <span class="badge bg-success font-monospace" style="font-size: 10px; padding: 2px 6px;">
+                                    <span style="display:inline-block; width:6px; height:6px; background:#fff; border-radius:50%; margin-right:3px;"></span>Real-Time
+                                </span>
+                            </div>
+                            <div class="stg-card-sub">Tes ekstraksi teks SN dan lihat hasil render struk sebelum disimpan</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1 flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadSampleSn('pln_token')">
+                            <i class="bx bx-zap me-1"></i>Contoh Token PLN
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadSampleSn('pln_pasca')">
+                            <i class="bx bx-receipt me-1"></i>Contoh Tagihan PLN
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadSampleSn('bank_bca')">
+                            <i class="bx bx-credit-card me-1"></i>Contoh Transfer Bank
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stg-card-body p-4">
+                    <div class="row g-4 align-items-start">
+                        
+                        <!-- Sisi Kiri: Kotak Input SN & Status Ekstraksi (col-12 col-lg-5) -->
+                        <div class="col-12 col-lg-5">
+                            <label class="stg-field-lbl fw-bold text-dark mb-1">
+                                <i class="bx bx-vial me-1 text-primary"></i>Teks Balasan SN dari Suplier
+                            </label>
+                            <textarea name="sample_sn" id="rule_sample_sn" rows="4" class="form-control font-monospace mb-3" placeholder="Paste teks SN dari suplier di sini untuk melihat ekstraksi & preview struk secara instan..." oninput="updateLivePreview()" form="formReceiptRule">SN: 2920-3211-4567-8910-0987/PLN20/01112233445/BUDI SANTOSO/R1/900VA/13.2/20000</textarea>
+
+                            <div class="p-3 bg-light border rounded">
+                                <div class="fw-bold text-dark mb-2 small">
+                                    <i class="bx bx-check-circle me-1 text-success"></i>Data yang Berhasil Terbaca (Real-Time):
+                                </div>
+                                <div class="d-flex flex-column gap-2" id="previewBadges">
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                                        <span class="text-muted">Token 20 Digit:</span>
+                                        <span class="badge bg-primary text-white font-monospace" id="badge_token">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                                        <span class="text-muted">Nama Pelanggan:</span>
+                                        <span class="badge bg-info text-white" id="badge_nama">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                                        <span class="text-muted">Tarif / Daya:</span>
+                                        <span class="badge bg-secondary text-white font-monospace" id="badge_tarif">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                                        <span class="text-muted">Jumlah Kwh:</span>
+                                        <span class="badge bg-dark text-white font-monospace" id="badge_kwh">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center pt-1 small fw-bold">
+                                        <span class="text-dark">Estimasi Total Bayar:</span>
+                                        <span class="badge bg-success text-white font-monospace fs-6" id="badge_total">-</span>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Mini Struk Paper Display (HTML/CSS Render) -->
-                            <div class="preview-receipt-paper shadow-sm mx-auto" id="previewPaper" style="background:#ffffff; border:1px solid #71717a; padding: 20px 22px; font-family:'Inter', sans-serif; font-size:12px; line-height:1.5; color:#0f172a; max-width: 380px;">
+                        <!-- Sisi Kanan: Miniatur Struk Kertas Fisik (col-12 col-lg-7) -->
+                        <div class="col-12 col-lg-7 d-flex justify-content-center">
+                            <div class="preview-receipt-paper shadow-sm w-100" id="previewPaper" style="background:#ffffff; border:1px solid #71717a; padding: 24px 28px; font-family:'Inter', sans-serif; font-size:12.5px; line-height:1.6; color:#0f172a; max-width: 440px;">
                                 
                                 <!-- Header Struk -->
                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div style="font-size: 11px; font-weight: 700; color: #1e293b;" id="pv_outlet_name">PAYMENT POINT ONLINE BANKING</div>
-                                    <div style="width: 65px; height: 32px; display:flex; align-items:center; justify-content:flex-end;">
-                                        <img id="pv_logo" src="/images/receipt/pln.svg" alt="Logo" style="max-height: 30px; max-width: 65px; object-fit: contain;">
+                                    <div style="font-size: 11.5px; font-weight: 700; color: #1e293b;" id="pv_outlet_name">PAYMENT POINT ONLINE BANKING</div>
+                                    <div style="width: 75px; height: 36px; display:flex; align-items:center; justify-content:flex-end;">
+                                        <img id="pv_logo" src="/images/receipt/pln.svg" alt="Logo" style="max-height: 34px; max-width: 75px; object-fit: contain;">
                                     </div>
                                 </div>
 
-                                <div class="text-center fw-bold border-bottom pb-1 mb-2" style="font-size: 12.5px; text-transform: uppercase;" id="pv_struk_title">
+                                <div class="text-center fw-bold border-bottom pb-2 mb-2" style="font-size: 13px; text-transform: uppercase;" id="pv_struk_title">
                                     STRUK PEMBELIAN LISTRIK PRABAYAR
                                 </div>
 
-                                <div class="mb-2 pb-1 border-bottom" style="font-size: 10.5px; color: #475569;">
+                                <div class="mb-2 pb-2 border-bottom" style="font-size: 11px; color: #475569;">
                                     <div class="d-flex justify-content-between">
                                         <span>TGL TRANSAKSI:</span>
                                         <span class="fw-semibold font-monospace" id="pv_date">{{ date('d/m/Y H:i:s') }}</span>
@@ -1955,8 +1976,8 @@ Tidak ada log tersedia.
 
                                 <!-- Body: PLN PRABAYAR -->
                                 <div id="pv_body_prabayar">
-                                    <table style="width: 100%; font-size: 11px;" class="mb-2">
-                                        <tr><td style="width: 90px; color:#64748b;">NO METER</td><td>: <span class="fw-bold font-monospace" id="pv_pra_meter">01112233445</span></td></tr>
+                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
+                                        <tr><td style="width: 100px; color:#64748b;">NO METER</td><td>: <span class="fw-bold font-monospace" id="pv_pra_meter">01112233445</span></td></tr>
                                         <tr><td style="color:#64748b;">ID PEL</td><td>: <span class="fw-bold font-monospace" id="pv_pra_idpel">01112233445</span></td></tr>
                                         <tr><td style="color:#64748b;">NAMA</td><td>: <span class="fw-bold" id="pv_pra_nama">BUDI SANTOSO</span></td></tr>
                                         <tr><td style="color:#64748b;">TARIF / DAYA</td><td>: <span class="fw-bold" id="pv_pra_tarif">R1/900VA</span></td></tr>
@@ -1964,12 +1985,12 @@ Tidak ada log tersedia.
                                     </table>
 
                                     <!-- Box Token 20 Digit -->
-                                    <div class="text-center my-2 p-2 border border-2 border-dark rounded" style="background:#f8fafc;">
-                                        <div style="font-size: 9.5px; font-weight: 700; color: #64748b; letter-spacing: 1px;">STROOM / TOKEN PLN</div>
-                                        <div class="fw-bold font-monospace text-dark" style="font-size: 14.5px; letter-spacing: 1px;" id="pv_pra_token">2920 - 3211 - 4567 - 8910 - 0987</div>
+                                    <div class="text-center my-3 p-2 border border-2 border-dark rounded" style="background:#f8fafc;">
+                                        <div style="font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 1px;">STROOM / TOKEN PLN</div>
+                                        <div class="fw-bold font-monospace text-dark" style="font-size: 15px; letter-spacing: 1px;" id="pv_pra_token">2920 - 3211 - 4567 - 8910 - 0987</div>
                                     </div>
 
-                                    <table style="width: 100%; font-size: 11px; margin-top: 6px;">
+                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
                                         <tr><td style="color:#64748b;">NOMINAL</td><td class="text-end font-monospace" id="pv_pra_nominal">Rp 20.000</td></tr>
                                         <tr><td style="color:#64748b;">ADMIN BANK</td><td class="text-end font-monospace" id="pv_pra_admin">Rp 3.000</td></tr>
                                         <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL BAYAR</td><td class="text-end font-monospace text-primary" id="pv_pra_total">Rp 23.000</td></tr>
@@ -1978,15 +1999,15 @@ Tidak ada log tersedia.
 
                                 <!-- Body: PLN PASCA BAYAR -->
                                 <div id="pv_body_pascabayar" style="display: none;">
-                                    <table style="width: 100%; font-size: 11px;" class="mb-2">
-                                        <tr><td style="width: 90px; color:#64748b;">ID PEL</td><td>: <span class="fw-bold font-monospace" id="pv_pasca_idpel">512345678901</span></td></tr>
+                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
+                                        <tr><td style="width: 100px; color:#64748b;">ID PEL</td><td>: <span class="fw-bold font-monospace" id="pv_pasca_idpel">512345678901</span></td></tr>
                                         <tr><td style="color:#64748b;">NAMA</td><td>: <span class="fw-bold" id="pv_pasca_nama">BUDI SANTOSO</span></td></tr>
                                         <tr><td style="color:#64748b;">TARIF / DAYA</td><td>: <span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></td></tr>
                                         <tr><td style="color:#64748b;">STAND METER</td><td>: <span class="fw-bold font-monospace" id="pv_pasca_stand">7447-6541</span></td></tr>
                                         <tr><td style="color:#64748b;">BLN / THN</td><td>: <span class="fw-bold" id="pv_pasca_blth">OKT 2026</span></td></tr>
                                     </table>
 
-                                    <table style="width: 100%; font-size: 11px; margin-top: 6px;">
+                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
                                         <tr><td style="color:#64748b;">TAGIHAN PLN</td><td class="text-end font-monospace" id="pv_pasca_tagihan">Rp 210.345</td></tr>
                                         <tr><td style="color:#64748b;">BIAYA ADMIN</td><td class="text-end font-monospace" id="pv_pasca_admin">Rp 3.750</td></tr>
                                         <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL BAYAR</td><td class="text-end font-monospace text-primary" id="pv_pasca_total">Rp 214.095</td></tr>
@@ -1997,17 +2018,17 @@ Tidak ada log tersedia.
                                 <div id="pv_body_bank" style="display: none;">
                                     <!-- Bar Biru Khas Struk Transfer Bank -->
                                     <div class="d-flex justify-content-between align-items-center p-2 mb-2 rounded text-white" style="background:#0B6FB6;">
-                                        <span class="fw-bold" style="font-size: 11.5px;" id="pv_bank_title">BANK CENTRAL ASIA</span>
-                                        <span class="badge bg-white text-primary font-monospace fw-bold" style="font-size: 9.5px;">BERHASIL</span>
+                                        <span class="fw-bold" style="font-size: 12px;" id="pv_bank_title">BANK CENTRAL ASIA</span>
+                                        <span class="badge bg-white text-primary font-monospace fw-bold" style="font-size: 10px;">BERHASIL</span>
                                     </div>
 
-                                    <table style="width: 100%; font-size: 11px;" class="mb-2">
-                                        <tr><td style="width: 100px; color:#64748b;">NO REKENING</td><td>: <span class="fw-bold font-monospace" id="pv_bank_rek">614501012345</span></td></tr>
+                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
+                                        <tr><td style="width: 110px; color:#64748b;">NO REKENING</td><td>: <span class="fw-bold font-monospace" id="pv_bank_rek">614501012345</span></td></tr>
                                         <tr><td style="color:#64748b;">NAMA PENERIMA</td><td>: <span class="fw-bold" id="pv_bank_nama">BUDI SANTOSO</span></td></tr>
                                         <tr><td style="color:#64748b;">REMARK</td><td>: <span id="pv_bank_remark">Transfer Uang</span></td></tr>
                                     </table>
 
-                                    <table style="width: 100%; font-size: 11px; margin-top: 6px;">
+                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
                                         <tr><td style="color:#64748b;">NOMINAL TF</td><td class="text-end font-monospace" id="pv_bank_nominal">Rp 1.000.000</td></tr>
                                         <tr><td style="color:#64748b;">BIAYA ADMIN</td><td class="text-end font-monospace" id="pv_bank_admin">Rp 2.500</td></tr>
                                         <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL DEBET</td><td class="text-end font-monospace text-primary" id="pv_bank_total">Rp 1.002.500</td></tr>
@@ -2016,13 +2037,13 @@ Tidak ada log tersedia.
 
                                 <!-- Body: UMUM (PPOB / Pulsa) -->
                                 <div id="pv_body_umum" style="display: none;">
-                                    <table style="width: 100%; font-size: 11px;" class="mb-2">
-                                        <tr><td style="width: 90px; color:#64748b;">NO TUJUAN</td><td>: <span class="fw-bold font-monospace" id="pv_umum_tujuan">081234567890</span></td></tr>
+                                    <table style="width: 100%; font-size: 11.5px;" class="mb-2">
+                                        <tr><td style="width: 100px; color:#64748b;">NO TUJUAN</td><td>: <span class="fw-bold font-monospace" id="pv_umum_tujuan">081234567890</span></td></tr>
                                         <tr><td style="color:#64748b;">PRODUK</td><td>: <span class="fw-bold" id="pv_umum_produk">Top Up Saldo</span></td></tr>
                                         <tr><td style="color:#64748b;">ATAS NAMA</td><td>: <span class="fw-bold" id="pv_umum_nama">BUDI SANTOSO</span></td></tr>
                                     </table>
 
-                                    <table style="width: 100%; font-size: 11px; margin-top: 6px;">
+                                    <table style="width: 100%; font-size: 11.5px; margin-top: 8px;">
                                         <tr><td style="color:#64748b;">HARGA</td><td class="text-end font-monospace" id="pv_umum_harga">Rp 50.000</td></tr>
                                         <tr><td style="color:#64748b;">ADMIN FEE</td><td class="text-end font-monospace" id="pv_umum_admin">Rp 2.000</td></tr>
                                         <tr class="fw-bold border-top"><td style="color:#0f172a;">TOTAL BAYAR</td><td class="text-end font-monospace text-primary" id="pv_umum_total">Rp 52.000</td></tr>
@@ -2030,14 +2051,14 @@ Tidak ada log tersedia.
                                 </div>
 
                                 <!-- Footer Info Struk -->
-                                <div class="text-center border-top mt-3 pt-2 text-muted" style="font-size: 9.5px; line-height: 1.4;" id="pv_footer_info">
+                                <div class="text-center border-top mt-3 pt-2 text-muted" style="font-size: 10px; line-height: 1.4;" id="pv_footer_info">
                                     Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
-
             </div>
 
             <!-- Card Tabel Daftar Aturan Logo & Struk Aktif (FULL WIDTH DI BAWAH FORM) -->
