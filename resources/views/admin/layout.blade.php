@@ -62,9 +62,9 @@
             --theme-muted: #64748b;
             --theme-card-bg: #ffffff;
             --theme-card-border: #e2e8f0;
-            --theme-sidebar-width: 260px;
+            --theme-sidebar-width: 226px;
             --theme-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-            --theme-radius: 8px;
+            --theme-radius: 7px;
             /* Saudagar Host Brand Accents */
             --sh-blue: #0B6FB6;
             --sh-sky: #1C8CFB;
@@ -420,6 +420,16 @@
             color: #94a3b8 !important;
         }
 
+        html {
+            font-size: 13.5px;
+        }
+
+        @media (min-width: 1400px) {
+            html {
+                font-size: 14px;
+            }
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -436,11 +446,12 @@
             letter-spacing: -0.01em;
         }
 
-        h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
-            color: var(--theme-heading);
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
+        h1, .h1 { font-size: 1.55rem; color: var(--theme-heading); font-weight: 700; letter-spacing: -0.02em; }
+        h2, .h2 { font-size: 1.35rem; color: var(--theme-heading); font-weight: 700; letter-spacing: -0.02em; }
+        h3, .h3 { font-size: 1.2rem;  color: var(--theme-heading); font-weight: 600; letter-spacing: -0.02em; }
+        h4, .h4 { font-size: 1.05rem; color: var(--theme-heading); font-weight: 600; letter-spacing: -0.015em; }
+        h5, .h5 { font-size: 0.925rem; color: var(--theme-heading); font-weight: 600; }
+        h6, .h6 { font-size: 0.825rem; color: var(--theme-heading); font-weight: 600; }
 
         /* Layout Structure */
         .layout-wrapper {
@@ -468,8 +479,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 60px;
-            padding: 0 1.25rem;
+            height: 52px;
+            padding: 0 1rem;
             flex-shrink: 0;
             border-bottom: 1px solid var(--theme-card-border);
             background: #ffffff;
@@ -478,13 +489,13 @@
         .app-brand-link {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             text-decoration: none;
         }
 
         .app-brand-logo {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 6px;
             background: #0f172a;
             display: flex;
@@ -494,16 +505,16 @@
         }
 
         .app-brand-text {
-            font-size: 1.1rem;
+            font-size: 0.975rem;
             font-weight: 700;
             color: #0f172a;
             letter-spacing: -0.02em;
         }
 
         .app-brand-badge {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
-            padding: 2px 6px;
+            padding: 1px 5px;
             border-radius: 4px;
             background: #f1f5f9;
             color: #0f172a;
@@ -515,16 +526,16 @@
         .menu-inner-wrapper {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 0.75rem 0.5rem;
+            padding: 0.5rem 0.35rem;
         }
 
         .menu-header {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--theme-muted);
             font-weight: 700;
-            padding: 0.75rem 0.75rem 0.35rem;
+            padding: 0.5rem 0.65rem 0.25rem;
             margin: 0;
         }
 
@@ -536,19 +547,19 @@
         .menu-link {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.55rem 0.75rem;
+            gap: 0.6rem;
+            padding: 0.42rem 0.65rem;
             border-radius: 6px;
             color: #475569;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.8125rem;
             font-weight: 500;
             transition: all 0.12s ease-in-out;
             border-left: 3px solid transparent;
         }
 
         .menu-link i.menu-icon {
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             color: #64748b;
             transition: all 0.12s ease-in-out;
         }
@@ -584,7 +595,7 @@
         }
 
         .submenu-arrow {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #94a3b8;
             transition: transform 0.2s ease-in-out;
             margin-left: auto;
@@ -597,8 +608,8 @@
 
         .menu-sub {
             list-style: none;
-            padding: 0.25rem 0 0.25rem 0.5rem;
-            margin: 0 0 0 1.25rem;
+            padding: 0.2rem 0 0.2rem 0.4rem;
+            margin: 0 0 0 1.1rem;
             border-left: 2px solid #e2e8f0;
             display: none;
         }
@@ -615,18 +626,18 @@
         .sub-link {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            padding: 0.45rem 0.65rem;
+            gap: 0.5rem;
+            padding: 0.38rem 0.6rem;
             border-radius: 6px;
             color: #475569;
-            font-size: 0.8rem;
+            font-size: 0.775rem;
             font-weight: 500;
             text-decoration: none;
             transition: all 0.12s ease-in-out;
         }
 
         .sub-link i {
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #64748b;
             transition: color 0.12s ease-in-out;
         }
@@ -653,7 +664,7 @@
         /* Sidebar Footer / Admin Info */
         .menu-footer {
             border-top: 1px solid var(--theme-card-border);
-            padding: 0.85rem 1rem;
+            padding: 0.65rem 0.85rem;
             background: #ffffff;
             flex-shrink: 0;
         }
@@ -661,13 +672,13 @@
         .user-preview {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 0.65rem;
+            gap: 8px;
+            margin-bottom: 0.5rem;
         }
 
         .avatar-initial {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 6px;
             background: #0f172a;
             color: #ffffff;
@@ -675,12 +686,16 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             flex-shrink: 0;
         }
 
+        .avatar-initial i {
+            font-size: 1.05rem !important;
+        }
+
         .user-preview-name {
-            font-size: 0.825rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: #0f172a;
             white-space: nowrap;
@@ -689,7 +704,7 @@
         }
 
         .user-preview-role {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--theme-muted);
         }
 
@@ -707,11 +722,11 @@
 
         /* Top White Navbar */
         .layout-navbar {
-            height: 60px;
+            height: 52px;
             background: #ffffff;
             margin: 0;
             border-bottom: 1px solid var(--theme-card-border);
-            padding: 0 1.5rem;
+            padding: 0 1.25rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -723,7 +738,7 @@
         .navbar-nav-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .layout-menu-toggle {
@@ -732,11 +747,11 @@
             justify-content: center;
             background: #ffffff;
             border: 1px solid var(--theme-card-border);
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             color: #0f172a;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             padding: 0;
             border-radius: 6px;
             transition: all 0.15s ease-in-out;
@@ -748,7 +763,7 @@
         }
 
         .navbar-page-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: #0f172a;
             margin: 0;
@@ -756,7 +771,7 @@
 
         /* Content Container */
         .content-wrapper {
-            padding: 1.5rem;
+            padding: 1.15rem 1.25rem;
             flex-grow: 1;
         }
 
@@ -766,13 +781,13 @@
             border: 1px solid var(--theme-card-border);
             border-radius: var(--theme-radius);
             box-shadow: var(--theme-card-shadow);
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
 
         .card-header {
             background: #ffffff;
             border-bottom: 1px solid var(--theme-card-border);
-            padding: 1rem 1.25rem;
+            padding: 0.75rem 1rem;
             font-weight: 600;
             color: #0f172a;
             display: flex;
@@ -781,36 +796,36 @@
         }
 
         .card-title {
-            font-size: 0.95rem;
+            font-size: 0.875rem;
             font-weight: 600;
             color: #0f172a;
             margin: 0;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.45rem;
         }
 
         .card-title i {
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             color: #0B6FB6;
         }
 
         .card-body {
-            padding: 1.25rem;
+            padding: 0.9rem 1rem;
         }
 
         .card-footer {
             background: #ffffff;
             border-top: 1px solid var(--theme-card-border);
-            padding: 0.85rem 1.25rem;
+            padding: 0.65rem 1rem;
             color: #475569;
         }
 
         /* Badges */
         .badge {
             font-weight: 600;
-            padding: 0.35em 0.65em;
-            font-size: 0.75rem;
+            padding: 0.28em 0.55em;
+            font-size: 0.72rem;
             border-radius: 4px;
             letter-spacing: 0.01em;
         }
@@ -854,13 +869,13 @@
         /* Buttons (Solid Anti-Gradasi) */
         .btn {
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8125rem;
             border-radius: 6px;
-            padding: 0.5rem 0.9rem;
+            padding: 0.42rem 0.8rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.4rem;
+            gap: 0.35rem;
             transition: all 0.12s ease-in-out;
         }
 
@@ -922,20 +937,20 @@
         }
 
         .table thead th {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: #475569;
             background-color: #f8fafc;
             border-bottom: 1px solid var(--theme-card-border);
-            padding: 0.75rem 1rem;
+            padding: 0.55rem 0.75rem;
             font-weight: 600;
         }
 
         .table tbody td {
-            padding: 0.75rem 1rem;
+            padding: 0.55rem 0.75rem;
             border-bottom: 1px solid #f1f5f9;
-            font-size: 0.85rem;
+            font-size: 0.8125rem;
             color: #334155;
         }
 
@@ -947,8 +962,8 @@
         .form-control, .form-select {
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            font-size: 0.85rem;
-            padding: 0.5rem 0.75rem;
+            font-size: 0.8125rem;
+            padding: 0.42rem 0.65rem;
             color: #0f172a;
             background-color: #ffffff;
         }
@@ -962,7 +977,8 @@
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
             color: #64748b;
-            font-size: 0.85rem;
+            font-size: 0.8125rem;
+            padding: 0.42rem 0.65rem;
         }
 
         /* Responsive Mobile Drawer */

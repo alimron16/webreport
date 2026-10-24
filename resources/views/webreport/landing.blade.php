@@ -117,13 +117,24 @@
             --bs-border-radius: 16px;
         }
 
+        html {
+            font-size: 14px;
+        }
+
+        @media (min-width: 1400px) {
+            html {
+                font-size: 14.5px;
+            }
+        }
+
         body {
             font-family: var(--bs-body-font-family);
             color: var(--bs-body-color);
-            line-height: 1.65;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
             background-color: #ffffff;
+            font-size: 0.95rem;
         }
 
         h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
@@ -133,17 +144,17 @@
         }
 
         .display-3 {
-            font-size: calc(2.1rem + 2.2vw);
+            font-size: clamp(1.85rem, 2.7vw, 2.6rem);
             font-weight: 700;
-            line-height: 1.18;
-            letter-spacing: -0.03em;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
             color: var(--nw-navy);
         }
 
         .display-6 {
-            font-size: calc(1.5rem + 1.2vw);
+            font-size: clamp(1.35rem, 1.8vw, 1.75rem);
             font-weight: 700;
-            letter-spacing: -0.025em;
+            letter-spacing: -0.02em;
             color: var(--nw-navy);
         }
 
@@ -163,9 +174,9 @@
         .btn {
             border-radius: 50px;
             font-weight: 600;
-            padding: 0.72rem 1.6rem;
+            padding: 0.55rem 1.35rem;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 0.95rem;
+            font-size: 0.875rem;
         }
 
         .btn-primary {
@@ -237,35 +248,35 @@
             background-color: var(--nw-bg-light) !important;
         }
 
-        /* Generous Section Spacing */
+        /* Generous Section Spacing (Compact Scale) */
         .section-py {
-            padding-top: 5.5rem !important;
-            padding-bottom: 5.5rem !important;
+            padding-top: 3.5rem !important;
+            padding-bottom: 3.5rem !important;
         }
 
         @media (min-width: 992px) {
             .section-py {
-                padding-top: 7.5rem !important;
-                padding-bottom: 7.5rem !important;
+                padding-top: 4.5rem !important;
+                padding-bottom: 4.5rem !important;
             }
         }
 
         .section-heading-wrap {
-            margin-bottom: 3.5rem !important;
+            margin-bottom: 2rem !important;
         }
 
         @media (min-width: 992px) {
             .section-heading-wrap {
-                margin-bottom: 4.5rem !important;
+                margin-bottom: 2.75rem !important;
             }
         }
 
         .hero-section {
             position: relative;
-            padding-top: 5.5rem;
-            padding-bottom: 7rem;
+            padding-top: 3.5rem;
+            padding-bottom: 4.5rem;
             background-image: 
-                linear-gradient(135deg, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0.72) 50%, rgba(255, 255, 255, 0.58) 100%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.78) 50%, rgba(255, 255, 255, 0.65) 100%),
                 url('{{ asset('images/hero-bg.jpg') }}');
             background-size: cover;
             background-position: center top;
@@ -275,8 +286,8 @@
 
         @media (min-width: 992px) {
             .hero-section {
-                padding-top: 7rem;
-                padding-bottom: 8.5rem;
+                padding-top: 4.5rem;
+                padding-bottom: 5.5rem;
             }
         }
 
@@ -393,16 +404,16 @@
         }
 
         .feature-icon-box {
-            width: 64px;
-            height: 64px;
-            border-radius: 18px;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
             background: var(--nw-navy-soft);
             color: var(--nw-navy);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.9rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.45rem;
+            margin-bottom: 1rem;
             transition: all 0.25s ease;
         }
 
@@ -415,8 +426,8 @@
         .spec-item-box {
             background: #ffffff;
             border: 1px solid var(--nw-border);
-            border-radius: 18px;
-            padding: 1.5rem;
+            border-radius: 14px;
+            padding: 1.15rem;
             transition: all 0.25s ease;
             height: 100%;
         }
@@ -430,9 +441,9 @@
         /* Step Guide Cards */
         .step-card-box {
             background: #ffffff;
-            border-radius: 22px;
+            border-radius: 18px;
             border: 1px solid var(--nw-border);
-            padding: 2.5rem 2rem;
+            padding: 1.75rem 1.4rem;
             position: relative;
             height: 100%;
             transition: all 0.25s ease;
@@ -445,26 +456,26 @@
         }
 
         .step-number-badge {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
             background: var(--nw-gold);
             color: #ffffff;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
         }
 
         /* FAQ Item Box */
         .faq-item-box {
             background: #ffffff;
             border: 1px solid var(--nw-border);
-            border-radius: 18px;
-            padding: 1.5rem 1.8rem;
-            margin-bottom: 1rem;
+            border-radius: 14px;
+            padding: 1.15rem 1.4rem;
+            margin-bottom: 0.75rem;
             transition: all 0.2s ease;
         }
 
@@ -484,36 +495,36 @@
         /* Floating WhatsApp Button */
         .floating-wa-btn {
             position: fixed;
-            bottom: 28px;
-            right: 28px;
+            bottom: 24px;
+            right: 24px;
             z-index: 1050;
-            width: 58px;
-            height: 58px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: #25D366;
             color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
-            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+            font-size: 26px;
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
             text-decoration: none;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .floating-wa-btn:hover {
-            transform: scale(1.1);
+            transform: scale(1.08);
             color: #ffffff;
-            box-shadow: 0 12px 30px rgba(37, 211, 102, 0.55);
+            box-shadow: 0 10px 26px rgba(37, 211, 102, 0.55);
         }
 
         /* Slim Modern Navbar */
         .navbar {
-            padding-top: 0.55rem !important;
-            padding-bottom: 0.55rem !important;
+            padding-top: 0.45rem !important;
+            padding-bottom: 0.45rem !important;
             background: #ffffff !important;
             box-shadow: 0 1px 10px rgba(9, 44, 94, 0.05);
-            min-height: 60px;
+            min-height: 54px;
         }
 
         .navbar .navbar-brand {
