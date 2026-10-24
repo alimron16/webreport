@@ -19,6 +19,7 @@ class ReceiptService
                 'id'            => 'rule_pln_pra',
                 'name'          => 'PLN Prabayar (Token Listrik)',
                 'category'      => 'PRABAYAR',
+                'provider'      => 'PLN',
                 'keywords'      => 'PLN, TPLN, DPLN, TOKEN, STROOM, PLNTOKEN',
                 'logo_url'      => '/images/receipt/pln.svg',
                 'bank_name'     => 'PLN PAYMENT POINT',
@@ -30,6 +31,7 @@ class ReceiptService
                 'id'            => 'rule_pln_pasca',
                 'name'          => 'PLN Pascabayar (Tagihan Listrik)',
                 'category'      => 'PASCA BAYAR',
+                'provider'      => 'PLNPASCA',
                 'keywords'      => 'PLNPASCA, TAGPLN, BYRPLN, PASCAPLN, PLNPOST',
                 'logo_url'      => '/images/receipt/pln.svg',
                 'bank_name'     => 'PLN PAYMENT POINT',
@@ -42,6 +44,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank BCA',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK CENTRAL ASIA',
+                'provider'      => 'BCA',
                 'keywords'      => 'BCA, TFBCA, IBCA, BCATF, TRANSFER_BCA',
                 'logo_url'      => '/images/gateways/bca.png',
                 'default_admin' => 2500,
@@ -53,6 +56,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank BRI',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK RAKYAT INDONESIA',
+                'provider'      => 'BRI',
                 'keywords'      => 'BRI, TFBRI, IBRI, BRITF, TRANSFER_BRI',
                 'logo_url'      => '/images/gateways/bri.png',
                 'default_admin' => 2500,
@@ -64,6 +68,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank BNI',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK NEGARA INDONESIA',
+                'provider'      => 'BNI',
                 'keywords'      => 'BNI, TFBNI, IBNI, BNITF, TRANSFER_BNI',
                 'logo_url'      => '/images/gateways/bni.png',
                 'default_admin' => 2500,
@@ -75,6 +80,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank Mandiri',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK MANDIRI',
+                'provider'      => 'MANDIRI',
                 'keywords'      => 'MANDIRI, TFMANDIRI, IMANDIRI, TRANSFER_MANDIRI',
                 'logo_url'      => '/images/gateways/mandiri.png',
                 'default_admin' => 2500,
@@ -86,6 +92,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank Syariah Indonesia (BSI)',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK SYARIAH INDONESIA',
+                'provider'      => 'BSI',
                 'keywords'      => 'BSI, TFBSI, IBSI, TRANSFER_BSI',
                 'logo_url'      => '/images/receipt/bsi.svg',
                 'default_admin' => 2500,
@@ -96,6 +103,7 @@ class ReceiptService
                 'id'            => 'rule_dana',
                 'name'          => 'Top Up Saldo DANA',
                 'category'      => 'UMUM',
+                'provider'      => 'DANA',
                 'keywords'      => 'DANA, TFDANA',
                 'logo_url'      => '/images/gateways/dana.png',
                 'default_admin' => 2000,
@@ -158,14 +166,17 @@ class ReceiptService
         $rules = $this->getRules();
         $code = strtoupper(trim($trx['kode_produk'] ?? ''));
         $name = strtoupper(trim($trx['nama_produk'] ?? ($trx['nama'] ?? '')));
-        $sn = strtoupper(trim($trx['sn'] ?? ''));
-        $ket = strtoupper(trim($trx['keterangan'] ?? ''));
+        $op   = strtoupper(trim($trx['kode_operator'] ?? ''));
+        $sn   = strtoupper(trim($trx['sn'] ?? ''));
+        $ket  = strtoupper(trim($trx['keterangan'] ?? ''));
 
-        // 1. Match against configured rules
+        // PASS 1: Prioritas Tertinggi — Pencocokan Kode Produk Spesifik (Keywords)
+        // Jika ada aturan yang mencantumkan kode produk spesifik (misal 'PLNPASCA' atau 'TFBCA'), dahulukan!
         foreach ($rules as $r) {
             $rawKeywords = $r['keywords'] ?? '';
-            $keywords = array_filter(array_map('trim', explode(',', strtoupper($rawKeywords))));
+            if (empty(trim($rawKeywords))) continue;
 
+            $keywords = array_filter(array_map('trim', explode(',', strtoupper($rawKeywords))));
             foreach ($keywords as $kw) {
                 if (empty($kw)) continue;
 
@@ -173,19 +184,56 @@ class ReceiptService
                     return $r;
                 }
 
-                // Check exact or substring match in product code
-                if ($code === $kw || str_contains($code, $kw) || str_starts_with($code, $kw)) {
+                // Cocokkan persis atau awalan kode produk
+                if ($code === $kw || str_starts_with($code, $kw) || str_contains($code, $kw)) {
+                    return $r;
+                }
+            }
+        }
+
+        // PASS 2: Pencocokan Berdasarkan Provider / Operator
+        // Jika aturan disetel untuk Provider (misal: 'BCA', 'PLN', 'TELKOMSEL'), 
+        // otomatis SEMUA produk yang berada di bawah provider/operator tersebut akan cocok!
+        foreach ($rules as $r) {
+            $rawProvider = trim($r['provider'] ?? '');
+            if (empty($rawProvider)) continue;
+
+            $providers = array_filter(array_map('trim', explode(',', strtoupper($rawProvider))));
+            foreach ($providers as $prov) {
+                if (empty($prov)) continue;
+
+                // Cocokkan dengan kode_operator dari tabel produk
+                if (!empty($op) && ($op === $prov || str_contains($op, $prov))) {
                     return $r;
                 }
 
-                // Check in product name or keterangan
+                // Cocokkan dengan kode_produk (misal: TFBCA mengandung BCA, PLN20 mengandung PLN)
+                if (str_contains($code, $prov) || str_starts_with($code, $prov)) {
+                    return $r;
+                }
+
+                // Cocokkan dengan nama produk
+                if (str_contains($name, $prov)) {
+                    return $r;
+                }
+            }
+        }
+
+        // PASS 3: Fallback ke kecocokan nama produk / keterangan dari keywords aturan
+        foreach ($rules as $r) {
+            $rawKeywords = $r['keywords'] ?? '';
+            if (empty(trim($rawKeywords))) continue;
+
+            $keywords = array_filter(array_map('trim', explode(',', strtoupper($rawKeywords))));
+            foreach ($keywords as $kw) {
+                if (empty($kw)) continue;
                 if (str_contains($name, $kw) || str_contains($ket, $kw)) {
                     return $r;
                 }
             }
         }
 
-        // 2. Fallback heuristic detection if not explicitly matched
+        // PASS 4: Fallback heuristic detection if not explicitly matched
         // Token PLN detector (20 digits in SN)
         if (preg_match('/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/', $sn)) {
             return [

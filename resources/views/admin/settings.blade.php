@@ -1655,7 +1655,7 @@ Tidak ada log tersedia.
          TAB 9: PENGATURAN STRUK & LOGO PRODUK
          ═══════════════════════════════════════════════ --}}
     <div id="tab-receipt" class="stg-tab-pane">
-        <div class="stg-grid">
+        <div class="d-flex flex-column gap-4">
 
             @if(session('receipt_success'))
                 <div class="stg-alert success">
@@ -1664,14 +1664,14 @@ Tidak ada log tersedia.
                 </div>
             @endif
 
-            @if($errors->has('name') || $errors->has('keywords') || $errors->has('logo_file'))
+            @if($errors->has('name') || $errors->has('keywords') || $errors->has('target') || $errors->has('logo_file'))
                 <div class="stg-alert error">
                     <i class="bx bx-error-circle fs-5"></i>
                     <div>{{ $errors->first() }}</div>
                 </div>
             @endif
 
-            <!-- Card Form Tambah / Edit Aturan Logo Struk -->
+            <!-- Card Form Tambah / Edit Aturan Logo Struk (FULL WIDTH) -->
             <div class="stg-card">
                 <div class="stg-card-hdr">
                     <div class="stg-card-hdr-left">
@@ -1680,7 +1680,7 @@ Tidak ada log tersedia.
                         </div>
                         <div>
                             <div class="stg-card-title" id="ruleFormTitle">Tambah Aturan Logo & Format Struk</div>
-                            <div class="stg-card-sub">Tentukan logo, kategori struk, dan kode produk OtomaX yang cocok</div>
+                            <div class="stg-card-sub">Tentukan logo, kategori struk, dan target provider atau kode produk yang cocok</div>
                         </div>
                     </div>
                 </div>
@@ -1709,18 +1709,33 @@ Tidak ada log tersedia.
                             <!-- Nama Aturan -->
                             <div class="col-12 col-md-6">
                                 <label class="stg-field-lbl">
-                                    Nama Label Provider / Bank <span class="text-danger">*</span>
+                                    Nama Label Struk <span class="text-muted fw-normal">(Opsional)</span>
                                 </label>
-                                <input type="text" name="name" id="rule_name" class="form-control" placeholder="Contoh: Transfer Bank BCA / PLN Token" required>
+                                <input type="text" name="name" id="rule_name" class="form-control" placeholder="Contoh: Transfer Bank BCA / PLN Token (Otomatis jika kosong)">
+                                <div class="stg-hint">Jika dikosongkan, nama otomatis diambil dari nama Provider atau Kode Produk</div>
                             </div>
 
-                            <!-- Kata Kunci / Kode Produk -->
-                            <div class="col-12">
-                                <label class="stg-field-lbl">
-                                    Kata Kunci / Kode Produk OtomaX <span class="text-danger">*</span>
+                            <!-- Opsi Target Pencocokan: Provider vs Kode Produk -->
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl d-flex align-items-center justify-content-between">
+                                    <span>Target By Provider / Operator</span>
+                                    <span class="badge bg-label-primary font-monospace fw-normal" style="font-size: 11px;">Otomatis Semua Produk</span>
                                 </label>
-                                <input type="text" name="keywords" id="rule_keywords" class="form-control" placeholder="Contoh: BCA, TFBCA, IBCA (Pisahkan dengan tanda koma)" required>
-                                <div class="stg-hint">Transaksi dengan kode produk atau nama yang mengandung kata kunci ini akan otomatis memakai logo & format ini</div>
+                                <input type="text" name="provider" id="rule_provider" class="form-control" placeholder="Contoh: PLN, BCA, BRI, MANDIRI, TELKOMSEL">
+                                <div class="stg-hint text-primary">
+                                    <i class="bx bx-check-shield me-1"></i>Jika diisi, aturan & logo ini otomatis berlaku untuk <strong>SEMUA produk</strong> di bawah provider ini.
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="stg-field-lbl d-flex align-items-center justify-content-between">
+                                    <span>Target By Kode Produk OtomaX</span>
+                                    <span class="badge bg-label-secondary font-monospace fw-normal" style="font-size: 11px;">Khusus Kode Tertentu</span>
+                                </label>
+                                <input type="text" name="keywords" id="rule_keywords" class="form-control" placeholder="Contoh: PLNPASCA, TFBCA, S10 (Pisahkan dengan tanda koma)">
+                                <div class="stg-hint">
+                                    <i class="bx bx-target-lock me-1"></i>Hanya berlaku spesifik untuk transaksi dengan kode produk tersebut.
+                                </div>
                             </div>
 
                             <!-- File Logo -->
@@ -1777,7 +1792,7 @@ Tidak ada log tersedia.
                 </div>
             </div>
 
-            <!-- Card Tabel Daftar Aturan Logo & Struk Aktif -->
+            <!-- Card Tabel Daftar Aturan Logo & Struk Aktif (FULL WIDTH DI BAWAH FORM) -->
             <div class="stg-card">
                 <div class="stg-card-hdr">
                     <div class="stg-card-hdr-left">
@@ -1786,7 +1801,7 @@ Tidak ada log tersedia.
                         </div>
                         <div>
                             <div class="stg-card-title">Daftar Aturan Logo & Format Aktif ({{ count($receiptRules) }})</div>
-                            <div class="stg-card-sub">Urutan prioritas pencocokan transaksi struk otomatis</div>
+                            <div class="stg-card-sub">Urutan prioritas pencocokan: Kode produk spesifik diprioritaskan terlebih dahulu, disusul oleh aturan berbasis provider</div>
                         </div>
                     </div>
                     <div>
@@ -1804,17 +1819,17 @@ Tidak ada log tersedia.
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 40px;">No</th>
-                                    <th style="width: 100px;">Logo</th>
-                                    <th>Nama & Bank</th>
-                                    <th>Kategori Struk</th>
-                                    <th>Kata Kunci Kode Produk</th>
+                                    <th style="width: 40px;" class="text-center">No</th>
+                                    <th style="width: 90px;" class="text-center">Logo</th>
+                                    <th>Nama Label / Bank</th>
+                                    <th>Kategori Layout</th>
+                                    <th>Target Pencocokan Transaksi</th>
                                     <th>Admin Fee</th>
-                                    <th class="text-center" style="width: 110px;">Aksi</th>
+                                    <th class="text-center" style="width: 100px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($receiptRules as $idx => $r)
+                                @forelse($receiptRules as $idx => $r)
                                     @php
                                         $cat = $r['category'] ?? 'UMUM';
                                         $badgeClass = 'bg-label-secondary';
@@ -1823,10 +1838,10 @@ Tidak ada log tersedia.
                                         elseif ($cat === 'BANK') $badgeClass = 'bg-label-primary';
                                     @endphp
                                     <tr>
-                                        <td class="small text-muted">{{ $idx + 1 }}</td>
-                                        <td>
-                                            <div class="p-1 bg-white border rounded text-center d-flex align-items-center justify-content-center" style="width: 80px; height: 42px;">
-                                                <img src="{{ asset($r['logo_url'] ?? '/logo') }}" alt="Logo" style="max-height: 34px; max-width: 74px; object-fit: contain;">
+                                        <td class="text-center small text-muted">{{ $idx + 1 }}</td>
+                                        <td class="text-center">
+                                            <div class="p-1 bg-white border rounded text-center d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 38px;">
+                                                <img src="{{ asset($r['logo_url'] ?? '/logo') }}" alt="Logo" style="max-height: 30px; max-width: 66px; object-fit: contain;">
                                             </div>
                                         </td>
                                         <td>
@@ -1839,15 +1854,32 @@ Tidak ada log tersedia.
                                             <span class="badge {{ $badgeClass }}">{{ $cat }}</span>
                                         </td>
                                         <td>
-                                            <div class="font-monospace small text-dark">
-                                                @foreach(explode(',', $r['keywords'] ?? '') as $kw)
-                                                    @if(trim($kw))
-                                                        <span class="badge bg-light text-secondary border me-1">{{ trim($kw) }}</span>
+                                            @if(!empty($r['provider']))
+                                                <div class="mb-1">
+                                                    <span class="badge bg-primary text-white" title="Otomatis mencakup semua produk provider ini">
+                                                        <i class="bx bx-building me-1"></i>Provider: <strong>{{ strtoupper($r['provider']) }}</strong> (Semua Produk)
+                                                    </span>
+                                                </div>
+                                            @endif
+                                            @if(!empty($r['keywords']))
+                                                <div class="d-flex flex-wrap gap-1 align-items-center">
+                                                    @if(empty($r['provider']))
+                                                        <span class="text-muted small me-1">Kode:</span>
+                                                    @else
+                                                        <span class="text-muted small me-1">Khusus Kode:</span>
                                                     @endif
-                                                @endforeach
-                                            </div>
+                                                    @foreach(explode(',', $r['keywords']) as $kw)
+                                                        @if(trim($kw))
+                                                            <span class="badge bg-light text-dark border font-monospace">{{ trim($kw) }}</span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                            @if(empty($r['provider']) && empty($r['keywords']))
+                                                <span class="badge bg-light text-secondary">Semua / Default Fallback</span>
+                                            @endif
                                         </td>
-                                        <td class="font-monospace small">
+                                        <td class="font-monospace small fw-semibold text-dark">
                                             Rp {{ number_format($r['default_admin'] ?? 0, 0, ',', '.') }}
                                         </td>
                                         <td class="text-center">
@@ -1864,14 +1896,20 @@ Tidak ada log tersedia.
                                             </div>
                                         </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">
+                                            Belum ada aturan logo & format struk yang terpasang.
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Card Pengaturan Umum Header & Footer Struk -->
+            <!-- Card Pengaturan Umum Header & Footer Struk (FULL WIDTH) -->
             <div class="stg-card">
                 <div class="stg-card-hdr">
                     <div class="stg-card-hdr-left">
@@ -2010,6 +2048,7 @@ Tidak ada log tersedia.
         setVal('existing_logo_url', rule.logo_url || '');
         setVal('rule_category', rule.category || 'UMUM');
         setVal('rule_name', rule.name || '');
+        setVal('rule_provider', rule.provider || '');
         setVal('rule_keywords', rule.keywords || '');
         setVal('rule_admin', rule.default_admin || 2500);
         setVal('rule_bank_name', rule.bank_name || '');
@@ -2035,6 +2074,9 @@ Tidak ada log tersedia.
 
         setVal('rule_id', '');
         setVal('existing_logo_url', '/images/receipt/pln.svg');
+        setVal('rule_provider', '');
+        setVal('rule_keywords', '');
+        setVal('rule_name', '');
         const titleEl = document.getElementById('ruleFormTitle');
         if (titleEl) titleEl.innerText = 'Tambah Aturan Logo & Format Struk';
         handleCategoryChange('PRABAYAR');

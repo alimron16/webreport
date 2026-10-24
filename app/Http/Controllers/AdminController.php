@@ -770,33 +770,55 @@ class AdminController extends Controller
         if ($r = $this->guardAdmin()) return $r;
 
         $request->validate([
-            'name'          => 'required|string|max:100',
             'category'      => 'required|in:PRABAYAR,PASCA BAYAR,BANK,UMUM',
-            'keywords'      => 'required|string|max:255',
+            'name'          => 'nullable|string|max:100',
+            'provider'      => 'nullable|string|max:100',
+            'keywords'      => 'nullable|string|max:255',
+            'bank_name'     => 'nullable|string|max:100',
             'default_admin' => 'nullable|numeric|min:0',
             'logo_file'     => 'nullable|image|max:2048',
         ]);
 
+        $provider = trim($request->input('provider', ''));
+        $keywords = trim($request->input('keywords', ''));
+        $name     = trim($request->input('name', ''));
+
+        if (empty($provider) && empty($keywords) && empty($name)) {
+            return back()->withErrors(['target' => 'Mohon isi minimal salah satu: Provider / Operator atau Kode Produk OtomaX.'])->withInput();
+        }
+
+        if (empty($name)) {
+            if (!empty($provider)) {
+                $name = 'Provider ' . strtoupper($provider);
+            } elseif (!empty($keywords)) {
+                $firstKw = trim(explode(',', $keywords)[0]);
+                $name = 'Produk ' . strtoupper($firstKw);
+            } else {
+                $name = 'Aturan ' . strtoupper($request->input('category'));
+            }
+        }
+
         $receiptService = app(\App\Services\ReceiptService::class);
         $rules = $receiptService->getRules();
 
-        $ruleId = $request->input('rule_id') ?: ('rule_' . Str::slug($request->input('name')) . '_' . uniqid());
+        $ruleId = $request->input('rule_id') ?: ('rule_' . Str::slug($name) . '_' . uniqid());
         $logoUrl = $request->input('existing_logo_url', '/images/receipt/pln.svg');
 
         if ($request->hasFile('logo_file')) {
             $file = $request->file('logo_file');
             $ext = $file->getClientOriginalExtension();
-            $fileName = 'logo_' . Str::slug($request->input('name')) . '_' . time() . '.' . $ext;
+            $fileName = 'logo_' . Str::slug($name) . '_' . time() . '.' . $ext;
             $file->move(public_path('images/receipt'), $fileName);
             $logoUrl = '/images/receipt/' . $fileName;
         }
 
         $newRule = [
             'id'            => $ruleId,
-            'name'          => trim($request->input('name')),
+            'name'          => $name,
             'category'      => $request->input('category'),
+            'provider'      => $provider,
+            'keywords'      => $keywords,
             'bank_name'     => trim($request->input('bank_name', '')),
-            'keywords'      => trim($request->input('keywords')),
             'logo_url'      => $logoUrl,
             'default_admin' => (float)($request->input('default_admin', 2500)),
             'remark'        => trim($request->input('remark', 'Transfer Uang')),
