@@ -556,22 +556,22 @@
                             <div class="pln-row">
                                 <span class="pln-lbl-right">MATERAI</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">RP 0, 00</span>
+                                <span class="pln-val">RP {{ number_format($receipt['materai'] ?? 0, 0, ',', '.') }}, 00</span>
                             </div>
                             <div class="pln-row">
                                 <span class="pln-lbl-right">PPN</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">RP 0, 00</span>
+                                <span class="pln-val">RP {{ number_format($receipt['ppn'] ?? 0, 0, ',', '.') }}, 00</span>
                             </div>
                             <div class="pln-row">
                                 <span class="pln-lbl-right">PPJ</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">RP {{ number_format($receipt['ppj'], 0, ',', '.') }}, 00</span>
+                                <span class="pln-val">RP {{ number_format($receipt['ppj'] ?? 0, 0, ',', '.') }}, 00</span>
                             </div>
                             <div class="pln-row">
                                 <span class="pln-lbl-right">ANGSURAN</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">RP 0, 00</span>
+                                <span class="pln-val">RP {{ number_format($receipt['angsuran'] ?? 0, 0, ',', '.') }}, 00</span>
                             </div>
                             <div class="pln-row" style="margin-top: 14px;">
                                 <span class="pln-lbl-right">JUMLAH KWH</span>

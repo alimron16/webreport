@@ -833,9 +833,11 @@ class WebreportController extends Controller
         }
 
         $trx = $trxRes['result'];
+        \Illuminate\Support\Facades\Log::info("PRINT_RECEIPT [{$trxid}] RAW_TRX: " . json_encode($trx));
         
         // Cari aturan logo & kategori struk yang cocok
         $rule = $receiptService->findMatchingRule($trx);
+        \Illuminate\Support\Facades\Log::info("PRINT_RECEIPT [{$trxid}] MATCHED_RULE: " . json_encode($rule));
 
         // Jika ada override admin fee via parameter URL (?admin=3500)
         if ($request->has('admin') && is_numeric($request->input('admin'))) {
@@ -844,6 +846,7 @@ class WebreportController extends Controller
 
         // Parse semua data terstruktur struk
         $receipt = $receiptService->parseReceipt($trx, $rule);
+        \Illuminate\Support\Facades\Log::info("PRINT_RECEIPT [{$trxid}] PARSED_RECEIPT: " . json_encode($receipt));
 
         return view('webreport.receipt', compact('receipt', 'trx', 'rule'));
     }
