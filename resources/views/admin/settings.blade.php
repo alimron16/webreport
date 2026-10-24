@@ -117,6 +117,58 @@ html[data-bs-theme="dark"], html.dark-style {
     overflow: hidden;
 }
 
+.stg-card-body {
+    padding: 24px;
+}
+@media (max-width: 768px) {
+    .stg-card-body {
+        padding: 16px;
+    }
+}
+
+/* ── Parser Mode Selectable Card ─────────────── */
+.parser-mode-card {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all .2s ease;
+    user-select: none;
+}
+.parser-mode-card:hover {
+    border-color: #93c5fd;
+    background: #f0f7ff;
+}
+.parser-mode-card.is-active {
+    border-color: #0B6FB6 !important;
+    background: #eff6ff !important;
+    box-shadow: 0 0 0 1px #0B6FB6;
+}
+.parser-mode-card.is-active .parser-title {
+    color: #0B6FB6 !important;
+    font-weight: 700 !important;
+}
+.parser-mode-card .form-check-input {
+    cursor: pointer;
+}
+html[data-bs-theme="dark"] .parser-mode-card {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+html[data-bs-theme="dark"] .parser-mode-card:hover {
+    border-color: #60a5fa !important;
+    background: #0f172a !important;
+}
+html[data-bs-theme="dark"] .parser-mode-card.is-active {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+html[data-bs-theme="dark"] .parser-mode-card.is-active .parser-title {
+    color: #60a5fa !important;
+}
+
 /* ── Card Header bar ───────────────────────────── */
 .stg-card-hdr {
     display: flex;
@@ -1685,7 +1737,7 @@ Tidak ada log tersedia.
                     </div>
                 </div>
 
-                <div class="stg-card-body">
+                <div class="stg-card-body p-3 p-md-4">
                     <form method="POST" action="{{ route('admin.settings.receipt.rule') }}" enctype="multipart/form-data" id="formReceiptRule">
                         @csrf
                         <input type="hidden" name="rule_id" id="rule_id" value="">
@@ -1798,41 +1850,41 @@ Tidak ada log tersedia.
 
                                 <!-- Mode Parser Selector (4 Mode) -->
                                 <div class="row g-2 mb-3">
-                                    <div class="col-12 col-md-3">
-                                        <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
-                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_auto" value="auto" checked onchange="handleParserModeChange(this.value)">
-                                            <label class="form-check-label small fw-semibold" for="parser_auto" style="cursor: pointer;">
-                                                Smart Auto-Detect
-                                                <div class="text-muted fw-normal" style="font-size: 11px;">Deteksi cerdas otomatis tanpa setting</div>
-                                            </label>
-                                        </div>
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100 is-active" id="card_parser_auto" for="parser_auto">
+                                            <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_auto" value="auto" checked onchange="handleParserModeChange(this.value)">
+                                            <div class="flex-grow-1 min-w-0 ms-2">
+                                                <div class="small fw-semibold text-dark parser-title">Smart Auto-Detect</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Deteksi cerdas otomatis tanpa setting</div>
+                                            </div>
+                                        </label>
                                     </div>
-                                    <div class="col-12 col-md-3">
-                                        <div class="form-check border border-primary rounded p-2 px-3 h-100" style="background: #eff6ff; cursor: pointer;">
-                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_fields" value="fields" onchange="handleParserModeChange(this.value)">
-                                            <label class="form-check-label small fw-bold text-primary" for="parser_fields" style="cursor: pointer;">
-                                                Regex Per Kolom Struk
-                                                <div class="text-muted fw-normal" style="font-size: 11px;">Setel regex khusus No Meter, Nama, Token, dll</div>
-                                            </label>
-                                        </div>
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100" id="card_parser_fields" for="parser_fields">
+                                            <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_fields" value="fields" onchange="handleParserModeChange(this.value)">
+                                            <div class="flex-grow-1 min-w-0 ms-2">
+                                                <div class="small fw-semibold text-dark parser-title">Regex Per Kolom Struk</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Setel regex khusus No Meter, Nama, Token, dll</div>
+                                            </div>
+                                        </label>
                                     </div>
-                                    <div class="col-12 col-md-3">
-                                        <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
-                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_delimiter" value="delimiter" onchange="handleParserModeChange(this.value)">
-                                            <label class="form-check-label small fw-semibold" for="parser_delimiter" style="cursor: pointer;">
-                                                Pemisah Delimiter
-                                                <div class="text-muted fw-normal" style="font-size: 11px;">Dipisahkan simbol garis miring (/) atau (#)</div>
-                                            </label>
-                                        </div>
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100" id="card_parser_delimiter" for="parser_delimiter">
+                                            <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_delimiter" value="delimiter" onchange="handleParserModeChange(this.value)">
+                                            <div class="flex-grow-1 min-w-0 ms-2">
+                                                <div class="small fw-semibold text-dark parser-title">Pemisah Delimiter</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Dipisahkan simbol garis miring (/) atau (#)</div>
+                                            </div>
+                                        </label>
                                     </div>
-                                    <div class="col-12 col-md-3">
-                                        <div class="form-check border rounded p-2 px-3 h-100" style="background: #f8fafc; cursor: pointer;">
-                                            <input class="form-check-input" type="radio" name="parser_mode" id="parser_regex" value="regex" onchange="handleParserModeChange(this.value)">
-                                            <label class="form-check-label small fw-semibold" for="parser_regex" style="cursor: pointer;">
-                                                Full Regex (1 Baris)
-                                                <div class="text-muted fw-normal" style="font-size: 11px;">Pola satu baris named capture groups</div>
-                                            </label>
-                                        </div>
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100" id="card_parser_regex" for="parser_regex">
+                                            <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_regex" value="regex" onchange="handleParserModeChange(this.value)">
+                                            <div class="flex-grow-1 min-w-0 ms-2">
+                                                <div class="small fw-semibold text-dark parser-title">Full Regex (1 Baris)</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Pola satu baris named capture groups</div>
+                                            </div>
+                                        </label>
                                     </div>
                                 </div>
 
@@ -2388,7 +2440,7 @@ Tidak ada log tersedia.
                     </div>
                 </div>
 
-                <div class="stg-card-body">
+                <div class="stg-card-body p-3 p-md-4">
                     <form method="POST" action="{{ route('admin.settings.receipt') }}">
                         @csrf
                         <div class="row g-3">
@@ -2508,6 +2560,18 @@ Tidak ada log tersedia.
         if (boxFields) boxFields.style.display = (mode === 'fields') ? 'block' : 'none';
         if (boxDelim)  boxDelim.style.display  = (mode === 'delimiter') ? 'block' : 'none';
         if (boxRegex)  boxRegex.style.display  = (mode === 'regex') ? 'block' : 'none';
+
+        ['auto', 'fields', 'delimiter', 'regex'].forEach(m => {
+            const card = document.getElementById('card_parser_' + m);
+            if (card) {
+                if (m === mode) {
+                    card.classList.add('is-active');
+                } else {
+                    card.classList.remove('is-active');
+                }
+            }
+        });
+
         updateLivePreview();
     }
 
@@ -2904,6 +2968,8 @@ Tidak ada log tersedia.
 
     document.addEventListener('DOMContentLoaded', function() {
         // Run initial live preview on tab receipt
+        const initialMode = document.querySelector('input[name="parser_mode"]:checked')?.value || 'auto';
+        handleParserModeChange(initialMode);
         updateLivePreview();
         // Add live input listeners
         ['rule_category', 'rule_name', 'rule_provider', 'rule_admin', 'rule_bank_name', 'rule_remark', 'rule_footer'].forEach(id => {
