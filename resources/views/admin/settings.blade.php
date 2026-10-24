@@ -169,6 +169,41 @@ html[data-bs-theme="dark"] .parser-mode-card.is-active .parser-title {
     color: #60a5fa !important;
 }
 
+/* ── OtomaX Template Builder Parameter Pills ─── */
+.param-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 18px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    transition: all .2s ease;
+    user-select: none;
+    line-height: 1;
+}
+.param-pill.pill-orange {
+    background-color: #f97316 !important;
+    color: #ffffff !important;
+}
+.param-pill.pill-green {
+    background-color: #16a34a !important;
+    color: #ffffff !important;
+}
+.param-item {
+    transition: background-color .15s ease;
+    border-radius: 6px;
+    padding: 3px 6px;
+    cursor: pointer;
+}
+.param-item:hover {
+    background-color: #e2e8f0;
+}
+html[data-bs-theme="dark"] .param-item:hover {
+    background-color: #334155;
+}
+
 /* ── Card Header bar ───────────────────────────── */
 .stg-card-hdr {
     display: flex;
@@ -1848,32 +1883,41 @@ Tidak ada log tersedia.
                                     Pilih cara sistem membaca data dari teks SN balasan suplier. Anda dapat mengatur regex per kolom struk secara mandiri (misal: menentukan regex mana untuk Nomor Meter, ID Pelanggan, Nama, Token, dll).
                                 </div>
 
-                                <!-- Mode Parser Selector (4 Mode) -->
+                                <!-- Mode Parser Selector (5 Mode) -->
                                 <div class="row g-2 mb-3">
                                     <div class="col-12 col-sm-6 col-lg-3">
-                                        <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100 is-active" id="card_parser_auto" for="parser_auto">
-                                            <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_auto" value="auto" checked onchange="handleParserModeChange(this.value)">
+                                        <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100 is-active" id="card_parser_template" for="parser_template">
+                                            <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_template" value="template" checked onchange="handleParserModeChange(this.value)">
                                             <div class="flex-grow-1 min-w-0 ms-2">
-                                                <div class="small fw-semibold text-dark parser-title">Smart Auto-Detect</div>
-                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Deteksi cerdas otomatis tanpa setting</div>
+                                                <div class="small fw-semibold text-dark parser-title">Template Parsing OtomaX</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Format penggantian parameter [token], [nama], dll</div>
                                             </div>
                                         </label>
                                     </div>
-                                    <div class="col-12 col-sm-6 col-lg-3">
+                                    <div class="col-12 col-sm-6 col-lg-2">
+                                        <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100" id="card_parser_auto" for="parser_auto">
+                                            <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_auto" value="auto" onchange="handleParserModeChange(this.value)">
+                                            <div class="flex-grow-1 min-w-0 ms-2">
+                                                <div class="small fw-semibold text-dark parser-title">Smart Auto-Detect</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Deteksi cerdas bawaan</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-lg-2">
                                         <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100" id="card_parser_fields" for="parser_fields">
                                             <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_fields" value="fields" onchange="handleParserModeChange(this.value)">
                                             <div class="flex-grow-1 min-w-0 ms-2">
-                                                <div class="small fw-semibold text-dark parser-title">Regex Per Kolom Struk</div>
-                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Setel regex khusus No Meter, Nama, Token, dll</div>
+                                                <div class="small fw-semibold text-dark parser-title">Regex Per Kolom</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Setel regex khusus No Meter dll</div>
                                             </div>
                                         </label>
                                     </div>
-                                    <div class="col-12 col-sm-6 col-lg-3">
+                                    <div class="col-12 col-sm-6 col-lg-2">
                                         <label class="parser-mode-card d-flex align-items-start gap-2.5 p-3 rounded border h-100 position-relative w-100" id="card_parser_delimiter" for="parser_delimiter">
                                             <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_delimiter" value="delimiter" onchange="handleParserModeChange(this.value)">
                                             <div class="flex-grow-1 min-w-0 ms-2">
-                                                <div class="small fw-semibold text-dark parser-title">Pemisah Delimiter</div>
-                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Dipisahkan simbol garis miring (/) atau (#)</div>
+                                                <div class="small fw-semibold text-dark parser-title">Delimiter (/)</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Pemisah garis miring atau #</div>
                                             </div>
                                         </label>
                                     </div>
@@ -1882,9 +1926,160 @@ Tidak ada log tersedia.
                                             <input class="form-check-input mt-1 flex-shrink-0 m-0" type="radio" name="parser_mode" id="parser_regex" value="regex" onchange="handleParserModeChange(this.value)">
                                             <div class="flex-grow-1 min-w-0 ms-2">
                                                 <div class="small fw-semibold text-dark parser-title">Full Regex (1 Baris)</div>
-                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Pola satu baris named capture groups</div>
+                                                <div class="text-muted fw-normal" style="font-size: 11px; line-height: 1.35; margin-top: 2px;">Named capture groups pola manual</div>
                                             </div>
                                         </label>
+                                    </div>
+                                </div>
+
+                                <!-- Sub-Form 0: TEMPLATE PARSING OTOMAX / PPOB (PERSIS SEPERTI GAMBAR USER) -->
+                                <div id="box_parser_template" class="p-3 border rounded mb-3 bg-white" style="border-color: #cbd5e1 !important;">
+                                    <div class="row g-3">
+                                        <!-- Kolom Kiri: Contoh Reply Suplier & Petunjuk -->
+                                        <div class="col-12 col-xl-3 col-lg-4">
+                                            <!-- Box 1: Contoh Reply Suplier -->
+                                            <div class="border rounded p-3 mb-3" style="background: #f8fafc; border-color: #93c5fd !important;">
+                                                <div class="text-center fw-bold text-primary mb-2 small pb-1 border-bottom border-primary-subtle">
+                                                    Contoh Reply Supplier
+                                                </div>
+                                                <div class="small font-monospace text-dark text-break bg-white p-2 rounded border" id="box_supplier_sample" style="font-size: 11px; line-height: 1.5; min-height: 75px;">
+                                                    : 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL
+                                                </div>
+                                                <button type="button" class="btn btn-outline-primary btn-xs w-100 mt-2" onclick="copySampleToTemplate()" style="font-size: 11px;">
+                                                    <i class="bx bx-copy me-1"></i>Salin ke Editor Parsing
+                                                </button>
+                                            </div>
+
+                                            <!-- Box 2: Petunjuk -->
+                                            <div class="border rounded p-3" style="background: #f8fafc;">
+                                                <div class="d-flex align-items-center justify-content-between mb-2 cursor-pointer" onclick="togglePetunjukGuide()">
+                                                    <span class="fw-bold text-dark small">Tampilkan Petunjuk</span>
+                                                    <i class="bx bx-chevron-down text-muted" id="icon_toggle_guide"></i>
+                                                </div>
+                                                <div id="content_petunjuk_guide">
+                                                    <div class="fw-semibold text-dark small mb-1">Petunjuk:</div>
+                                                    <div class="text-muted mb-2" style="font-size: 11.5px; line-height: 1.4;">
+                                                        Silakan replace/ganti text dengan parameter yang telah ditentukan di sebelah kanan.
+                                                    </div>
+                                                    <div class="fw-semibold text-secondary mb-1" style="font-size: 11px;">Contoh SN:</div>
+                                                    <div class="p-2 bg-white rounded border font-monospace text-break mb-2 text-muted" style="font-size: 10px; line-height: 1.35;">
+                                                        046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11
+                                                    </div>
+                                                    <div class="fw-semibold text-secondary mb-1" style="font-size: 11px;">Ganti SN di atas dengan parameter parsing, contoh hasil:</div>
+                                                    <div class="p-2 bg-primary-subtle text-primary rounded border border-primary-subtle font-monospace text-break" style="font-size: 10px; line-height: 1.35;">
+                                                        [token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]. RP TOKEN=[rptoken]. PPN=[ppn]. PPJ=[ppj]/MATERAI:[materai]
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Kolom Tengah: SN & Template Textarea -->
+                                        <div class="col-12 col-xl-6 col-lg-5">
+                                            <div class="mb-2">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <label class="small fw-bold text-dark mb-0">SN:</label>
+                                                    <div class="d-flex gap-1">
+                                                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" type="button" onclick="loadSampleSn('bank_bca')" style="font-size: 10.5px;">Bank</button>
+                                                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" type="button" onclick="loadSampleSn('pln_token')" style="font-size: 10.5px;">Token PLN</button>
+                                                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" type="button" onclick="loadSampleSn('pln_pasca')" style="font-size: 10.5px;">Tagihan PLN</button>
+                                                    </div>
+                                                </div>
+                                                <input type="text" name="sample_sn" id="rule_sample_sn" class="form-control font-monospace text-dark" style="background: #f1f5f9; font-size: 11.5px;" value=": 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL" oninput="handleSampleSnChange(this.value)">
+                                            </div>
+
+                                            <div class="mb-2">
+                                                <label class="small fw-semibold text-dark mb-1" for="rule_sn_template">
+                                                    Buat parsing SN dengan parameter di sebelah kanan.
+                                                </label>
+                                                <textarea name="sn_template" id="rule_sn_template" rows="7" class="form-control font-monospace" style="font-size: 12.5px; line-height: 1.5;" placeholder=": [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL" oninput="handleTemplateChange()">: [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL</textarea>
+                                            </div>
+
+                                            <div class="p-2.5 rounded bg-light border text-muted" style="font-size: 11px; line-height: 1.45;">
+                                                <div class="fw-semibold text-dark mb-1">
+                                                    Setiap nilai yg sekiranya berubah2 di tiap reply sukses harus diganti dengan [parameter] yang tersedia di sebelah kanan.
+                                                </div>
+                                                <div>Jika nilai tsb ga dipakai maka harus diabaikan:</div>
+                                                <div>• jika berada di tengah reply, ganti dengan <code>[var1]</code> atau <code>[var2]</code> atau <code>[var3]</code> dst utk mengabaikan</div>
+                                                <div>• jika yang diabaikan ada di akhir reply tinggal hapus nilai tersebut.</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Kolom Kanan: Parameter Wajib & Opsional -->
+                                        <div class="col-12 col-xl-3 col-lg-3">
+                                            <div class="border rounded p-3 bg-light h-100" style="max-height: 480px; overflow-y: auto;">
+                                                <!-- Parameter Wajib -->
+                                                <div class="fw-bold text-dark small mb-2 d-flex align-items-center justify-content-between">
+                                                    <span>Parameter Wajib</span>
+                                                    <span class="badge bg-danger-subtle text-danger font-monospace" style="font-size: 9.5px;">Wajib</span>
+                                                </div>
+                                                <div class="d-flex flex-column gap-1 mb-3">
+                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[namapelanggan]')" title="Klik untuk masukkan [namapelanggan]">
+                                                        <span class="font-monospace text-dark small">[namapelanggan]</span>
+                                                        <span class="param-pill pill-orange" id="pill_namapelanggan">-</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[golongan]')" title="Klik untuk masukkan [golongan]">
+                                                        <span class="font-monospace text-dark small">[golongan]</span>
+                                                        <span class="param-pill pill-orange" id="pill_golongan">-</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[daya]')" title="Klik untuk masukkan [daya]">
+                                                        <span class="font-monospace text-dark small">[daya]</span>
+                                                        <span class="param-pill pill-orange" id="pill_daya">-</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[kwh]')" title="Klik untuk masukkan [kwh]">
+                                                        <span class="font-monospace text-dark small">[kwh]</span>
+                                                        <span class="param-pill pill-orange" id="pill_kwh">-</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[token]')" title="Klik untuk masukkan [token]">
+                                                        <span class="font-monospace text-dark small">[token]</span>
+                                                        <span class="param-pill pill-orange" id="pill_token">-</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Parameter Opsional -->
+                                                <div class="fw-bold text-dark small mb-2 pt-2 border-top d-flex align-items-center justify-content-between">
+                                                    <span>Parameter Opsional</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary font-monospace" style="font-size: 9.5px;">Opsional</span>
+                                                </div>
+                                                <div class="d-flex flex-column gap-1">
+                                                    @php
+                                                        $optParams = [
+                                                            'nometer' => 'Nomor meter fisik pelanggan PLN',
+                                                            'idpel' => 'ID Pelanggan PLN / PDAM / BPJS',
+                                                            'plnreff' => 'Nomor referensi unik transaksi PLN / Bank',
+                                                            'nominal' => 'Nominal tagihan atau nominal transfer',
+                                                            'ppn' => 'Pajak Pertambahan Nilai',
+                                                            'ppj' => 'Pajak Penerangan Jalan',
+                                                            'angsuran' => 'Biaya angsuran jika ada',
+                                                            'materai' => 'Biaya meterai transaksi',
+                                                            'rptoken' => 'Nilai rupiah pembelian token',
+                                                            'kwhsubsidi' => 'Jumlah kWh subsidi',
+                                                            'kwhkompensasi' => 'Jumlah kWh kompensasi',
+                                                            'admin' => 'Biaya admin bawaan di SN',
+                                                            'subtotal' => 'Subtotal sebelum admin',
+                                                            'totalbayar' => 'Total keseluruhan pembayaran',
+                                                            'tokensubsidi' => 'Token tambahan subsidi',
+                                                            'tokenkompensasi' => 'Token kompensasi PLN',
+                                                            'norek' => 'Nomor rekening bank tujuan transfer',
+                                                            'stand' => 'Stand meter awal/akhir pascabayar',
+                                                            'blth' => 'Bulan & tahun tagihan listrik',
+                                                            'var' => 'Abaikan teks/karakter acak di posisi ini',
+                                                            'var1' => 'Abaikan karakter di tengah reply',
+                                                            'var2' => 'Abaikan karakter tambahan di tengah reply',
+                                                            'var3' => 'Abaikan karakter tambahan di tengah reply',
+                                                        ];
+                                                    @endphp
+                                                    @foreach($optParams as $tag => $hint)
+                                                        <div class="d-flex align-items-center justify-content-between param-item" onclick="insertTemplateParam('[{{ $tag }}]')" title="{{ $hint }} (Klik untuk masukkan)">
+                                                            <div class="d-flex align-items-center gap-1">
+                                                                <span class="font-monospace text-dark small">[{{ $tag }}]</span>
+                                                                <span class="badge bg-light text-primary border p-0 px-1" style="font-size: 9px; cursor: help;" title="{{ $hint }}">?</span>
+                                                            </div>
+                                                            <span class="param-pill pill-orange" id="pill_{{ $tag }}">-</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -2551,14 +2746,17 @@ Tidak ada log tersedia.
     }
 
     function handleParserModeChange(mode) {
-        const boxFields = document.getElementById('box_parser_fields');
-        const boxDelim  = document.getElementById('box_parser_delimiter');
-        const boxRegex  = document.getElementById('box_parser_regex');
-        if (boxFields) boxFields.style.display = (mode === 'fields') ? 'block' : 'none';
-        if (boxDelim)  boxDelim.style.display  = (mode === 'delimiter') ? 'block' : 'none';
-        if (boxRegex)  boxRegex.style.display  = (mode === 'regex') ? 'block' : 'none';
+        const boxTemplate = document.getElementById('box_parser_template');
+        const boxFields   = document.getElementById('box_parser_fields');
+        const boxDelim    = document.getElementById('box_parser_delimiter');
+        const boxRegex    = document.getElementById('box_parser_regex');
 
-        ['auto', 'fields', 'delimiter', 'regex'].forEach(m => {
+        if (boxTemplate) boxTemplate.style.display = (mode === 'template') ? 'block' : 'none';
+        if (boxFields)   boxFields.style.display   = (mode === 'fields')   ? 'block' : 'none';
+        if (boxDelim)    boxDelim.style.display    = (mode === 'delimiter')? 'block' : 'none';
+        if (boxRegex)    boxRegex.style.display    = (mode === 'regex')    ? 'block' : 'none';
+
+        ['template', 'auto', 'fields', 'delimiter', 'regex'].forEach(m => {
             const card = document.getElementById('card_parser_' + m);
             if (card) {
                 if (m === mode) {
@@ -2566,6 +2764,114 @@ Tidak ada log tersedia.
                 } else {
                     card.classList.remove('is-active');
                 }
+            }
+        });
+
+        if (mode === 'template') {
+            handleTemplateChange();
+        } else {
+            updateLivePreview();
+        }
+    }
+
+    function copySampleToTemplate() {
+        const snInput = document.getElementById('rule_sample_sn');
+        const tplInput = document.getElementById('rule_sn_template');
+        if (!snInput || !tplInput) return;
+        tplInput.value = snInput.value;
+        tplInput.focus();
+        handleTemplateChange();
+    }
+
+    function togglePetunjukGuide() {
+        const el = document.getElementById('content_petunjuk_guide');
+        const icon = document.getElementById('icon_toggle_guide');
+        if (!el) return;
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            if (icon) icon.className = 'bx bx-chevron-up text-muted';
+        } else {
+            el.style.display = 'none';
+            if (icon) icon.className = 'bx bx-chevron-down text-muted';
+        }
+    }
+
+    function insertTemplateParam(tag) {
+        const textarea = document.getElementById('rule_sn_template');
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+
+        if (start !== undefined && end !== undefined && start !== end) {
+            textarea.value = text.substring(0, start) + tag + text.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + tag.length;
+        } else if (start !== undefined) {
+            textarea.value = text.substring(0, start) + tag + text.substring(start);
+            textarea.selectionStart = textarea.selectionEnd = start + tag.length;
+        } else {
+            textarea.value += tag;
+        }
+
+        textarea.focus();
+        handleTemplateChange();
+    }
+
+    function handleSampleSnChange(val) {
+        const sampleBox = document.getElementById('box_supplier_sample');
+        if (sampleBox) sampleBox.innerText = val;
+        updateLivePreview();
+    }
+
+    function compileTemplateToRegexJs(template) {
+        if (!template || !template.trim()) return '';
+        const parts = template.split(/(\[[a-zA-Z0-9_]+\])/g);
+        let regex = '';
+        parts.forEach(part => {
+            if (!part) return;
+            if (part.startsWith('[') && part.endsWith(']')) {
+                const rawTag = part.slice(1, -1).toLowerCase();
+                if (rawTag.startsWith('var')) {
+                    regex += '(?:.+?)';
+                } else {
+                    regex += '(?<' + rawTag + '>.+?)';
+                }
+            } else {
+                let escaped = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                escaped = escaped.replace(/\s+/g, '\\s*');
+                regex += escaped;
+            }
+        });
+        return regex;
+    }
+
+    function handleTemplateChange() {
+        const tplVal = document.getElementById('rule_sn_template')?.value || '';
+
+        const allTags = [
+            'namapelanggan', 'golongan', 'daya', 'kwh', 'token',
+            'nometer', 'idpel', 'plnreff', 'nominal', 'ppn', 'ppj', 'angsuran',
+            'materai', 'rptoken', 'kwhsubsidi', 'kwhkompensasi', 'admin',
+            'subtotal', 'totalbayar', 'tokensubsidi', 'tokenkompensasi',
+            'norek', 'stand', 'blth', 'var', 'var1', 'var2', 'var3'
+        ];
+
+        allTags.forEach(tag => {
+            const pill = document.getElementById('pill_' + tag);
+            if (!pill) return;
+
+            const re = new RegExp('\\[' + tag + '\\]', 'i');
+            if (re.test(tplVal)) {
+                // BERUBAH JADI IJO!
+                pill.className = 'param-pill pill-green';
+                pill.innerHTML = '<i class="bx bx-check"></i>';
+                pill.title = 'Sudah terpasang di template';
+            } else {
+                // TETAP OREN!
+                pill.className = 'param-pill pill-orange';
+                pill.innerHTML = '-';
+                pill.title = 'Belum terpasang di template';
             }
         });
 
@@ -2599,22 +2905,33 @@ Tidak ada log tersedia.
 
     function loadSampleSn(type) {
         const snInput = document.getElementById('rule_sample_sn');
+        const tplInput = document.getElementById('rule_sn_template');
         const catSelect = document.getElementById('rule_category');
+        const sampleBox = document.getElementById('box_supplier_sample');
         if (!snInput) return;
 
         if (type === 'pln_token') {
-            snInput.value = 'SN: 2920-3211-4567-8910-0987/14512345678/098765432100/PRABOWO SUBIANTO WARDJOYO/R1/900VA/503/876543/1000000';
+            const val = '046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11';
+            snInput.value = val;
+            if (sampleBox) sampleBox.innerText = val;
+            if (tplInput) tplInput.value = '[token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]. RP TOKEN=[rptoken]. PPN=[ppn]. PPJ=[ppj]/MATERAI:[materai]';
             if (catSelect) catSelect.value = 'PRABAYAR';
         } else if (type === 'pln_pasca') {
-            snInput.value = 'STAND: 7447-6541 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / BLN: OKT26 / TAG: 210345 / ADM: 3750 / REFF: 2TKT23R3D5994E77D4FA6B977F3A1F3';
+            const val = 'STAND: 7447-6541 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / BLN: OKT26 / TAG: 210345 / ADM: 3750 / REFF: 2TKT23R3D5994E77D4FA6B977F3A1F3';
+            snInput.value = val;
+            if (sampleBox) sampleBox.innerText = val;
+            if (tplInput) tplInput.value = 'STAND: [stand] / NAMA: [namapelanggan] / [golongan]/[daya] / BLN: [blth] / TAG: [nominal] / ADM: [admin] / REFF: [plnreff]';
             if (catSelect) catSelect.value = 'PASCA BAYAR';
         } else if (type === 'bank_bca') {
-            snInput.value = 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL';
+            const val = 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL';
+            snInput.value = val;
+            if (sampleBox) sampleBox.innerText = val;
+            if (tplInput) tplInput.value = 'TRXID: [var1] / NOREK: [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL';
             if (catSelect) catSelect.value = 'BANK';
         }
 
         if (catSelect) handleCategoryChange(catSelect.value);
-        updateLivePreview();
+        handleTemplateChange();
     }
 
     function formatRupiah(num) {
@@ -2692,7 +3009,56 @@ Tidak ada log tersedia.
         evalFieldRegex('rule_regex_reff', v => reff = v);
         evalFieldRegex('rule_regex_norek', v => noRek = v);
 
-        // 1. Delimiter mode
+        // 1. Template Parser Mode OtomaX / PPOB (Sesuai Gambar User)
+        const tplStr = document.getElementById('rule_sn_template')?.value?.trim();
+        if ((parserMode === 'template' || tplStr) && tplStr) {
+            try {
+                const regStr = compileTemplateToRegexJs(tplStr);
+                if (regStr) {
+                    const reg = new RegExp(regStr, 'i');
+                    const m = reg.exec(rawSn);
+                    if (m && m.groups) {
+                        if (m.groups.token) token = m.groups.token.trim();
+                        if (m.groups.namapelanggan) custName = m.groups.namapelanggan.trim();
+                        else if (m.groups.nama) custName = m.groups.nama.trim();
+
+                        if (m.groups.golongan && m.groups.daya) {
+                            tarifDaya = m.groups.golongan.trim() + '/' + m.groups.daya.trim();
+                        } else if (m.groups.daya) {
+                            tarifDaya = m.groups.daya.trim();
+                        } else if (m.groups.golongan) {
+                            tarifDaya = m.groups.golongan.trim();
+                        }
+
+                        if (m.groups.kwh) kwh = m.groups.kwh.trim();
+                        if (m.groups.nometer) noMeter = m.groups.nometer.trim();
+                        else if (m.groups.meter) noMeter = m.groups.meter.trim();
+
+                        if (m.groups.idpel) idPel = m.groups.idpel.trim();
+                        if (m.groups.plnreff) reff = m.groups.plnreff.trim();
+                        else if (m.groups.reff) reff = m.groups.reff.trim();
+
+                        if (m.groups.norek) noRek = m.groups.norek.trim();
+                        else if (m.groups.rekening) noRek = m.groups.rekening.trim();
+
+                        if (m.groups.stand) standMeter = m.groups.stand.trim();
+                        if (m.groups.blth) blth = m.groups.blth.trim();
+
+                        const rawNom = m.groups.nominal || m.groups.rptoken || m.groups.totalbayar;
+                        if (rawNom) {
+                            const n = parseFloat(rawNom.replace(/[^\d]/g, ''));
+                            if (n > 0) tagihan = n;
+                        }
+                        if (m.groups.admin) {
+                            const adm = parseFloat(m.groups.admin.replace(/[^\d]/g, ''));
+                            if (adm > 0) adminFee = adm;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // 2. Delimiter mode
         if (parserMode === 'delimiter' && pattern) {
             const snParts = rawSn.split(delim);
             const patParts = pattern.split(delim);
@@ -2718,7 +3084,7 @@ Tidak ada log tersedia.
             });
         }
 
-        // 2. Custom Regex mode (1 baris)
+        // 3. Custom Regex mode (1 baris)
         if (parserMode === 'regex' && regexStr) {
             try {
                 const reMatch = regexStr.match(/^\/(.*)\/([gimsuy]*)$/);
@@ -2743,7 +3109,7 @@ Tidak ada log tersedia.
             } catch (e) {}
         }
 
-        // 3. Smart Auto Regex Fallback (jika belum terisi dari langkah di atas)
+        // 4. Smart Auto Regex Fallback (jika belum terisi dari langkah di atas)
         if (!token) {
             const mTok = rawSn.match(/(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})/) || rawSn.match(/\b\d{20}\b/);
             if (mTok) {
@@ -2883,14 +3249,17 @@ Tidak ada log tersedia.
         setVal('rule_footer', rule.footer_info || '');
 
         // Parser settings
-        const mode = rule.parser_mode || 'auto';
+        const mode = rule.parser_mode || (rule.sn_template ? 'template' : 'template');
         const radio = document.querySelector(`input[name="parser_mode"][value="${mode}"]`);
         if (radio) radio.checked = true;
+        setVal('rule_sn_template', rule.sn_template || '');
         setVal('rule_sn_delimiter', rule.sn_delimiter || '/');
         setVal('rule_sn_pattern', rule.sn_pattern || '');
         setVal('rule_sn_regex', rule.sn_regex || '');
         if (rule.sample_sn) {
             setVal('rule_sample_sn', rule.sample_sn);
+            const sBox = document.getElementById('box_supplier_sample');
+            if (sBox) sBox.innerText = rule.sample_sn;
         }
 
         // Field-by-Field Regex
@@ -2912,7 +3281,7 @@ Tidak ada log tersedia.
 
         handleCategoryChange(rule.category);
         handleParserModeChange(mode);
-        updateLivePreview();
+        handleTemplateChange();
 
         const formCard = document.getElementById('formReceiptRule');
         if (formCard) {
@@ -2934,6 +3303,7 @@ Tidak ada log tersedia.
         setVal('rule_provider', '');
         setVal('rule_keywords', '');
         setVal('rule_name', '');
+        setVal('rule_sn_template', ': [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL');
         setVal('rule_sn_delimiter', '/');
         setVal('rule_sn_pattern', '');
         setVal('rule_sn_regex', '');
@@ -2949,8 +3319,8 @@ Tidak ada log tersedia.
         setVal('rule_regex_reff', '');
         setVal('rule_regex_norek', '');
 
-        const rAuto = document.getElementById('parser_auto');
-        if (rAuto) rAuto.checked = true;
+        const rTemplate = document.getElementById('parser_template');
+        if (rTemplate) rTemplate.checked = true;
 
         const pvLogo = document.getElementById('pv_logo');
         if (pvLogo) pvLogo.src = '/images/receipt/pln.svg';
@@ -2959,15 +3329,15 @@ Tidak ada log tersedia.
         if (titleEl) titleEl.innerText = 'Tambah Aturan Logo & Format Struk';
 
         handleCategoryChange('PRABAYAR');
-        handleParserModeChange('auto');
-        loadSampleSn('pln_token');
+        handleParserModeChange('template');
+        loadSampleSn('bank_bca');
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         // Run initial live preview on tab receipt
-        const initialMode = document.querySelector('input[name="parser_mode"]:checked')?.value || 'auto';
+        const initialMode = document.querySelector('input[name="parser_mode"]:checked')?.value || 'template';
         handleParserModeChange(initialMode);
-        updateLivePreview();
+        handleTemplateChange();
         // Add live input listeners
         ['rule_category', 'rule_name', 'rule_provider', 'rule_admin', 'rule_bank_name', 'rule_remark', 'rule_footer'].forEach(id => {
             const el = document.getElementById(id);

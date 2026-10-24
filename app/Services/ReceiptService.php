@@ -355,7 +355,54 @@ class ReceiptService
             }
         }
 
-        // 1. Custom Regex Parser Mode (Single line named capture groups)
+        // 1. Template Pattern Parser Mode (Penggantian Parameter [token], [namapelanggan], dll)
+        $templateStr = trim($rule['sn_template'] ?? '');
+        if (($parserMode === 'template' || !empty($templateStr)) && !empty($templateStr)) {
+            try {
+                $compiledRegex = $this->compileTemplateToRegex($templateStr);
+                if (!empty($compiledRegex) && @preg_match($compiledRegex, $sn, $mTemplate)) {
+                    if (!empty($mTemplate['token']))          $token20 = trim($mTemplate['token']);
+                    if (!empty($mTemplate['namapelanggan']))  $custName = trim($mTemplate['namapelanggan']);
+                    elseif (!empty($mTemplate['nama']))       $custName = trim($mTemplate['nama']);
+                    
+                    if (!empty($mTemplate['golongan']) && !empty($mTemplate['daya'])) {
+                        $tarifDaya = trim($mTemplate['golongan']) . '/' . trim($mTemplate['daya']);
+                    } elseif (!empty($mTemplate['daya'])) {
+                        $tarifDaya = trim($mTemplate['daya']);
+                    } elseif (!empty($mTemplate['golongan'])) {
+                        $tarifDaya = trim($mTemplate['golongan']);
+                    } elseif (!empty($mTemplate['tarif'])) {
+                        $tarifDaya = trim($mTemplate['tarif']);
+                    }
+                    
+                    if (!empty($mTemplate['kwh']))            $jumlahKwh = trim($mTemplate['kwh']);
+                    if (!empty($mTemplate['nometer']))        $noMeter = trim($mTemplate['nometer']);
+                    elseif (!empty($mTemplate['meter']))     $noMeter = trim($mTemplate['meter']);
+                    
+                    if (!empty($mTemplate['idpel']))          $idPel = trim($mTemplate['idpel']);
+                    if (!empty($mTemplate['plnreff']))        $reff = trim($mTemplate['plnreff']);
+                    elseif (!empty($mTemplate['reff']))       $reff = trim($mTemplate['reff']);
+                    
+                    if (!empty($mTemplate['norek']))          $accountNumber = trim($mTemplate['norek']);
+                    elseif (!empty($mTemplate['rekening']))   $accountNumber = trim($mTemplate['rekening']);
+                    
+                    if (!empty($mTemplate['stand']))          $standMeter = trim($mTemplate['stand']);
+                    if (!empty($mTemplate['blth']))           $blTh = trim($mTemplate['blth']);
+                    
+                    $rawNominal = $mTemplate['nominal'] ?? $mTemplate['rptoken'] ?? $mTemplate['totalbayar'] ?? null;
+                    if ($rawNominal !== null) {
+                        $cleanNum = (float)str_replace(['.', ','], '', $rawNominal);
+                        if ($cleanNum > 0) $harga = $cleanNum;
+                    }
+                    if (!empty($mTemplate['admin'])) {
+                        $cleanAdm = (float)str_replace(['.', ','], '', $mTemplate['admin']);
+                        if ($cleanAdm > 0) $adminFee = $cleanAdm;
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 2. Custom Regex Parser Mode (Single line named capture groups)
         if ($parserMode === 'regex' && !empty($rule['sn_regex'])) {
             try {
                 if (@preg_match($rule['sn_regex'], $sn, $mCustom)) {
@@ -586,5 +633,36 @@ class ReceiptService
             'logo_url'          => $rule['logo_url'] ?? '/logo',
             'store_title'       => Setting::get('site_title', Cache::get('site_title', 'PAYMENT POINT ONLINE BANKING')),
         ];
+    }
+
+    /**
+     * Convert supplier SN template pattern like "[token]/[namapelanggan]/[golongan]/[daya]"
+     * into regular expression with named capture groups.
+     */
+    public function compileTemplateToRegex(string $template): string
+    {
+        $template = trim($template);
+        if (empty($template)) return '';
+
+        $parts = preg_split('/(\[[a-zA-Z0-9_]+\])/', $template, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        if (empty($parts)) return '';
+
+        $regex = '';
+        foreach ($parts as $part) {
+            if (str_starts_with($part, '[') && str_ends_with($part, ']')) {
+                $rawTag = strtolower(substr($part, 1, -1));
+                if (str_starts_with($rawTag, 'var')) {
+                    $regex .= '(?:.+?)';
+                } else {
+                    $regex .= '(?P<' . $rawTag . '>.+?)';
+                }
+            } else {
+                $quoted = preg_quote($part, '/');
+                $quoted = preg_replace('/\s+/', '\s*', $quoted);
+                $regex .= $quoted;
+            }
+        }
+
+        return '/' . $regex . '/is';
     }
 }
