@@ -2689,11 +2689,11 @@ Tidak ada log tersedia.
         'BANK': {
             wajib: [
                 { tag: 'namapelanggan', label: 'Nama Penerima', hint: 'Nama pemilik rekening / penerima transfer' },
-                { tag: 'norek', label: 'No Rekening', hint: 'Nomor rekening bank tujuan transfer' },
                 { tag: 'nominal', label: 'Nominal Transfer', hint: 'Nominal uang yang ditransfer' },
                 { tag: 'plnreff', label: 'No Referensi Bank', hint: 'Nomor referensi unik / ID transaksi bank' }
             ],
             opsional: [
+                { tag: 'norek', label: 'No Rekening (Opsional)', hint: 'Nomor rekening bank tujuan. Jika tidak ada di balasan SN, sistem otomatis mengambil dari nomor Tujuan transaksi OtomaX' },
                 { tag: 'admin', label: 'Biaya Admin', hint: 'Biaya admin bank' },
                 { tag: 'totalbayar', label: 'Total Pembayaran', hint: 'Total nominal transfer + biaya admin' },
                 { tag: 'var', label: 'Abaikan Teks Acak', hint: 'Abaikan teks/karakter acak di posisi ini' },
@@ -2705,11 +2705,11 @@ Tidak ada log tersedia.
         'PASCA BAYAR': {
             wajib: [
                 { tag: 'namapelanggan', label: 'Nama Pelanggan', hint: 'Nama lengkap pelanggan terdaftar' },
-                { tag: 'idpel', label: 'ID Pelanggan', hint: 'ID Pelanggan PLN / Tagihan PPOB' },
                 { tag: 'nominal', label: 'Nominal Tagihan', hint: 'Nominal pokok tagihan listrik' },
                 { tag: 'blth', label: 'Bulan Tahun (BLTH)', hint: 'Bulan dan tahun tagihan listrik (misal: OKT26)' }
             ],
             opsional: [
+                { tag: 'idpel', label: 'ID Pelanggan (Opsional)', hint: 'ID Pelanggan. Jika tidak ada di teks SN, otomatis diambil dari nomor Tujuan transaksi OtomaX' },
                 { tag: 'stand', label: 'Stand Meter', hint: 'Stand meter awal/akhir pascabayar' },
                 { tag: 'golongan', label: 'Tarif / Golongan', hint: 'Tarif golongan listrik (misal: R1)' },
                 { tag: 'daya', label: 'Daya Listrik', hint: 'Besaran daya listrik (misal: 900VA)' },
