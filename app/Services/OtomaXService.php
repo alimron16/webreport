@@ -190,6 +190,9 @@ class OtomaXService
                             'transaksi.status',
                             'transaksi.ref_id',
                             'transaksi.keterangan',
+                            'transaksi.ket_modul',
+                            'transaksi.bill',
+                            'transaksi.params',
                             'transaksi.kode_reseller'
                         )
                         ->where('transaksi.kode', $trxid)
