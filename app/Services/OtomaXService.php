@@ -1243,6 +1243,7 @@ class OtomaXService
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("OtomaXService [{$endpoint}] Database Error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Cache::put('otomax_last_db_error', $e->getMessage(), 120);
 
             // Jika koneksi SQL Server gagal (driver sqlsrv belum terpasang atau server lokal tidak aktif),
             // fallback otomatis ke mode simulasi (mock) agar halaman web tetap berfungsi lancar

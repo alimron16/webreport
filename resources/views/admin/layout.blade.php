@@ -1216,6 +1216,20 @@
                 </div>
                 @endif
 
+                @if($dbErr = \Illuminate\Support\Facades\Cache::get('otomax_last_db_error'))
+                <div class="alert alert-warning alert-dismissible d-flex align-items-start mb-3 shadow-sm border-warning" role="alert" style="background: #fffbeb; color: #92400e;">
+                    <i class="bx bx-error me-2 fs-5 mt-0.5 text-warning"></i>
+                    <div class="small flex-grow-1">
+                        <strong class="d-block mb-1">Perhatian: Database SQL Server Mengembalikan Error — Sistem Menampilkan Data Cadangan/Simulasi</strong>
+                        <div class="font-monospace mb-2 text-dark bg-white p-2 rounded border" style="font-size: 11.5px; word-break: break-all;">{{ $dbErr }}</div>
+                        @if(str_contains($dbErr, 'permission was denied') || str_contains($dbErr, 'SELECT permission'))
+                            <div><strong>Penyebab:</strong> User SQL Server Anda tidak memiliki hak baca (<code>SELECT permission denied</code>) pada tabel database OtomaX. Silakan buka <strong>SQL Server Management Studio (SSMS)</strong>, lalu beri role <code>db_owner</code> atau <code>db_datareader</code> pada user tersebut.</div>
+                        @endif
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+
                 @yield('content')
             </div>
 

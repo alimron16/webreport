@@ -1184,17 +1184,33 @@ class AdminController extends Controller
             $verText = $verQuery[0]->ver ?? 'Microsoft SQL Server';
             $firstLineVer = explode("\n", trim($verText))[0];
 
-            // Cek keberadaan tabel inti OtomaX
+            // Cek keberadaan tabel inti OtomaX & Hak Akses Baca (SELECT Permission)
             $tables = ['reseller', 'produk', 'transaksi'];
             $foundTables = [];
+            $deniedTables = [];
             foreach ($tables as $t) {
                 if ($db->getSchemaBuilder()->hasTable($t)) {
                     $foundTables[] = $t;
+                    try {
+                        $db->select("SELECT TOP 1 * FROM [{$t}]");
+                    } catch (\Throwable $pe) {
+                        $pMsg = $pe->getMessage();
+                        if (str_contains($pMsg, 'permission was denied') || str_contains($pMsg, 'SELECT permission')) {
+                            $deniedTables[] = $t;
+                        }
+                    }
                 }
             }
 
+            if (!empty($deniedTables)) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "Koneksi ke SQL Server BERHASIL, TETAPI user database [{$username}] TIDAK MEMILIKI HAK BACA (SELECT permission denied) pada tabel: [" . implode(', ', $deniedTables) . "]. Inilah penyebab admin panel masih menampilkan data dummy (simulasi). Solusi: Di SQL Server Management Studio (SSMS), buka database [{$database}] -> Security -> Users -> klik user [{$username}] -> beri role 'db_owner' atau 'db_datareader'."
+                ]);
+            }
+
             $tableMsg = !empty($foundTables) 
-                ? "Tabel OtomaX terdeteksi: [" . implode(', ', $foundTables) . "]."
+                ? "Tabel OtomaX terdeteksi dan dapat dibaca: [" . implode(', ', $foundTables) . "]."
                 : "Tabel standar OtomaX belum terdeteksi di database ini.";
 
             return response()->json([
