@@ -1,194 +1,307 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light-style" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <title>Aktivasi Lisensi - Webreport</title>
     <meta name="description" content="Aktivasi lisensi aplikasi Webreport. Masukkan license key untuk mengaktifkan aplikasi.">
     <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Clean Typography: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons: Boxicons -->
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         :root {
-            --bg-1: hsl(232, 47%, 8%);
-            --bg-2: hsl(256, 52%, 14%);
-            --accent: hsl(252, 92%, 68%);
-            --accent-2: hsl(190, 95%, 55%);
-            --ok: hsl(152, 70%, 48%);
-            --bad: hsl(352, 85%, 62%);
-            --text: hsl(220, 30%, 96%);
-            --muted: hsl(226, 18%, 68%);
-            --glass: hsla(232, 40%, 16%, 0.62);
-            --border: hsla(0, 0%, 100%, 0.1);
+            --bs-primary: #0B6FB6;
+            --bs-body-bg: #f8fafc;
+            --bs-body-color: #334155;
+            --bs-border-color: #e2e8f0;
+            --theme-heading: #0f172a;
+            --theme-card-border: #e2e8f0;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
-            font-family: 'Outfit', system-ui, sans-serif;
-            color: var(--text);
-            background:
-                radial-gradient(900px 500px at 12% 8%, hsla(252, 92%, 60%, 0.28), transparent 60%),
-                radial-gradient(800px 500px at 92% 92%, hsla(190, 95%, 50%, 0.2), transparent 60%),
-                linear-gradient(135deg, var(--bg-1), var(--bg-2));
-            overflow-x: hidden;
+            padding: 1.5rem;
+            margin: 0;
+            font-size: 0.875rem;
         }
-        .orb {
-            position: fixed; border-radius: 50%; filter: blur(70px); opacity: .45;
-            animation: float 14s ease-in-out infinite; pointer-events: none;
+
+        .authentication-wrapper {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
         }
-        .orb.a { width: 280px; height: 280px; background: var(--accent); top: -80px; left: -60px; }
-        .orb.b { width: 240px; height: 240px; background: var(--accent-2); bottom: -80px; right: -40px; animation-delay: -6s; }
-        @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(26px) } }
+
+        .authentication-inner {
+            max-width: 440px;
+            width: 100%;
+        }
 
         .card {
-            position: relative; z-index: 1;
-            width: 100%; max-width: 480px;
-            padding: 36px 32px;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
-            box-shadow: 0 30px 80px rgba(0,0,0,.45);
-            animation: rise .7s cubic-bezier(.2,.8,.2,1) both;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
         }
-        @keyframes rise { from { opacity: 0; transform: translateY(24px) scale(.98) } to { opacity: 1; transform: none } }
 
-        .icon {
-            width: 64px; height: 64px; border-radius: 18px;
-            display: grid; place-items: center; margin-bottom: 20px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            box-shadow: 0 10px 30px hsla(252, 92%, 60%, .45);
+        .card-body {
+            padding: 2.25rem;
         }
-        .icon svg { width: 32px; height: 32px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        h1 { font-size: 26px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 6px; }
-        .sub { color: var(--muted); font-size: 14.5px; line-height: 1.55; margin-bottom: 22px; }
 
-        .badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; margin-bottom: 18px;
+        .app-brand-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: #0B6FB6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            margin: 0 auto 1rem;
         }
-        .badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
-        .badge.ok  { color: var(--ok);  background: hsla(152, 70%, 48%, .12); border: 1px solid hsla(152, 70%, 48%, .35); }
-        .badge.bad { color: var(--bad); background: hsla(352, 85%, 62%, .12); border: 1px solid hsla(352, 85%, 62%, .35); }
 
-        .alert { padding: 12px 14px; border-radius: 12px; font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
-        .alert.error   { background: hsla(352, 85%, 62%, .14); border: 1px solid hsla(352, 85%, 62%, .4); color: hsl(352, 100%, 85%); }
-        .alert.success { background: hsla(152, 70%, 48%, .14); border: 1px solid hsla(152, 70%, 48%, .4); color: hsl(152, 80%, 82%); }
+        .form-label {
+            font-size: 0.725rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.45rem;
+            display: block;
+        }
 
-        .rows { display: grid; gap: 10px; margin-bottom: 20px; }
-        .row {
-            display: flex; justify-content: space-between; align-items: center; gap: 12px;
-            padding: 12px 14px; border-radius: 12px;
-            background: hsla(0, 0%, 100%, .04); border: 1px solid var(--border);
-            font-size: 13.5px;
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            overflow: hidden;
         }
-        .row span:first-child { color: var(--muted); flex-shrink: 0; }
-        .row .val { font-family: 'JetBrains Mono', monospace; font-size: 13px; word-break: break-all; text-align: right; }
-        .copy {
-            background: none; border: 0; color: var(--accent-2); cursor: pointer;
-            font-family: inherit; font-size: 12.5px; font-weight: 600; margin-left: 8px;
-        }
-        .copy:hover { text-decoration: underline; }
 
-        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
-        input[type=text] {
-            width: 100%; padding: 14px 16px; border-radius: 14px;
-            background: hsla(0, 0%, 0%, .28); border: 1px solid var(--border); color: var(--text);
-            font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: .5px;
-            transition: border-color .2s, box-shadow .2s;
+        .input-group:focus-within {
+            border-color: #0B6FB6;
+            box-shadow: 0 0 0 3px rgba(11, 111, 182, 0.15);
         }
-        input[type=text]:focus {
-            outline: none; border-color: var(--accent);
-            box-shadow: 0 0 0 4px hsla(252, 92%, 68%, .22);
+
+        .input-group-text {
+            background-color: #ffffff;
+            border: none;
+            color: #64748b;
+            padding: 0.65rem 0.75rem 0.65rem 0.9rem;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
         }
-        .btn {
-            width: 100%; margin-top: 14px; padding: 14px; border: 0; border-radius: 14px; cursor: pointer;
-            font-family: inherit; font-size: 15.5px; font-weight: 700; color: #fff;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            box-shadow: 0 12px 28px hsla(252, 92%, 60%, .4);
-            transition: transform .15s, box-shadow .15s, filter .15s;
+
+        .input-group .form-control {
+            border: none;
+            border-radius: 0;
+            font-size: 0.9rem;
+            color: #0f172a;
+            padding: 0.65rem 0.75rem 0.65rem 0.25rem;
+            background-color: transparent;
+            box-shadow: none !important;
+            flex-grow: 1;
         }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 16px 34px hsla(252, 92%, 60%, .5); }
-        .btn:active { transform: translateY(0); }
-        .btn.ghost { background: hsla(0, 0%, 100%, .08); box-shadow: none; border: 1px solid var(--border); }
-        .hint { margin-top: 18px; font-size: 12.5px; color: var(--muted); line-height: 1.55; text-align: center; }
-        a.link { text-decoration: none; display: block; }
+
+        .input-group .form-control:focus {
+            outline: none;
+            border: none;
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: #0B6FB6;
+            border-color: #0B6FB6;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.7rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(11, 111, 182, 0.2);
+            transition: all 0.15s ease-in-out;
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background: #095992;
+            border-color: #095992;
+            color: #ffffff;
+            box-shadow: 0 4px 8px rgba(11, 111, 182, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.99);
+        }
+
+        .btn-outline-primary {
+            border-color: #0B6FB6;
+            color: #0B6FB6;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.7rem 1.25rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-outline-primary:hover {
+            background: #0B6FB6;
+            border-color: #0B6FB6;
+            color: #ffffff;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
     </style>
 </head>
 <body>
-    <div class="orb a"></div>
-    <div class="orb b"></div>
 
-    <main class="card" id="license-card">
-        <div class="icon">
-            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
+    <div class="authentication-wrapper">
+        <div class="authentication-inner">
+            
+            <div class="card" id="license-card">
+                <div class="card-body">
+                    
+                    <!-- Icon / Brand -->
+                    <div class="app-brand-logo">
+                        <i class="bx bx-shield-quarter fs-2"></i>
+                    </div>
 
-        <h1>Aktivasi Lisensi</h1>
-        <p class="sub">
-            @if($info['valid'])
-                Aplikasi sudah berlisensi dan siap digunakan.
-            @else
-                Aplikasi terkunci. Masukkan license key dari penyedia untuk mengaktifkan.
-            @endif
-        </p>
+                    <h5 class="mb-1 text-center fw-bold text-dark">Aktivasi Lisensi</h5>
+                    <p class="mb-3 text-center text-muted small">
+                        @if($info['valid'])
+                            Aplikasi sudah berlisensi dan siap digunakan.
+                        @else
+                            Aplikasi terkunci. Masukkan license key dari penyedia untuk mengaktifkan.
+                        @endif
+                    </p>
 
-        <div class="badge {{ $info['valid'] ? 'ok' : 'bad' }}" id="license-status">
-            {{ $info['valid'] ? 'Lisensi Aktif' : 'Lisensi Tidak Aktif' }}
-        </div>
+                    <!-- Status Pill -->
+                    <div class="text-center mb-3">
+                        <span class="badge {{ $info['valid'] ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' }} px-3 py-2 rounded-pill fw-semibold" id="license-status">
+                            <i class="bx {{ $info['valid'] ? 'bx-check-circle' : 'bx-x-circle' }} me-1 align-middle"></i>
+                            {{ $info['valid'] ? 'Lisensi Aktif' : 'Lisensi Tidak Aktif' }}
+                        </span>
+                    </div>
 
-        @if(session('success'))
-            <div class="alert success" id="license-success">{{ session('success') }}</div>
-        @endif
-        @if(session('error'))
-            <div class="alert error" id="license-error">{{ session('error') }}</div>
-        @elseif($errors->any())
-            <div class="alert error" id="license-error">{{ $errors->first() }}</div>
-        @elseif(!$info['valid'] && !empty($info['message']))
-            <div class="alert error" id="license-error">{{ $info['message'] }}</div>
-        @endif
+                    <!-- Alerts -->
+                    @if(session('success'))
+                    <div class="alert alert-success d-flex align-items-center py-2 px-3 mb-3 small" role="alert" id="license-success">
+                        <i class="bx bx-check-circle fs-5 me-2 flex-shrink-0"></i>
+                        <div>{{ session('success') }}</div>
+                    </div>
+                    @endif
 
-        <div class="rows">
-            @if($info['has_key'])
-                <div class="row"><span>License Key</span><span class="val">{{ $info['key_mask'] }}</span></div>
-            @endif
-            @if($info['valid'] && $info['expiry'])
-                <div class="row"><span>Berlaku hingga</span><span class="val">{{ $info['expiry'] }}</span></div>
-            @endif
-            <div class="row">
-                <span>HWID</span>
-                <span class="val"><span id="hwid-text">{{ $info['hwid'] }}</span><button type="button" class="copy" id="btn-copy-hwid">Salin</button></span>
+                    @if(session('error'))
+                    <div class="alert alert-danger d-flex align-items-center py-2 px-3 mb-3 small" role="alert" id="license-error">
+                        <i class="bx bx-error-circle fs-5 me-2 flex-shrink-0"></i>
+                        <div>{{ session('error') }}</div>
+                    </div>
+                    @elseif($errors->any())
+                    <div class="alert alert-danger d-flex align-items-center py-2 px-3 mb-3 small" role="alert" id="license-error">
+                        <i class="bx bx-error-circle fs-5 me-2 flex-shrink-0"></i>
+                        <div>{{ $errors->first() }}</div>
+                    </div>
+                    @elseif(!$info['valid'] && !empty($info['message']))
+                    <div class="alert alert-danger d-flex align-items-center py-2 px-3 mb-3 small" role="alert" id="license-error">
+                        <i class="bx bx-error-circle fs-5 me-2 flex-shrink-0"></i>
+                        <div>{{ $info['message'] }}</div>
+                    </div>
+                    @endif
+
+                    <!-- License Details Card -->
+                    <div class="p-3 mb-3 rounded-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                        @if($info['has_key'])
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light-subtle">
+                            <span class="text-muted small fw-medium">License Key</span>
+                            <span class="font-mono small fw-semibold text-dark">{{ $info['key_mask'] }}</span>
+                        </div>
+                        @endif
+                        @if($info['valid'] && $info['expiry'])
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light-subtle">
+                            <span class="text-muted small fw-medium">Berlaku Hingga</span>
+                            <span class="small fw-semibold text-dark">{{ $info['expiry'] }}</span>
+                        </div>
+                        @endif
+                        <div class="d-flex justify-content-between align-items-center pt-1">
+                            <span class="text-muted small fw-medium me-2">HWID</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="font-mono small fw-bold text-dark" id="hwid-text">{{ $info['hwid'] }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-1" id="btn-copy-hwid" title="Salin HWID" style="font-size: 0.75rem;">
+                                    <i class="bx bx-copy align-middle"></i> <span id="copy-label">Salin</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activation Form -->
+                    @if(!$info['valid'] || $isAdmin)
+                    <form method="POST" action="{{ route('license.activate') }}" id="license-form" autocomplete="off">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="license_key" class="form-label">{{ $info['valid'] ? 'Ganti License Key' : 'License Key' }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-key"></i></span>
+                                <input type="text" id="license_key" name="license_key" class="form-control font-mono" value="{{ old('license_key') }}" placeholder="XXXX-XXXX-XXXX-XXXX" required spellcheck="false">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 fw-semibold" id="btn-activate">
+                            <i class="bx bx-check-shield me-1 align-middle"></i> {{ $info['valid'] ? 'Perbarui Lisensi' : 'Aktifkan Sekarang' }}
+                        </button>
+                    </form>
+                    @endif
+
+                    @if($info['valid'])
+                    <div class="mt-2">
+                        <a href="{{ url('/') }}" class="btn btn-outline-primary w-100 py-2.5 fw-semibold" id="btn-open-app">
+                            <i class="bx bx-home-alt me-1 align-middle"></i> Buka Aplikasi Webreport
+                        </a>
+                    </div>
+                    @endif
+
+                    <!-- Helper Notice -->
+                    <p class="text-center text-muted small mt-3 mb-0" style="font-size: 0.775rem;">
+                        <i class="bx bx-info-circle align-middle"></i> Berikan HWID di atas ke penyedia aplikasi bila diminta untuk mengikat lisensi ke server ini.
+                    </p>
+
+                </div>
             </div>
+
+            <!-- Footer Copyright -->
+            <p class="text-center text-muted small mt-3 mb-0">
+                &copy; {{ date('Y') }} Webreport OtomaX. All rights reserved.
+            </p>
+
         </div>
-
-        @if(!$info['valid'] || $isAdmin)
-            <form method="POST" action="{{ route('license.activate') }}" id="license-form" autocomplete="off">
-                @csrf
-                <label for="license_key">{{ $info['valid'] ? 'Ganti License Key' : 'License Key' }}</label>
-                <input type="text" id="license_key" name="license_key" value="{{ old('license_key') }}" placeholder="XXXX-XXXX-XXXX-XXXX" required spellcheck="false">
-                <button type="submit" class="btn" id="btn-activate">{{ $info['valid'] ? 'Perbarui Lisensi' : 'Aktifkan Sekarang' }}</button>
-            </form>
-        @endif
-
-        @if($info['valid'])
-            <a href="{{ url('/') }}" class="link"><button type="button" class="btn ghost" id="btn-open-app">Buka Aplikasi</button></a>
-        @endif
-
-        <p class="hint">Berikan HWID di atas ke penyedia aplikasi bila diminta untuk mengikat lisensi ke server ini.</p>
-    </main>
+    </div>
 
     <script>
         document.getElementById('btn-copy-hwid').addEventListener('click', function () {
-            var btn = this;
-            navigator.clipboard.writeText(document.getElementById('hwid-text').innerText).then(function () {
-                btn.innerText = 'Tersalin';
-                setTimeout(function () { btn.innerText = 'Salin'; }, 1600);
+            var btnLabel = document.getElementById('copy-label');
+            var hwid = document.getElementById('hwid-text').innerText.trim();
+            navigator.clipboard.writeText(hwid).then(function () {
+                btnLabel.innerText = 'Tersalin!';
+                setTimeout(function () { btnLabel.innerText = 'Salin'; }, 1600);
             });
         });
     </script>
