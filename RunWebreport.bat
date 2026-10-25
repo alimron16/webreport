@@ -105,11 +105,9 @@ echo.
 :: 7. Buka Browser otomatis setelah 2 detik
 start "" cmd /c "timeout /t 2 /nobreak >nul && start http://127.0.0.1:8000"
 
-:: 8. Jalankan Server Web
-"%PHP_BIN%" artisan serve --host=0.0.0.0 --port=8000
-if %errorlevel% neq 0 (
-    "%PHP_BIN%" -S 0.0.0.0:8000 -t "%~dp0public" "%~dp0server.php"
-)
+:: 8. Jalankan Server Web Langsung
+echo [INFO] Menjalankan server web...
+"%PHP_BIN%" -S 0.0.0.0:8000 "%~dp0server.php"
 
 echo.
 echo ================================================================
