@@ -2229,8 +2229,8 @@ Tidak ada log tersedia.
                 <div class="stg-card-body p-4">
                     <div class="row g-4 align-items-start">
                         
-                        <!-- Sisi Kiri: Kotak Input SN & Status Ekstraksi (col-12 col-lg-5) -->
-                        <div class="col-12 col-lg-5">
+                        <!-- Sisi Kiri: Kotak Input SN & Status Ekstraksi (col-12 col-xl-4 col-lg-5) -->
+                        <div class="col-12 col-xl-4 col-lg-5">
                             <label class="stg-field-lbl fw-bold text-dark mb-1">
                                 <i class="bx bx-vial me-1 text-primary"></i>Teks Balasan SN dari Suplier
                             </label>
@@ -2273,9 +2273,9 @@ Tidak ada log tersedia.
                             </div>
                         </div>
 
-                        <!-- Sisi Kanan: Miniatur Struk Kertas Fisik (col-12 col-lg-7) -->
-                        <div class="col-12 col-lg-7 d-flex justify-content-center">
-                            <div class="preview-receipt-paper shadow-sm w-100" id="previewPaper" style="background:#ffffff; border:1px solid #71717a; border-radius:0; padding: 22px 26px; font-size:12px; line-height:1.6; color:#0f172a; max-width: 520px;">
+                        <!-- Sisi Kanan: Miniatur Struk Kertas Fisik (col-12 col-xl-8 col-lg-7) -->
+                        <div class="col-12 col-xl-8 col-lg-7 d-flex justify-content-center">
+                            <div class="preview-receipt-paper shadow-sm w-100" id="previewPaper" style="background:#ffffff; border:1px solid #71717a; border-radius:0; padding: 18px 32px; font-size:12px; line-height:1.6; color:#0f172a; max-width: 780px;">
                                 
                                 <!-- ── 1. BODY PLN PRABAYAR (Persis STRUK PRABAYAR.jpeg) ── -->
                                 <div id="pv_body_prabayar" style="font-family:'Courier Prime', 'Roboto Slab', monospace;">
@@ -2293,24 +2293,24 @@ Tidak ada log tersedia.
                                         STRUK PEMBELIAN LISTRIK PRABAYAR
                                     </div>
 
-                                    <div class="d-flex justify-content-between gap-3 mt-2" style="font-size: 11px;">
+                                    <div class="d-flex justify-content-between gap-4 mt-2" style="font-size: 11px;">
                                         <!-- Left Col -->
                                         <div style="flex: 1.1;">
-                                            <div class="d-flex"><span style="width: 100px;">NO METER</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_meter">14512345678</span></div>
-                                            <div class="d-flex"><span style="width: 100px;">ID PEL</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_idpel">098765432100</span></div>
-                                            <div class="d-flex"><span style="width: 100px;">NAMA</span><span class="me-1">:</span><span class="fw-bold text-truncate" id="pv_pra_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
-                                            <div class="d-flex"><span style="width: 100px;">TARIF/DAYA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_tarif">R1/900VA</span></div>
-                                            <div class="d-flex" style="margin-top: 10px;"><span style="width: 100px;">RP STROOM/TOKEN</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_nominal">RP 876.543, 00</span></div>
-                                            <div class="d-flex"><span style="width: 100px;">RP BAYAR</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_total">RP 1.000.000, 00</span></div>
+                                            <div class="d-flex"><span style="width: 125px;">NO METER</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_meter">14512345678</span></div>
+                                            <div class="d-flex"><span style="width: 125px;">ID PEL</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_idpel">098765432100</span></div>
+                                            <div class="d-flex"><span style="width: 125px;">NAMA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
+                                            <div class="d-flex"><span style="width: 125px;">TARIF/DAYA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_tarif">R1/900VA</span></div>
+                                            <div class="d-flex" style="margin-top: 10px;"><span style="width: 125px;">RP STROOM/TOKEN</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_nominal">RP 876.543, 00</span></div>
+                                            <div class="d-flex"><span style="width: 125px;">RP BAYAR</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_total">RP 1.000.000, 00</span></div>
                                         </div>
                                         <!-- Right Col -->
                                         <div style="flex: 0.9;">
-                                            <div class="d-flex"><span style="width: 85px;">ADMIN BANK</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_admin">RP 0, 00</span></div>
-                                            <div class="d-flex"><span style="width: 85px;">MATERAI</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
-                                            <div class="d-flex"><span style="width: 85px;">PPN</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
-                                            <div class="d-flex"><span style="width: 85px;">PPJ</span><span class="me-1">:</span><span class="fw-bold">RP 43.210, 00</span></div>
-                                            <div class="d-flex"><span style="width: 85px;">ANGSURAN</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
-                                            <div class="d-flex" style="margin-top: 10px;"><span style="width: 85px;">JUMLAH KWH</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_kwh">503</span></div>
+                                            <div class="d-flex"><span style="width: 110px;">ADMIN BANK</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_admin">RP 0, 00</span></div>
+                                            <div class="d-flex"><span style="width: 110px;">MATERAI</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
+                                            <div class="d-flex"><span style="width: 110px;">PPN</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
+                                            <div class="d-flex"><span style="width: 110px;">PPJ</span><span class="me-1">:</span><span class="fw-bold">RP 43.210, 00</span></div>
+                                            <div class="d-flex"><span style="width: 110px;">ANGSURAN</span><span class="me-1">:</span><span class="fw-bold">RP 0, 00</span></div>
+                                            <div class="d-flex" style="margin-top: 10px;"><span style="width: 110px;">JUMLAH KWH</span><span class="me-1">:</span><span class="fw-bold" id="pv_pra_kwh">503</span></div>
                                         </div>
                                     </div>
 
@@ -2341,20 +2341,20 @@ Tidak ada log tersedia.
                                         STRUK PEMBAYARAN LISTRIK PASCABAYAR
                                     </div>
 
-                                    <div class="d-flex justify-content-between gap-3 mt-2" style="font-size: 11px;">
+                                    <div class="d-flex justify-content-between gap-4 mt-2" style="font-size: 11px;">
                                         <!-- Left Col -->
                                         <div style="flex: 1.1;">
-                                            <div class="d-flex"><span style="width: 95px;">ID PEL</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_idpel">098765432100</span></div>
-                                            <div class="d-flex"><span style="width: 95px;">NAMA</span><span class="me-1">:</span><span class="fw-bold text-truncate" id="pv_pasca_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
-                                            <div class="d-flex"><span style="width: 95px;">TARIF/DAYA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></div>
-                                            <div class="d-flex"><span style="width: 95px;">BL/TH</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_blth">OKT/2026</span></div>
+                                            <div class="d-flex"><span style="width: 120px;">ID PEL</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_idpel">098765432100</span></div>
+                                            <div class="d-flex"><span style="width: 120px;">NAMA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
+                                            <div class="d-flex"><span style="width: 120px;">TARIF/DAYA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></div>
+                                            <div class="d-flex"><span style="width: 120px;">BL/TH</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_blth">OKT/2026</span></div>
                                         </div>
                                         <!-- Right Col -->
                                         <div style="flex: 0.9;">
-                                            <div class="d-flex"><span style="width: 85px;">STAND METER</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_stand">7447-6541</span></div>
-                                            <div class="d-flex"><span style="width: 85px;">TAGIHAN</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tagihan">Rp 210.345, 00</span></div>
-                                            <div class="d-flex"><span style="width: 85px;">ADMIN BANK</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_admin">Rp 3.750, 00</span></div>
-                                            <div class="d-flex"><span style="width: 85px;">TOTAL BAYAR</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_total">Rp 214.095, 00</span></div>
+                                            <div class="d-flex"><span style="width: 115px;">STAND METER</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_stand">7447-6541</span></div>
+                                            <div class="d-flex"><span style="width: 115px;">TAGIHAN</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tagihan">Rp 210.345, 00</span></div>
+                                            <div class="d-flex"><span style="width: 115px;">ADMIN BANK</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_admin">Rp 3.750, 00</span></div>
+                                            <div class="d-flex"><span style="width: 115px;">TOTAL BAYAR</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_total">Rp 214.095, 00</span></div>
                                         </div>
                                     </div>
 

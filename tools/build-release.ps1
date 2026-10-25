@@ -40,7 +40,10 @@ if (-not (Test-Path (Join-Path $yak 'PHP-Parser'))) {
 }
 
 Write-Host "==> Menyalin project ke $stage"
-if (Test-Path $dist) { cmd /c "rmdir /s /q `"$dist`"" }
+if (Test-Path $dist) { cmd /c "rmdir /s /q `"$dist`"" 2>$null }
+if (Test-Path $stage) {
+    throw "Folder $stage tidak bisa dihapus (masih dipakai). Tutup RunWebreport / server PHP dari folder dist lalu ulangi build."
+}
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 
 $excludeDirs = @(
@@ -190,6 +193,33 @@ Get-ChildItem (Join-Path $stage 'app') -Recurse -Filter *.php | ForEach-Object {
 if ($bad -gt 0) { throw "$bad file bermasalah sintaks. Rilis dibatalkan." }
 
 if (Test-Path $work) { cmd /c "rmdir /s /q `"$work`"" }
+
+# ── Sterilisasi akhir: pastikan TIDAK ada lisensi/cache/sesi yang ikut terkirim ──
+Write-Host "==> Sterilisasi data lisensi, cache, dan sesi"
+foreach ($p in @('storage\logs', 'storage\framework\cache\data', 'storage\framework\sessions', 'storage\framework\views')) {
+    $full = Join-Path $stage $p
+    if (Test-Path $full) {
+        Get-ChildItem $full -Force | Where-Object { $_.Name -ne '.gitignore' } | Remove-Item -Recurse -Force
+    }
+}
+Get-ChildItem (Join-Path $stage 'database') -Filter 'database.sqlite-*' -ErrorAction SilentlyContinue | Remove-Item -Force
+$cleanScript = [System.IO.Path]::GetTempFileName() + '.php'
+[System.IO.File]::WriteAllText($cleanScript, "<?php
+`$db = `$argv[1];
+`$pdo = new PDO('sqlite:' . `$db);
+`$pdo->exec('DELETE FROM settings');
+`$pdo->exec('DELETE FROM sessions');
+`$pdo->exec('DELETE FROM cache');
+`$pdo->exec('DELETE FROM users');
+`$pdo->exec('VACUUM');
+echo (int) `$pdo->query('SELECT COUNT(*) FROM settings')->fetchColumn();
+")
+$left = & $Php $cleanScript $sqliteFile
+try { [System.IO.File]::Delete($cleanScript) } catch {}
+if ($LASTEXITCODE -ne 0 -or "$left".Trim() -ne '0') { throw "Gagal membersihkan database rilis (sisa settings: $left)." }
+$leftCache = @(Get-ChildItem (Join-Path $stage 'storage\framework\cache\data'), (Join-Path $stage 'storage\framework\sessions') -Recurse -File -Force |
+    Where-Object { $_.Name -ne '.gitignore' }).Count
+if ($leftCache -gt 0) { throw "Masih ada $leftCache file cache/sesi di paket rilis." }
 
 if (-not $NoZip) {
     $zip = Join-Path $dist ("webreport-release-{0}.zip" -f (Get-Date -Format 'yyyyMMdd'))

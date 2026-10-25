@@ -61,7 +61,7 @@
 
         /* Top Action Bar (Screen Only) */
         .receipt-action-bar {
-            max-width: 820px;
+            max-width: 1040px;
             margin: 0 auto 20px;
             background: #ffffff;
             border-radius: 12px;
@@ -76,26 +76,29 @@
 
         /* Receipt Canvas Outer Wrapper */
         .receipt-wrapper {
-            max-width: 820px;
+            max-width: 1040px;
             margin: 0 auto;
+            overflow-x: auto;
+            padding-bottom: 16px;
         }
 
-        /* Base Card for Receipt (Matching User Samples) */
+        /* Base Card for Receipt (Matching User Samples: 1280x569, ratio ~ 2.25:1) */
         .receipt-card {
             background: #ffffff;
             border: 1px solid #71717a;
             border-radius: 0;
-            padding: 28px 36px;
+            padding: 24px 48px;
             position: relative;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
             color: #1e293b;
+            min-width: 900px; /* Menjaga ukuran struk selalu persegi panjang horizontal memanjang */
         }
 
         /* ── TEMPLATE 1 & 2: PLN STYLES (Matching STRUK PRABAYAR & PASCABAYAR) ─── */
         .pln-receipt {
             font-family: 'Courier Prime', 'Roboto Slab', 'Courier New', Courier, monospace;
             font-size: 13.5px;
-            line-height: 1.65;
+            line-height: 1.6;
             color: #111827;
             font-weight: 500;
         }
@@ -104,7 +107,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .pln-tgl {
@@ -124,14 +127,14 @@
             font-weight: 700;
             font-size: 15px;
             letter-spacing: 0.5px;
-            margin: 14px 0 18px;
+            margin: 10px 0 16px;
             text-transform: uppercase;
         }
 
         .pln-grid {
             display: flex;
             justify-content: space-between;
-            gap: 24px;
+            gap: 52px;
         }
 
         .pln-col {
@@ -145,14 +148,14 @@
         }
 
         .pln-lbl {
-            width: 155px;
+            width: 175px;
             flex-shrink: 0;
             font-weight: 500;
             color: #111827;
         }
 
         .pln-lbl-right {
-            width: 140px;
+            width: 160px;
             flex-shrink: 0;
             font-weight: 500;
             color: #111827;
@@ -175,8 +178,8 @@
             border: none;
             border-radius: 0;
             text-align: center;
-            padding: 10px 16px;
-            margin: 20px 0 16px;
+            padding: 8px 16px;
+            margin: 16px 0 14px;
         }
 
         .pln-highlight-lbl {
