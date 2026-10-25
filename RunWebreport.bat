@@ -63,6 +63,7 @@ if not exist "%~dp0database" mkdir "%~dp0database" >nul 2>nul
 :: Pastikan permission write penuh untuk runtime folder
 icacls "%~dp0bootstrap\cache" /grant "Users:(OI)(CI)F" /T >nul 2>nul
 icacls "%~dp0storage" /grant "Users:(OI)(CI)F" /T >nul 2>nul
+icacls "%~dp0database" /grant "Users:(OI)(CI)F" /T >nul 2>nul
 
 :: 4. Cek file .env & Application Key
 if not exist "%~dp0.env" (

@@ -43,8 +43,17 @@ Write-Host "==> Menyalin project ke $stage"
 if (Test-Path $dist) { cmd /c "rmdir /s /q `"$dist`"" }
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 
-$excludeDirs = @('.git', 'dist', 'tools', 'node_modules', 'tests', '.phpunit.cache', '.idea', '.vscode',
-                 (Join-Path $root 'public\storage'))
+$excludeDirs = @(
+    (Join-Path $root '.git'),
+    (Join-Path $root 'dist'),
+    (Join-Path $root 'tools'),
+    (Join-Path $root 'node_modules'),
+    (Join-Path $root 'tests'),
+    (Join-Path $root '.phpunit.cache'),
+    (Join-Path $root '.idea'),
+    (Join-Path $root '.vscode'),
+    (Join-Path $root 'public\storage')
+)
 $excludeFiles = @('.env', '.env.backup', '.env.production', '*.log', 'database.sqlite',
                   'STRUK *.jpeg', 'phpunit.xml', '.phpunit.result.cache')
 robocopy $root $stage /E /NFL /NDL /NJH /NJS /NP /XD @excludeDirs /XF @excludeFiles | Out-Null
@@ -156,6 +165,7 @@ foreach ($d in @(
 }
 icacls (Join-Path $stage 'bootstrap\cache') /grant "Users:(OI)(CI)F" /T | Out-Null
 icacls (Join-Path $stage 'storage') /grant "Users:(OI)(CI)F" /T | Out-Null
+icacls (Join-Path $stage 'database') /grant "Users:(OI)(CI)F" /T | Out-Null
 
 # ── Siapkan file .env dan database default bersih siap pakai ──────
 Write-Host "==> Siapkan .env dan database SQLite siap pakai"
@@ -186,7 +196,18 @@ if (-not $NoZip) {
     Write-Host "==> Membuat arsip $zip"
     if (Test-Path $zip) { Remove-Item $zip -Force }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+    Start-Sleep -Seconds 2
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            [System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
+            break
+        } catch {
+            if ($attempt -eq 5) { throw $_ }
+            Start-Sleep -Seconds 2
+        }
+    }
 }
 
 Write-Host ""
