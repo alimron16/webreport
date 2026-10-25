@@ -32,6 +32,41 @@
     $totalAgen = (int)($server['total_reseller_aktif'] ?? 0);
 @endphp
 
+@if(isset($admin_license))
+<!-- Kartu Status & Durasi Lisensi -->
+<div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid #0B6FB6 !important;">
+    <div class="card-body p-3">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-2 rounded bg-label-primary text-primary fs-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
+                    <i class="bx bx-shield-quarter"></i>
+                </div>
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h6 class="mb-0 fw-bold">Status Lisensi Web Report</h6>
+                        <span class="badge {{ $admin_license['badge_class'] ?? 'bg-label-success' }}">{{ $admin_license['status_label'] ?? 'Aktif' }}</span>
+                    </div>
+                    <div class="text-muted small">
+                        <span>Sisa Masa Aktif: <strong class="text-body fw-bold">{{ $admin_license['human_duration'] ?? '-' }}</strong></span>
+                        @if(!empty($admin_license['expiry_raw']))
+                        <span class="mx-1">•</span>
+                        <span>Berlaku s/d: <strong class="text-body">{{ $admin_license['expiry_raw'] }}</strong></span>
+                        @endif
+                        <span class="mx-1">•</span>
+                        <span>HWID: <code class="small text-secondary fw-semibold">{{ $admin_license['hwid'] ?? '-' }}</code></span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <a href="{{ route('license.show') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bx bx-key me-1"></i> Kelola Lisensi
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Baris Atas: 4 Kartu KPI Utama -->
 <div class="row g-3 mb-4">
     <!-- Omset Hari Ini -->

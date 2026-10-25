@@ -18,6 +18,9 @@ class RegistrationController extends Controller
      */
     public function show()
     {
+        if (!app(\App\Services\LicenseService::class)->isValid()) {
+            return redirect()->route('license.show');
+        }
         return view('webreport.register');
     }
 
@@ -26,6 +29,10 @@ class RegistrationController extends Controller
      */
     public function store(Request $request)
     {
+        if (!app(\App\Services\LicenseService::class)->isValid()) {
+            return redirect()->route('license.show');
+        }
+
         if (!$this->validateRecaptcha($request)) {
             return back()->with('error', 'Validasi CAPTCHA gagal. Silakan centang kotak "I\'m not a robot".')->withInput();
         }

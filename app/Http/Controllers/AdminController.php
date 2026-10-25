@@ -148,6 +148,9 @@ class AdminController extends Controller
         if (!Session::has('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
+        if (!app(\App\Services\LicenseService::class)->isValid()) {
+            return redirect()->route('license.show');
+        }
         return null;
     }
 

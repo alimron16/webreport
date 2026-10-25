@@ -24,6 +24,20 @@ class OtomaXService
      */
     public function call(string $endpoint, array $data = [])
     {
+        // Guard Anti-Crack Multi-Point: Lisensi harus aktif untuk mengakses data transaksi
+        if ($endpoint !== 'Test') {
+            try {
+                if (!app(\App\Services\LicenseService::class)->isValid()) {
+                    return [
+                        'ok'   => false,
+                        'desc' => 'Lisensi sistem Web Report tidak aktif. Hubungi administrator.',
+                    ];
+                }
+            } catch (\Throwable $e) {
+                // Abaikan kesalahan sementara
+            }
+        }
+
         if ($this->isMock) {
             return $this->handleMockCall($endpoint, $data);
         }

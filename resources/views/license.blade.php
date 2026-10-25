@@ -236,11 +236,17 @@
                             <span class="font-mono small fw-semibold text-dark">{{ $info['key_mask'] }}</span>
                         </div>
                         @endif
-                        @if($info['valid'] && $info['expiry'])
+                        @if($info['valid'])
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light-subtle">
+                            <span class="text-muted small fw-medium">Sisa Masa Aktif</span>
+                            <span class="small fw-bold text-dark">{{ $info['human_duration'] ?? '-' }}</span>
+                        </div>
+                        @if($info['expiry'])
                         <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light-subtle">
                             <span class="text-muted small fw-medium">Berlaku Hingga</span>
                             <span class="small fw-semibold text-dark">{{ $info['expiry'] }}</span>
                         </div>
+                        @endif
                         @endif
                         <div class="d-flex justify-content-between align-items-center pt-1">
                             <span class="text-muted small fw-medium me-2">HWID</span>

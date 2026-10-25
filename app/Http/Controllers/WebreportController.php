@@ -27,6 +27,10 @@ class WebreportController extends Controller
      */
     public function landing()
     {
+        if (!app(\App\Services\LicenseService::class)->isValid()) {
+            return redirect()->route('license.show');
+        }
+
         $isLoggedIn = Session::has('logged_in_reseller_code');
         $activeCode = Session::get('logged_in_reseller_code', '');
 
@@ -41,6 +45,10 @@ class WebreportController extends Controller
      */
     public function loginView()
     {
+        if (!app(\App\Services\LicenseService::class)->isValid()) {
+            return redirect()->route('license.show');
+        }
+
         if (Session::has('logged_in_reseller_code')) {
             return redirect()->route('webreport.dashboard');
         }

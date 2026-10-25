@@ -1152,10 +1152,29 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="menu-item {{ request()->routeIs('license.*') ? 'active' : '' }}">
+                        <a href="{{ route('license.show') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-key"></i>
+                            <div>Status Lisensi Web</div>
+                        </a>
+                    </li>
                 </ul>
             </div>
 
             <div class="menu-footer">
+                @if(isset($admin_license) && !empty($admin_license['has_key']))
+                <div class="p-2 mb-2 rounded bg-body-tertiary border" style="font-size: 0.75rem;">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted"><i class="bx bx-shield-quarter me-1"></i>Lisensi:</span>
+                        <span class="badge {{ $admin_license['badge_class'] ?? 'bg-label-success' }} py-0 px-2" style="font-size: 0.65rem;">
+                            {{ $admin_license['status_label'] ?? 'Aktif' }}
+                        </span>
+                    </div>
+                    <div class="fw-semibold text-truncate text-body" title="{{ $admin_license['human_duration'] ?? '' }}">
+                        {{ $admin_license['human_duration'] ?? 'Masa Aktif' }}
+                    </div>
+                </div>
+                @endif
                 <div class="user-preview">
                     <div class="avatar-initial">
                         {{ strtoupper(substr(Session::get('admin_username', 'AD'), 0, 2)) }}
@@ -1187,12 +1206,23 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
+                    <!-- Info Durasi Lisensi -->
+                    @if(isset($admin_license))
+                    <a href="{{ route('license.show') }}" class="badge {{ $admin_license['badge_class'] ?? 'bg-label-success' }} px-3 py-2 text-decoration-none d-flex align-items-center gap-1 shadow-xs" title="Kelola Lisensi (HWID: {{ $admin_license['hwid'] ?? '-' }})">
+                        <i class="bx bx-check-shield fs-6"></i>
+                        <span class="fw-semibold">{{ $admin_license['badge_text'] ?? 'Lisensi Aktif' }}</span>
+                        @if(!empty($admin_license['expiry_raw']))
+                        <span class="opacity-75 small d-none d-lg-inline">({{ $admin_license['human_duration'] ?? '' }})</span>
+                        @endif
+                    </a>
+                    @endif
+
                     <!-- Theme Mode Toggle -->
                     <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center p-0 rounded-circle" id="themeToggleBtn" type="button" onclick="toggleTheme()" title="Ubah Mode Gelap / Terang" style="width: 36px; height: 36px;">
                         <i class="bx bx-moon fs-5" id="themeToggleIcon"></i>
                     </button>
 
-                    <span class="badge bg-label-secondary px-3 py-1">
+                    <span class="badge bg-label-secondary px-3 py-1 d-none d-sm-inline-flex align-items-center">
                         <i class="bx bx-shield me-1 text-primary"></i> Admin Console
                     </span>
                 </div>

@@ -1,10 +1,10 @@
 @echo off
-title NAWASENA WEBREPORT - SERVER H2H
+title MOONBYTE WEB REPORT - SERVER H2H
 color 0B
 cd /d "%~dp0"
 
 echo ================================================================
-echo        NAWASENA WEBREPORT - SERVER H2H ^& RESELLER PORTAL
+echo        MOONBYTE WEB REPORT - SERVER H2H ^& RESELLER PORTAL
 echo ================================================================
 echo.
 

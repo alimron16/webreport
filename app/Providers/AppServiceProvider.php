@@ -91,5 +91,15 @@ class AppServiceProvider extends ServiceProvider
                 'portal_cs_hours'          => \Illuminate\Support\Facades\Cache::get('cs_working_hours', '24 Jam Nonstop'),
             ]);
         });
+
+        // Bagikan data lisensi & durasi ke layout dan panel admin
+        \Illuminate\Support\Facades\View::composer(['admin.*', 'license.*'], function ($view) {
+            try {
+                $licenseService = app(\App\Services\LicenseService::class);
+                $view->with('admin_license', $licenseService->getDurationInfo());
+            } catch (\Throwable $e) {
+                // Abaikan jika database belum siap
+            }
+        });
     }
 }
