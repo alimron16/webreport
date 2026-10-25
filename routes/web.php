@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebreportController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\LicenseController;
+
+// ── Aktivasi Lisensi (dikecualikan dari penguncian lisensi) ───
+Route::get('/license',            [LicenseController::class, 'show'])->name('license.show');
+Route::post('/license/activate',  [LicenseController::class, 'activate'])->name('license.activate');
 
 // ── Public Landing Page ──────────────────────────────────────
 Route::get('/',                    [WebreportController::class, 'landing'])->name('webreport.landing');
