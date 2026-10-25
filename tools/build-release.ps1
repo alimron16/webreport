@@ -157,6 +157,15 @@ foreach ($d in @(
 icacls (Join-Path $stage 'bootstrap\cache') /grant "Users:(OI)(CI)F" /T | Out-Null
 icacls (Join-Path $stage 'storage') /grant "Users:(OI)(CI)F" /T | Out-Null
 
+# ── Siapkan file .env dan database default bersih siap pakai ──────
+Write-Host "==> Siapkan .env dan database SQLite siap pakai"
+Copy-Item (Join-Path $stage '.env.example') (Join-Path $stage '.env') -Force
+& $Php (Join-Path $stage 'artisan') key:generate --force | Out-Null
+
+$sqliteFile = Join-Path $stage 'database\database.sqlite'
+New-Item -ItemType File -Path $sqliteFile -Force | Out-Null
+& $Php (Join-Path $stage 'artisan') migrate --force | Out-Null
+
 # ── Pre-compile package manifest agar bootstrap/cache tidak butuh write saat startup ─────
 Write-Host "==> Pre-compile package manifest"
 & $Php (Join-Path $stage 'artisan') package:discover | Out-Null
