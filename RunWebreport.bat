@@ -60,8 +60,9 @@ if not exist "%~dp0storage\framework\sessions" mkdir "%~dp0storage\framework\ses
 if not exist "%~dp0storage\framework\views" mkdir "%~dp0storage\framework\views" >nul 2>nul
 if not exist "%~dp0database" mkdir "%~dp0database" >nul 2>nul
 
-:: Bersihkan cache manifest lama jika ada
-del /q "%~dp0bootstrap\cache\*.php" >nul 2>nul
+:: Pastikan permission write penuh untuk runtime folder
+icacls "%~dp0bootstrap\cache" /grant "Users:(OI)(CI)F" /T >nul 2>nul
+icacls "%~dp0storage" /grant "Users:(OI)(CI)F" /T >nul 2>nul
 
 :: 4. Cek file .env & Application Key
 if not exist "%~dp0.env" (

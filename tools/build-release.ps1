@@ -154,6 +154,12 @@ foreach ($d in @(
         [System.IO.File]::WriteAllText($gi, "*`n!.gitignore`n")
     }
 }
+icacls (Join-Path $stage 'bootstrap\cache') /grant "Users:(OI)(CI)F" /T | Out-Null
+icacls (Join-Path $stage 'storage') /grant "Users:(OI)(CI)F" /T | Out-Null
+
+# ── Pre-compile package manifest agar bootstrap/cache tidak butuh write saat startup ─────
+Write-Host "==> Pre-compile package manifest"
+& $Php (Join-Path $stage 'artisan') package:discover | Out-Null
 
 # ── Verifikasi sintaks semua file hasil obfuscate ─────────────────
 Write-Host "==> Cek sintaks hasil obfuscate"
