@@ -121,7 +121,8 @@ $cnfFile = Join-Path $work 'yakpro-webreport.cnf'
 [System.IO.File]::WriteAllText($cnfFile, $cnf)
 
 # ── Obfuscate ─────────────────────────────────────────────────────
-foreach ($dir in @('app', 'routes', 'bootstrap')) {
+# Obfuscate folder app\ (semua Controller, Service, Model, Middleware, Trait)
+foreach ($dir in @('app')) {
     $src = Join-Path $stage $dir
     $out = Join-Path $work $dir
     Write-Host "==> Obfuscate $dir\"
@@ -137,10 +138,27 @@ foreach ($dir in @('app', 'routes', 'bootstrap')) {
     Copy-Item -Path (Join-Path $obf '*') -Destination $src -Recurse -Force
 }
 
+# ── Pastikan folder runtime Laravel selalu ada di dalam rilis ─────
+foreach ($d in @(
+    'bootstrap\cache',
+    'storage\logs',
+    'storage\framework\cache\data',
+    'storage\framework\sessions',
+    'storage\framework\views',
+    'database'
+)) {
+    $targetDir = Join-Path $stage $d
+    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    $gi = Join-Path $targetDir '.gitignore'
+    if (-not (Test-Path $gi)) {
+        [System.IO.File]::WriteAllText($gi, "*`n!.gitignore`n")
+    }
+}
+
 # ── Verifikasi sintaks semua file hasil obfuscate ─────────────────
 Write-Host "==> Cek sintaks hasil obfuscate"
 $bad = 0
-Get-ChildItem (Join-Path $stage 'app'), (Join-Path $stage 'routes'), (Join-Path $stage 'bootstrap') -Recurse -Filter *.php | ForEach-Object {
+Get-ChildItem (Join-Path $stage 'app') -Recurse -Filter *.php | ForEach-Object {
     $r = & $Php -l $_.FullName 2>&1
     if ($LASTEXITCODE -ne 0) { $bad++; Write-Host "   GAGAL: $($_.FullName)`n   $r" -ForegroundColor Red }
 }

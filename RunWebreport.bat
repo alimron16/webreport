@@ -52,23 +52,35 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8000" ^| findstr "LISTENING
     taskkill /F /PID %%a >nul 2>nul
 )
 
-:: 3. Cek file .env
-if exist "%~dp0.env" goto :ENV_OK
-echo [SETUP] Menyiapkan file .env dari template
-if exist "%~dp0.env.example" (
-    copy /y "%~dp0.env.example" "%~dp0.env" >nul
+:: 3. Pastikan folder runtime Laravel selalu ada
+if not exist "%~dp0bootstrap\cache" mkdir "%~dp0bootstrap\cache" >nul 2>nul
+if not exist "%~dp0storage\logs" mkdir "%~dp0storage\logs" >nul 2>nul
+if not exist "%~dp0storage\framework\cache\data" mkdir "%~dp0storage\framework\cache\data" >nul 2>nul
+if not exist "%~dp0storage\framework\sessions" mkdir "%~dp0storage\framework\sessions" >nul 2>nul
+if not exist "%~dp0storage\framework\views" mkdir "%~dp0storage\framework\views" >nul 2>nul
+if not exist "%~dp0database" mkdir "%~dp0database" >nul 2>nul
+
+:: Bersihkan cache manifest lama jika ada
+del /q "%~dp0bootstrap\cache\*.php" >nul 2>nul
+
+:: 4. Cek file .env & Application Key
+if not exist "%~dp0.env" (
+    echo [SETUP] Menyiapkan file .env dari template
+    if exist "%~dp0.env.example" copy /y "%~dp0.env.example" "%~dp0.env" >nul
+)
+findstr /C:"APP_KEY=base64:" "%~dp0.env" >nul 2>nul
+if %errorlevel% neq 0 (
     echo [SETUP] Men-generate Application Key
     "%PHP_BIN%" artisan key:generate --force
 )
-:ENV_OK
 
-:: 4. Cek database SQLite
+:: 5. Cek database SQLite
 if not exist "%~dp0database\database.sqlite" (
     echo [SETUP] Menyiapkan database SQLite
     type nul > "%~dp0database\database.sqlite"
 )
 echo [SETUP] Sinkronisasi tabel database
-"%PHP_BIN%" artisan migrate --force >nul 2>nul
+"%PHP_BIN%" artisan migrate --force
 
 :: 5. Refresh storage symlink otomatis sesuai path folder PC saat ini
 if exist "%~dp0public\storage" (

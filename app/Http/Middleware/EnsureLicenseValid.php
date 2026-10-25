@@ -13,17 +13,13 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureLicenseValid
 {
-    public function __construct(private LicenseService $license)
-    {
-    }
-
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->is('license', 'license/*', 'up')) {
             return $next($request);
         }
 
-        if ($this->license->isValid()) {
+        if (app(LicenseService::class)->isValid()) {
             return $next($request);
         }
 
