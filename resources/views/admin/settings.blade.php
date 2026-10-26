@@ -2281,8 +2281,16 @@ Tidak ada log tersedia.
                                 <div id="pv_body_prabayar" style="font-family:'Courier Prime', 'Roboto Slab', monospace;">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div style="font-size: 11.5px; font-weight: 700; line-height: 1.5;">
-                                            <div>TGL BELI &nbsp;&nbsp;&nbsp;&nbsp;: {{ date('d / m / Y') }} &nbsp;&nbsp;{{ date('H : i : s') }}</div>
-                                            <div>BANK &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span id="pv_pra_bank"></span></div>
+                                            <div class="d-flex align-items-baseline mb-1">
+                                                <span style="width: 80px; flex-shrink: 0;">TGL BELI</span>
+                                                <span class="me-2 fw-bold">:</span>
+                                                <span class="fw-bold">{{ date('d / m / Y') }} &nbsp;&nbsp;{{ date('H : i : s') }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-baseline">
+                                                <span style="width: 80px; flex-shrink: 0;">BANK</span>
+                                                <span class="me-2 fw-bold">:</span>
+                                                <span class="fw-bold" id="pv_pra_bank"></span>
+                                            </div>
                                         </div>
                                         <div style="height: 42px; max-width: 130px; display:flex; align-items:center;">
                                             <img id="pv_logo_pra" src="/images/receipt/pln.svg" alt="PLN Logo" style="max-height: 42px; max-width: 130px; object-fit: contain;">
@@ -2330,7 +2338,11 @@ Tidak ada log tersedia.
                                 <div id="pv_body_pascabayar" style="display: none; font-family:'Courier Prime', 'Roboto Slab', monospace;">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div style="font-size: 11.5px; font-weight: 700; line-height: 1.5;">
-                                            <div>TGL Bayar &nbsp;&nbsp;&nbsp;&nbsp;: {{ date('d / m / Y') }} &nbsp;&nbsp;{{ date('H : i : s') }}</div>
+                                            <div class="d-flex align-items-baseline mb-1">
+                                                <span style="width: 80px; flex-shrink: 0;">TGL BAYAR</span>
+                                                <span class="me-2 fw-bold">:</span>
+                                                <span class="fw-bold">{{ date('d / m / Y') }} &nbsp;&nbsp;{{ date('H : i : s') }}</span>
+                                            </div>
                                         </div>
                                         <div style="height: 42px; max-width: 130px; display:flex; align-items:center;">
                                             <img id="pv_logo_pasca" src="/images/receipt/pln.svg" alt="PLN Logo" style="max-height: 42px; max-width: 130px; object-fit: contain;">

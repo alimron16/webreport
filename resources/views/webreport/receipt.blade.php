@@ -110,6 +110,38 @@
             margin-bottom: 6px;
         }
 
+        .pln-header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .pln-header-row {
+            display: flex;
+            align-items: baseline;
+            font-size: 13.5px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .pln-header-lbl {
+            width: 100px;
+            flex-shrink: 0;
+            color: #111827;
+            font-weight: 700;
+        }
+
+        .pln-header-sep {
+            margin-right: 8px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .pln-header-val {
+            font-weight: 700;
+            color: #111827;
+        }
+
         .pln-tgl {
             font-size: 13.5px;
             font-weight: 700;
@@ -411,8 +443,12 @@
                 <div class="pln-receipt">
                     <!-- Header -->
                     <div class="pln-header">
-                        <div class="pln-tgl">
-                            TGL Bayar &nbsp;&nbsp;: {{ $receipt['tgl_bayar'] }}
+                        <div class="pln-header-info">
+                            <div class="pln-header-row">
+                                <span class="pln-header-lbl">TGL BAYAR</span>
+                                <span class="pln-header-sep">:</span>
+                                <span class="pln-header-val">{{ $receipt['tgl_bayar'] }}</span>
+                            </div>
                         </div>
                         <div class="pln-logo-box">
                             <img src="{{ asset($receipt['logo_url']) }}" alt="PLN Logo">
@@ -495,12 +531,16 @@
                 <div class="pln-receipt">
                     <!-- Header -->
                     <div class="pln-header">
-                        <div>
-                            <div class="pln-tgl mb-1">
-                                TGL BELI &nbsp;&nbsp;: {{ $receipt['tgl_bayar'] }}
+                        <div class="pln-header-info">
+                            <div class="pln-header-row">
+                                <span class="pln-header-lbl">TGL BELI</span>
+                                <span class="pln-header-sep">:</span>
+                                <span class="pln-header-val">{{ $receipt['tgl_bayar'] }}</span>
                             </div>
-                            <div class="pln-tgl">
-                                BANK &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $receipt['rule']['bank_name'] ?? '' }}
+                            <div class="pln-header-row">
+                                <span class="pln-header-lbl">BANK</span>
+                                <span class="pln-header-sep">:</span>
+                                <span class="pln-header-val">{{ $receipt['rule']['bank_name'] ?? 'PLN PAYMENT POINT' }}</span>
                             </div>
                         </div>
                         <div class="pln-logo-box">
