@@ -54,6 +54,9 @@
 
     @if($groupedPrices->count() > 0)
         @foreach($groupedPrices as $opName => $products)
+            @php
+                $sortedProducts = ($filter === 'terlaris') ? $products : $products->sortBy('harga');
+            @endphp
             <div class="op-section mb-4" id="section-{{ Str::slug($opName) }}">
                 <div class="card">
                     <div class="card-header py-3 bg-light d-flex align-items-center justify-content-between">
@@ -75,7 +78,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($products as $item)
+                                @foreach($sortedProducts as $item)
                                     <tr data-code="{{ strtolower($item['kode']) }}"
                                         data-name="{{ strtolower($item['nama']) }}">
                                         <td>

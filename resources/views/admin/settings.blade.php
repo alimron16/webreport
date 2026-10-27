@@ -2355,7 +2355,7 @@ Tidak ada log tersedia.
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div style="font-size: 11.5px; font-weight: 700; line-height: 1.5;">
                                             <div class="d-flex align-items-baseline mb-1">
-                                                <span style="width: 80px; flex-shrink: 0;">TGL BAYAR</span>
+                                                <span style="width: 85px; flex-shrink: 0;">TGL Bayar</span>
                                                 <span class="me-2 fw-bold">:</span>
                                                 <span class="fw-bold">{{ date('d / m / Y') }} &nbsp;&nbsp;{{ date('H : i : s') }}</span>
                                             </div>
@@ -2372,17 +2372,38 @@ Tidak ada log tersedia.
                                     <div class="d-flex justify-content-between gap-4 mt-2" style="font-size: 11px;">
                                         <!-- Left Col -->
                                         <div style="flex: 1.1;">
-                                            <div class="d-flex"><span style="width: 120px;">ID PEL</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_idpel">098765432100</span></div>
-                                            <div class="d-flex"><span style="width: 120px;">NAMA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
-                                            <div class="d-flex"><span style="width: 120px;">TARIF/DAYA</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></div>
-                                            <div class="d-flex"><span style="width: 120px;">BL/TH</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_blth">OKT/2026</span></div>
+                                            <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">ID PEL</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_idpel">098765432100</span></div>
+                                            <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">NAMA</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
+                                            <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">TARIF/DAYA</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></div>
+                                            <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">BL/TH</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_blth">OKT/2026</span></div>
                                         </div>
                                         <!-- Right Col -->
                                         <div style="flex: 0.9;">
-                                            <div class="d-flex"><span style="width: 115px;">STAND METER</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_stand">7447-6541</span></div>
-                                            <div class="d-flex"><span style="width: 115px;">TAGIHAN</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_tagihan">Rp 210.345, 00</span></div>
-                                            <div class="d-flex"><span style="width: 115px;">ADMIN BANK</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_admin">Rp 3.750, 00</span></div>
-                                            <div class="d-flex"><span style="width: 115px;">TOTAL BAYAR</span><span class="me-1">:</span><span class="fw-bold" id="pv_pasca_total">Rp 214.095, 00</span></div>
+                                            <div class="d-flex mb-1"><span style="width: 100px; font-weight: 700;">STAND METER</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_stand">7447-6541</span></div>
+                                            <div class="d-flex mb-1">
+                                                <span style="width: 100px; font-weight: 700;">TAGIHAN</span>
+                                                <span class="me-2 fw-bold">:</span>
+                                                <span class="d-inline-flex justify-content-between" style="width: 130px;">
+                                                    <span class="fw-bold">Rp</span>
+                                                    <span class="fw-bold text-end" id="pv_pasca_tagihan">210.345, 00</span>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex mb-1">
+                                                <span style="width: 100px; font-weight: 700;">ADMIN BANK</span>
+                                                <span class="me-2 fw-bold">:</span>
+                                                <span class="d-inline-flex justify-content-between" style="width: 130px;">
+                                                    <span class="fw-bold">Rp</span>
+                                                    <span class="fw-bold text-end" id="pv_pasca_admin">3.750, 00</span>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex mb-1">
+                                                <span style="width: 100px; font-weight: 700;">TOTAL BAYAR</span>
+                                                <span class="me-2 fw-bold">:</span>
+                                                <span class="d-inline-flex justify-content-between" style="width: 130px;">
+                                                    <span class="fw-bold">Rp</span>
+                                                    <span class="fw-bold text-end" id="pv_pasca_total">214.095, 00</span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 

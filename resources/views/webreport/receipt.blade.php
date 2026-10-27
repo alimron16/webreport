@@ -119,13 +119,13 @@
         .pln-header-row {
             display: flex;
             align-items: baseline;
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 700;
             line-height: 1.5;
         }
 
         .pln-header-lbl {
-            width: 100px;
+            width: 110px;
             flex-shrink: 0;
             color: #111827;
             font-weight: 700;
@@ -143,7 +143,7 @@
         }
 
         .pln-tgl {
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 700;
             line-height: 1.5;
         }
@@ -166,7 +166,7 @@
         .pln-grid {
             display: flex;
             justify-content: space-between;
-            gap: 52px;
+            gap: 40px;
         }
 
         .pln-col {
@@ -180,28 +180,45 @@
         }
 
         .pln-lbl {
-            width: 175px;
+            width: 125px;
             flex-shrink: 0;
-            font-weight: 500;
+            font-weight: 700;
             color: #111827;
         }
 
         .pln-lbl-right {
-            width: 160px;
+            width: 135px;
             flex-shrink: 0;
-            font-weight: 500;
+            font-weight: 700;
             color: #111827;
         }
 
         .pln-sep {
             margin-right: 8px;
             font-weight: 700;
+            color: #111827;
         }
 
         .pln-val {
             flex-grow: 1;
             font-weight: 700;
             color: #111827;
+        }
+
+        .pln-money {
+            display: inline-flex;
+            justify-content: space-between;
+            width: 175px;
+            font-weight: 700;
+        }
+
+        .pln-money-curr {
+            flex-shrink: 0;
+        }
+
+        .pln-money-val {
+            text-align: right;
+            flex-grow: 1;
         }
 
         /* Blue Highlight Box for REFF / TOKEN */
@@ -445,7 +462,7 @@
                     <div class="pln-header">
                         <div class="pln-header-info">
                             <div class="pln-header-row">
-                                <span class="pln-header-lbl">TGL BAYAR</span>
+                                <span class="pln-header-lbl">TGL Bayar</span>
                                 <span class="pln-header-sep">:</span>
                                 <span class="pln-header-val">{{ $receipt['tgl_bayar'] }}</span>
                             </div>
@@ -496,17 +513,32 @@
                             <div class="pln-row">
                                 <span class="pln-lbl-right">TAGIHAN</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">Rp &nbsp;<span class="val-tagihan-fmt">{{ number_format($receipt['tagihan_pasca'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">
+                                    <span class="pln-money">
+                                        <span class="pln-money-curr">Rp</span>
+                                        <span class="pln-money-val val-tagihan-fmt">{{ number_format($receipt['tagihan_pasca'], 0, ',', '.') }}, 00</span>
+                                    </span>
+                                </span>
                             </div>
                             <div class="pln-row">
                                 <span class="pln-lbl-right">ADMIN BANK</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">Rp &nbsp;<span class="val-admin-fmt">{{ number_format($receipt['admin_fee'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">
+                                    <span class="pln-money">
+                                        <span class="pln-money-curr">Rp</span>
+                                        <span class="pln-money-val val-admin-fmt">{{ number_format($receipt['admin_fee'], 0, ',', '.') }}, 00</span>
+                                    </span>
+                                </span>
                             </div>
                             <div class="pln-row">
                                 <span class="pln-lbl-right">TOTAL BAYAR</span>
                                 <span class="pln-sep">:</span>
-                                <span class="pln-val">Rp &nbsp;<span class="val-total-fmt">{{ number_format($receipt['total_bayar_pasca'], 0, ',', '.') }}, 00</span></span>
+                                <span class="pln-val">
+                                    <span class="pln-money">
+                                        <span class="pln-money-curr">Rp</span>
+                                        <span class="pln-money-val val-total-fmt">{{ number_format($receipt['total_bayar_pasca'], 0, ',', '.') }}, 00</span>
+                                    </span>
+                                </span>
                             </div>
                         </div>
                     </div>

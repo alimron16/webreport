@@ -255,6 +255,15 @@ class OtomaXService
                                  ->where('produk_level.kode_level', '=', $kode_level);
                         });
                         $query->addSelect('produk_level.harga as harga_level');
+
+                        // Cegah produk milik level lain bocor ke link level saat ini:
+                        // Hanya tampilkan produk yang terdaftar di level ini ATAU produk umum yang tidak terikat di tabel produk_level level manapun
+                        $query->where(function ($w) {
+                            $w->whereNotNull('produk_level.kode_level')
+                              ->orWhereNotIn('produk.kode', function ($sub) {
+                                  $sub->select('kode_produk')->from('produk_level')->whereNotNull('kode_produk');
+                              });
+                        });
                     }
 
                     if (!empty($kode_prod)) {
@@ -290,7 +299,10 @@ class OtomaXService
                     } elseif ($filter === 'termurah') {
                         $query->orderBy('produk.harga_jual', 'asc');
                     } else {
-                        $query->orderBy('produk.kode_operator', 'asc')->orderBy('produk.nama', 'asc');
+                        // Default: Urutkan per provider dari yang paling murah ke yang paling mahal
+                        $query->orderBy('produk.kode_operator', 'asc')
+                              ->orderBy('produk.harga_jual', 'asc')
+                              ->orderBy('produk.nama', 'asc');
                     }
 
                     $rows = $query->get();
