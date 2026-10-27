@@ -773,7 +773,7 @@ class AdminController extends Controller
         if ($r = $this->guardAdmin()) return $r;
 
         $request->validate([
-            'category'      => 'required|in:PRABAYAR,PASCA BAYAR,BANK,UMUM',
+            'category'      => 'required|in:PRABAYAR,PASCA BAYAR,BANK',
             'name'          => 'nullable|string|max:100',
             'provider'      => 'nullable|string|max:100',
             'keywords'      => 'nullable|string|max:255',

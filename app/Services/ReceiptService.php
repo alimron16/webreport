@@ -113,17 +113,6 @@ class ReceiptService
                 'sn_template'   => '[norek]/[namapelanggan]/[nominal]/[reff]',
                 'is_default'    => true,
             ],
-            [
-                'id'            => 'rule_dana',
-                'name'          => 'Top Up Saldo DANA',
-                'category'      => 'UMUM',
-                'provider'      => 'DANA',
-                'keywords'      => 'DANA, TFDANA',
-                'logo_url'      => '/images/gateways/dana.png',
-                'default_admin' => 2000,
-                'footer_info'   => 'Terima kasih atas pembayaran Anda. Simpan struk ini sebagai bukti transaksi sah.',
-                'is_default'    => true,
-            ],
         ];
     }
 
@@ -236,9 +225,9 @@ class ReceiptService
     }
 
     /**
-     * Find matching rule for a transaction
+     * Find matching rule for a transaction (hanya mendukung 3 kategori: PRABAYAR, PASCA BAYAR, BANK)
      */
-    public function findMatchingRule(array $trx): array
+    public function findMatchingRule(array $trx): ?array
     {
         $rules = $this->getRules();
         $code = strtoupper(trim($trx['kode_produk'] ?? ''));
@@ -247,9 +236,13 @@ class ReceiptService
         $sn   = strtoupper(trim($trx['sn'] ?? ''));
         $ket  = strtoupper(trim($trx['keterangan'] ?? ''));
 
+        $supportedCategories = ['PRABAYAR', 'PASCA BAYAR', 'BANK'];
+
         // PASS 1: Prioritas Tertinggi — Pencocokan Kode Produk Spesifik (Keywords)
-        // Jika ada aturan yang mencantumkan kode produk spesifik (misal 'PLNPASCA' atau 'TFBCA'), dahulukan!
         foreach ($rules as $r) {
+            $cat = strtoupper(trim($r['category'] ?? ''));
+            if (!in_array($cat, $supportedCategories, true)) continue;
+
             $rawKeywords = $r['keywords'] ?? '';
             if (empty(trim($rawKeywords))) continue;
 
@@ -269,9 +262,10 @@ class ReceiptService
         }
 
         // PASS 2: Pencocokan Berdasarkan Provider / Operator
-        // Jika aturan disetel untuk Provider (misal: 'BCA', 'PLN', 'TELKOMSEL'), 
-        // otomatis SEMUA produk yang berada di bawah provider/operator tersebut akan cocok!
         foreach ($rules as $r) {
+            $cat = strtoupper(trim($r['category'] ?? ''));
+            if (!in_array($cat, $supportedCategories, true)) continue;
+
             $rawProvider = trim($r['provider'] ?? '');
             if (empty($rawProvider)) continue;
 
@@ -284,7 +278,7 @@ class ReceiptService
                     return $r;
                 }
 
-                // Cocokkan dengan kode_produk (misal: TFBCA mengandung BCA, PLN20 mengandung PLN)
+                // Cocokkan dengan kode_produk
                 if (str_contains($code, $prov) || str_starts_with($code, $prov)) {
                     return $r;
                 }
@@ -298,6 +292,9 @@ class ReceiptService
 
         // PASS 3: Fallback ke kecocokan nama produk / keterangan dari keywords aturan
         foreach ($rules as $r) {
+            $cat = strtoupper(trim($r['category'] ?? ''));
+            if (!in_array($cat, $supportedCategories, true)) continue;
+
             $rawKeywords = $r['keywords'] ?? '';
             if (empty(trim($rawKeywords))) continue;
 
@@ -350,15 +347,21 @@ class ReceiptService
             ];
         }
 
-        // General default
-        return [
-            'id'            => 'rule_default_general',
-            'name'          => 'Struk Transaksi',
-            'category'      => 'UMUM',
-            'logo_url'      => '/logo',
-            'default_admin' => 2000,
-            'footer_info'   => 'Terima kasih atas pembayaran Anda. Simpan struk ini sebagai bukti transaksi yang sah.',
-        ];
+        // Produk di luar 3 kategori resmi (PRABAYAR, PASCA BAYAR, BANK) tidak memiliki struk
+        return null;
+    }
+
+    /**
+     * Cek apakah transaksi ini mendukung cetak struk (hanya 3 kategori resmi: PRABAYAR, PASCA BAYAR, BANK).
+     */
+    public function isPrintable(array $trx): bool
+    {
+        $rule = $this->findMatchingRule($trx);
+        if (!$rule) {
+            return false;
+        }
+        $cat = strtoupper(trim($rule['category'] ?? ''));
+        return in_array($cat, ['PRABAYAR', 'PASCA BAYAR', 'BANK'], true);
     }
 
     /**
@@ -368,6 +371,10 @@ class ReceiptService
     {
         if (!$rule) {
             $rule = $this->findMatchingRule($trx);
+        }
+
+        if (!$rule) {
+            throw new \InvalidArgumentException('Fitur cetak struk belum tersedia untuk jenis transaksi ini.');
         }
 
         $category = strtoupper($rule['category'] ?? 'UMUM');

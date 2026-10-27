@@ -847,6 +847,13 @@ class WebreportController extends Controller
         $rule = $receiptService->findMatchingRule($trx);
         \Illuminate\Support\Facades\Log::info("PRINT_RECEIPT [{$trxid}] MATCHED_RULE: " . json_encode($rule));
 
+        if (!$rule || !in_array(strtoupper(trim($rule['category'] ?? '')), ['PRABAYAR', 'PASCA BAYAR', 'BANK'], true)) {
+            return response()->view('errors.404', [
+                'title'   => 'Struk Belum Tersedia',
+                'message' => 'Fitur cetak struk belum tersedia untuk jenis transaksi ini.'
+            ], 404);
+        }
+
         // Jika ada override admin fee via parameter URL (?admin=3500)
         if ($request->has('admin') && is_numeric($request->input('admin'))) {
             $rule['default_admin'] = (float)$request->input('admin');

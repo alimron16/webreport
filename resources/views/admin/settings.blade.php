@@ -1788,7 +1788,6 @@ Tidak ada log tersedia.
                                     <option value="PRABAYAR">PRABAYAR (PLN Token / Stroom - Format Gambar 2)</option>
                                     <option value="PASCA BAYAR">PASCA BAYAR (PLN Tagihan / Rekening - Format Gambar 1)</option>
                                     <option value="BANK">BANK (Transfer Uang Bank Resmi - Format Gambar 3)</option>
-                                    <option value="UMUM">UMUM (Pulsa, Data, E-Wallet, PPOB Biasa)</option>
                                 </select>
                                 <div class="stg-hint">Pilih layout struk yang cocok persis dengan jenis produk</div>
                             </div>
@@ -1832,6 +1831,23 @@ Tidak ada log tersedia.
                                 </label>
                                 <input type="file" name="logo_file" id="rule_logo_file" class="form-control" accept="image/*" onchange="previewSelectedLogo(this)">
                                 <div class="stg-hint">Disarankan gambar transparan dengan resolusi tajam</div>
+
+                                <!-- Panduan Ukuran Logo Struk -->
+                                <div class="alert alert-info mt-2 mb-0 p-2.5 d-flex align-items-start" style="font-size: 12px; border-radius: 8px; border-left: 3px solid #0284c7; background: #f0f9ff;">
+                                    <i class="bx bx-image-alt fs-5 me-2 text-primary mt-1 flex-shrink-0"></i>
+                                    <div>
+                                        <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-1">
+                                            <span>Panduan Ukuran Logo Struk</span>
+                                            <span class="badge bg-info-subtle text-info font-monospace" style="font-size: 9.5px;">Rekomendasi</span>
+                                        </div>
+                                        <ul class="mb-0 ps-3 text-muted" style="line-height: 1.5;">
+                                            <li><strong>Dimensi Ideal:</strong> Lebar <code>300 - 500 px</code>, Tinggi <code>100 - 150 px</code></li>
+                                            <li><strong>Rasio Aspek:</strong> Memanjang horizontal (<code>3:1</code> s/d <code>4:1</code>)</li>
+                                            <li><strong>Format Terbaik:</strong> PNG Transparan atau SVG (Maks. <code>1 MB</code>)</li>
+                                            <li><strong>Hasil Cetak:</strong> Logo dirender proporsional (~<code>45-52 px</code>) tajam & tidak gepeng.</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Biaya Admin Bawaan -->
