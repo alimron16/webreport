@@ -58,7 +58,8 @@ $excludeDirs = @(
     (Join-Path $root 'public\storage')
 )
 $excludeFiles = @('.env', '.env.backup', '.env.production', '*.log', 'database.sqlite',
-                  'STRUK *.jpeg', 'phpunit.xml', '.phpunit.result.cache')
+                  'STRUK *.jpeg', 'phpunit.xml', '.phpunit.result.cache',
+                  'test_*', '*.msi', 'php_*.zip', '*.sql', '*.bak')
 robocopy $root $stage /E /NFL /NDL /NJH /NJS /NP /XD @excludeDirs /XF @excludeFiles | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy gagal (kode $LASTEXITCODE)" }
 
@@ -69,7 +70,7 @@ foreach ($p in @('storage\logs', 'storage\framework\cache\data', 'storage\framew
         Get-ChildItem $full -Force | Where-Object { $_.Name -ne '.gitignore' } | Remove-Item -Recurse -Force
     }
 }
-Get-ChildItem (Join-Path $stage 'bootstrap\cache') -Filter *.php -ErrorAction SilentlyContinue | Remove-Item -Force
+Get-ChildItem (Join-Path $stage 'bootstrap\cache') -Filter *.php -ErrorAction SilentlyContinue | Where-Object { $_.Name -notin @('packages.php', 'services.php') } | Remove-Item -Force
 
 # ── Kumpulkan nama variabel yang TIDAK boleh diacak ───────────────
 # 1) variabel yang dipakai lewat compact('a','b') (nama dipakai sebagai string)
@@ -179,9 +180,11 @@ $sqliteFile = Join-Path $stage 'database\database.sqlite'
 New-Item -ItemType File -Path $sqliteFile -Force | Out-Null
 & $Php (Join-Path $stage 'artisan') migrate --force | Out-Null
 
-# ── Pre-compile package manifest agar bootstrap/cache tidak butuh write saat startup ─────
-Write-Host "==> Pre-compile package manifest"
-& $Php (Join-Path $stage 'artisan') package:discover | Out-Null
+# ── Pastikan package manifest tersedia agar bootstrap/cache tidak butuh write saat startup ─────
+if (-not (Test-Path (Join-Path $stage 'bootstrap\cache\packages.php'))) {
+    Write-Host "==> Pre-compile package manifest"
+    & $Php (Join-Path $stage 'artisan') package:discover | Out-Null
+}
 
 # ── Verifikasi sintaks semua file hasil obfuscate ─────────────────
 Write-Host "==> Cek sintaks hasil obfuscate"
@@ -203,7 +206,7 @@ foreach ($p in @('storage\logs', 'storage\framework\cache\data', 'storage\framew
     }
 }
 Get-ChildItem (Join-Path $stage 'database') -Filter 'database.sqlite-*' -ErrorAction SilentlyContinue | Remove-Item -Force
-$cleanScript = [System.IO.Path]::GetTempFileName() + '.php'
+$cleanScript = Join-Path $dist '_clean_db.php'
 [System.IO.File]::WriteAllText($cleanScript, "<?php
 `$db = `$argv[1];
 `$pdo = new PDO('sqlite:' . `$db);

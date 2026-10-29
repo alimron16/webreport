@@ -33,7 +33,17 @@ class AdminController extends Controller
         if (Session::has('admin_logged_in')) {
             return redirect()->route('admin.dashboard');
         }
-        return view('admin.login');
+
+        $rcEnabled = Cache::get('recaptcha_enabled');
+        if ($rcEnabled === null) {
+            $rcEnabled = (\App\Models\Setting::get('recaptcha_enabled') === '1' || \App\Models\Setting::get('recaptcha_enabled') === true);
+        } else {
+            $rcEnabled = filter_var($rcEnabled, FILTER_VALIDATE_BOOLEAN);
+        }
+        $rcSiteKey = Cache::get('recaptcha_site_key') ?: \App\Models\Setting::get('recaptcha_site_key', '');
+        $showRecaptcha = $rcEnabled && !empty($rcSiteKey);
+
+        return view('admin.login', compact('showRecaptcha', 'rcSiteKey'));
     }
 
     public function login(Request $request)
@@ -79,6 +89,7 @@ class AdminController extends Controller
             $request->session()->regenerate(); // Prevent Session Fixation
             Session::put('admin_logged_in', true);
             Session::put('admin_username', $expectedUsername);
+            Session::put('admin_ua_hash', hash('sha256', (string)$request->userAgent()));
 
             \Illuminate\Support\Facades\Log::info("AUDIT: Admin login SUCCESS for [{$username}] from IP: {$request->ip()}");
             return redirect()->route('admin.dashboard');
@@ -148,10 +159,51 @@ class AdminController extends Controller
         if (!Session::has('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
+        $expectedUa = Session::get('admin_ua_hash');
+        $currentUa = hash('sha256', (string)request()->userAgent());
+        if (!empty($expectedUa) && !hash_equals($expectedUa, $currentUa)) {
+            Log::warning("SECURITY: Admin session User-Agent mismatch for [" . Session::get('admin_username') . "] from IP: " . request()->ip());
+            Session::forget(['admin_logged_in', 'admin_username', 'admin_ua_hash']);
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect()->route('admin.login')->with('error', 'Sesi administrator berakhir karena perubahan perangkat/browser.');
+        }
         if (!app(\App\Services\LicenseService::class)->isValid()) {
             return redirect()->route('license.show');
         }
         return null;
+    }
+
+    /**
+     * Neutralize CSV Formula Injection (Excel / LibreOffice macro execution via =, +, -, @, Tab, CR)
+     */
+    protected function sanitizeCsvRow(array $row): array
+    {
+        return array_map(function ($cell) {
+            if (!is_string($cell) || $cell === '') {
+                return $cell;
+            }
+            $firstChar = $cell[0];
+            if (in_array($firstChar, ['=', '+', '-', '@', "\t", "\r"], true)) {
+                return "'" . $cell;
+            }
+            return $cell;
+        }, $row);
+    }
+
+    /**
+     * Sanitize SVG content to strip embedded scripts, event handlers, or foreignObject tags
+     */
+    protected function isSafeSvgContent(string $content): bool
+    {
+        $lower = strtolower($content);
+        $dangerousPatterns = ['<script', 'javascript:', 'vbscript:', 'data:text/html', '<foreignobject', '<iframe', '<embed', '<object', 'onload=', 'onerror=', 'onclick=', 'onmouseover='];
+        foreach ($dangerousPatterns as $pattern) {
+            if (str_contains($lower, $pattern)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // ── Dashboard Ringkasan & KPI ─────────────────────────────
@@ -345,7 +397,7 @@ class AdminController extends Controller
 
             $no = 1;
             foreach ($items as $item) {
-                fputcsv($handle, [
+                fputcsv($handle, $this->sanitizeCsvRow([
                     $no++,
                     $item['kode'] ?? '',
                     $item['nama'] ?? '',
@@ -359,7 +411,7 @@ class AdminController extends Controller
                     $item['profit'] ?? 0,
                     number_format($item['margin'] ?? 0, 2) . '%',
                     ($item['is_profit'] ?? false) ? 'Profit' : 'Rugi / Minus'
-                ]);
+                ]));
             }
 
             fclose($handle);
@@ -473,7 +525,7 @@ class AdminController extends Controller
                     $statusText = 'Aktif';
                 }
 
-                fputcsv($handle, [
+                fputcsv($handle, $this->sanitizeCsvRow([
                     $no++,
                     $r['kode'] ?? '',
                     $r['nama'] ?? '',
@@ -486,7 +538,7 @@ class AdminController extends Controller
                     $r['poin'] ?? 0,
                     $r['alamat'] ?? '',
                     $r['tgl_daftar'] ?? ''
-                ]);
+                ]));
             }
             fclose($handle);
         };
@@ -620,11 +672,15 @@ class AdminController extends Controller
 
         $file = $request->file('pks_file');
         $type = $request->input('pks_type');
-        $fileName = 'pks_agreement_' . $type . '.' . $file->getClientOriginalExtension();
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['pdf', 'doc', 'docx', 'zip'], true)) {
+            return back()->withErrors(['pks_file' => 'Ekstensi file PKS tidak diizinkan.']);
+        }
+        $fileName = 'pks_agreement_' . $type . '.' . $ext;
         $path = $file->storeAs('pks', $fileName, 'local');
 
         \Illuminate\Support\Facades\Cache::forever('pks_template_path_' . $type, $path);
-        \Illuminate\Support\Facades\Cache::forever('pks_template_name_' . $type, $file->getClientOriginalName());
+        \Illuminate\Support\Facades\Cache::forever('pks_template_name_' . $type, basename($file->getClientOriginalName()));
 
         $typeLabel = $type === 'badan_usaha' ? 'Badan Usaha / Badan Hukum' : 'Perorangan (Pribadi)';
         return back()->with('pks_success', 'File PKS ' . $typeLabel . ' berhasil diperbarui.');
@@ -677,7 +733,14 @@ class AdminController extends Controller
             \Illuminate\Support\Facades\Cache::forget('site_logo_url');
         } elseif ($request->hasFile('site_logo')) {
             $file = $request->file('site_logo');
-            $fileName = 'portal_logo.' . $file->getClientOriginalExtension();
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, ['png', 'jpg', 'jpeg', 'svg', 'webp'], true)) {
+                return back()->withErrors(['site_logo' => 'Ekstensi logo tidak diizinkan.']);
+            }
+            if ($ext === 'svg' && !$this->isSafeSvgContent((string)file_get_contents($file->getRealPath()))) {
+                return back()->withErrors(['site_logo' => 'File SVG mengandung elemen skrip berbahaya (XSS).']);
+            }
+            $fileName = 'portal_logo.' . $ext;
             $path = $file->storeAs('branding', $fileName, 'local');
             
             \Illuminate\Support\Facades\Cache::forever('site_logo_path', $path);
@@ -735,6 +798,9 @@ class AdminController extends Controller
         $adminCredSource = $credentials['source'];
 
         $rawRecaptchaSecret = Cache::get('recaptcha_secret_key');
+        if (!$rawRecaptchaSecret) {
+            $rawRecaptchaSecret = \App\Models\Setting::get('recaptcha_secret_key');
+        }
         $recaptchaSecret = $rawRecaptchaSecret;
         if ($rawRecaptchaSecret) {
             while (is_string($recaptchaSecret) && str_starts_with($recaptchaSecret, 'eyJ')) {
@@ -746,6 +812,14 @@ class AdminController extends Controller
             }
         }
 
+        $recaptchaEnabled = Cache::get('recaptcha_enabled');
+        if ($recaptchaEnabled === null) {
+            $recaptchaEnabled = (\App\Models\Setting::get('recaptcha_enabled') === '1' || \App\Models\Setting::get('recaptcha_enabled') === true);
+        } else {
+            $recaptchaEnabled = filter_var($recaptchaEnabled, FILTER_VALIDATE_BOOLEAN);
+        }
+        $recaptchaSiteKey = Cache::get('recaptcha_site_key') ?: \App\Models\Setting::get('recaptcha_site_key', '');
+
         $receiptService = app(\App\Services\ReceiptService::class);
         $receiptRules = $receiptService->getRules();
         $receiptStoreTitle = \App\Models\Setting::get('receipt_store_title', 'PAYMENT POINT ONLINE BANKING');
@@ -753,7 +827,8 @@ class AdminController extends Controller
 
         return view('admin.settings', compact(
             'mailConfig', 'logs', 'levels', 'currentAdminUsername', 'adminCredSource', 
-            'otomaxDbConfig', 'recaptchaSecret', 'receiptRules', 'receiptStoreTitle', 'receiptFooterInfo'
+            'otomaxDbConfig', 'recaptchaEnabled', 'recaptchaSiteKey', 'recaptchaSecret', 
+            'receiptRules', 'receiptStoreTitle', 'receiptFooterInfo'
         ));
     }
 
@@ -826,7 +901,13 @@ class AdminController extends Controller
 
         if ($request->hasFile('logo_file')) {
             $file = $request->file('logo_file');
-            $ext = $file->getClientOriginalExtension();
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, ['png', 'jpg', 'jpeg', 'svg', 'webp'], true)) {
+                return back()->withErrors(['logo_file' => 'Ekstensi file logo tidak diizinkan (hanya PNG, JPG, JPEG, WEBP, SVG).'])->withInput();
+            }
+            if ($ext === 'svg' && !$this->isSafeSvgContent((string)file_get_contents($file->getRealPath()))) {
+                return back()->withErrors(['logo_file' => 'File SVG mengandung skrip aktif berbahaya.'])->withInput();
+            }
             $fileName = 'logo_' . Str::slug($name) . '_' . time() . '.' . $ext;
             $file->move(public_path('images/receipt'), $fileName);
             $logoUrl = '/images/receipt/' . $fileName;
@@ -1048,15 +1129,19 @@ class AdminController extends Controller
 
         $enabled = $request->input('recaptcha_enabled') === '1';
         Cache::forever('recaptcha_enabled', $enabled);
+        \App\Models\Setting::set('recaptcha_enabled', $enabled ? '1' : '0');
         
-        if ($request->filled('recaptcha_site_key')) {
-            Cache::forever('recaptcha_site_key', trim($request->recaptcha_site_key));
+        $siteKey = trim($request->input('recaptcha_site_key', ''));
+        if (!empty($siteKey)) {
+            Cache::forever('recaptcha_site_key', $siteKey);
+            \App\Models\Setting::set('recaptcha_site_key', $siteKey);
         } else {
             Cache::forget('recaptcha_site_key');
+            \App\Models\Setting::set('recaptcha_site_key', '');
         }
 
-        if ($request->filled('recaptcha_secret_key')) {
-            $secretInput = trim($request->recaptcha_secret_key);
+        $secretInput = trim($request->input('recaptcha_secret_key', ''));
+        if (!empty($secretInput)) {
             // Decode if user re-submitted already encrypted string
             while (str_starts_with($secretInput, 'eyJ')) {
                 try {
@@ -1066,8 +1151,10 @@ class AdminController extends Controller
                 }
             }
             Cache::forever('recaptcha_secret_key', \Illuminate\Support\Facades\Crypt::encryptString($secretInput));
+            \App\Models\Setting::set('recaptcha_secret_key', $secretInput, true);
         } else {
             Cache::forget('recaptcha_secret_key');
+            \App\Models\Setting::set('recaptcha_secret_key', '');
         }
 
         return back()->with('security_success', 'Pengaturan Keamanan (reCAPTCHA) berhasil diperbarui.');
@@ -1111,9 +1198,9 @@ class AdminController extends Controller
             'db_password' => 'nullable|string',
         ]);
 
-        \App\Models\Setting::set('otomax_db_host', trim($request->input('db_host')), false);
+        \App\Models\Setting::set('otomax_db_host', trim($request->input('db_host')), true);
         \App\Models\Setting::set('otomax_db_port', trim($request->input('db_port')), false);
-        \App\Models\Setting::set('otomax_db_database', trim($request->input('db_database')), false);
+        \App\Models\Setting::set('otomax_db_database', trim($request->input('db_database')), true);
         \App\Models\Setting::set('otomax_db_username', trim($request->input('db_username')), true);
 
         // Hanya update password jika diisi pengguna (agar password terenkripsi tidak tertimpa kosong)

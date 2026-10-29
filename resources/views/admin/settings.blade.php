@@ -1414,15 +1414,15 @@ Tidak ada log tersedia.
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="stg-field-lbl">Status reCAPTCHA</label>
                         <select name="recaptcha_enabled" class="form-control" style="max-width: 200px;">
-                            <option value="1" {{ \Illuminate\Support\Facades\Cache::get('recaptcha_enabled', false) ? 'selected' : '' }}>Aktif</option>
-                            <option value="0" {{ !\Illuminate\Support\Facades\Cache::get('recaptcha_enabled', false) ? 'selected' : '' }}>Nonaktif</option>
+                            <option value="1" {{ !empty($recaptchaEnabled) ? 'selected' : '' }}>Aktif</option>
+                            <option value="0" {{ empty($recaptchaEnabled) ? 'selected' : '' }}>Nonaktif</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="stg-field-lbl">Site Key</label>
                         <input type="text" name="recaptcha_site_key" class="form-control" 
-                               value="{{ \Illuminate\Support\Facades\Cache::get('recaptcha_site_key') }}" 
+                               value="{{ $recaptchaSiteKey ?? \Illuminate\Support\Facades\Cache::get('recaptcha_site_key') }}" 
                                placeholder="Contoh: 6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI">
                         <small style="color: var(--color-text-3); display: block; margin-top: 6px;">
                             Didapatkan dari konsol admin Google reCAPTCHA (v2 Checkbox).
@@ -1461,6 +1461,38 @@ Tidak ada log tersedia.
                     <li>Daftarkan domain Anda (misal: <em>namadomain.com</em>).</li>
                     <li>Salin Site Key dan Secret Key ke form di samping.</li>
                 </ol>
+            </div>
+        </div>
+
+        {{-- Live Test Widget Preview --}}
+        <div class="stg-card" style="margin-top: 20px;">
+            <div class="stg-card-hdr">
+                <div class="stg-card-title">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Uji Coba Langsung Widget (Live Test)
+                </div>
+                <span class="badge {{ !empty($recaptchaEnabled) ? 'bg-label-success' : 'bg-label-secondary' }}">
+                    {{ !empty($recaptchaEnabled) ? 'Status: Aktif' : 'Status: Nonaktif' }}
+                </span>
+            </div>
+            <div class="card-body" style="padding: 20px; text-align: center;">
+                @if(!empty($recaptchaSiteKey))
+                    <p style="font-size: 13px; color: var(--color-text-2); margin-bottom: 14px;">
+                        Jika Site Key dan Domain valid, kotak centang <strong>"Saya bukan robot"</strong> akan muncul di bawah ini. Anda dapat mencentangnya langsung untuk memastikan koneksi ke Google berhasil.
+                    </p>
+                    <div style="display: inline-block; padding: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;">
+                        <div class="g-recaptcha" data-sitekey="{{ $recaptchaSiteKey }}"></div>
+                    </div>
+                    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                    <div style="font-size: 12px; color: var(--color-text-3); margin-top: 10px;">
+                        <em>Jika muncul pesan merah "ERROR for site owner: Invalid domain for site key", silakan tambahkan domain website Anda ke daftar domain di konsol Google reCAPTCHA.</em>
+                    </div>
+                @else
+                    <div class="text-muted small py-3">
+                        <i class="bx bx-info-circle fs-4 d-block mb-1"></i>
+                        Site Key belum diisi. Masukkan Site Key di formulir sebelah kiri lalu klik Simpan untuk menguji widget di sini.
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -1778,19 +1810,80 @@ Tidak ada log tersedia.
                         <input type="hidden" name="rule_id" id="rule_id" value="">
                         <input type="hidden" name="existing_logo_url" id="existing_logo_url" value="/images/receipt/pln.svg">
 
-                        <div class="row g-3">
-                            <!-- Kategori Struk -->
-                            <div class="col-12 col-md-6">
-                                <label class="stg-field-lbl">
-                                    Kategori Format Struk <span class="text-danger">*</span>
-                                </label>
-                                <select name="category" id="rule_category" class="form-select form-control" required onchange="handleCategoryChange(this.value)">
-                                    <option value="PRABAYAR">PRABAYAR (PLN Token / Stroom - Format Gambar 2)</option>
-                                    <option value="PASCA BAYAR">PASCA BAYAR (PLN Tagihan / Rekening - Format Gambar 1)</option>
-                                    <option value="BANK">BANK (Transfer Uang Bank Resmi - Format Gambar 3)</option>
-                                </select>
-                                <div class="stg-hint">Pilih layout struk yang cocok persis dengan jenis produk</div>
+                        <!-- ── 1. PILIH FORMAT KATEGORI STRUK (3 KARTU INTERAKTIF) ── -->
+                        <div class="mb-4">
+                            <label class="stg-field-lbl fw-bold text-dark fs-6 mb-2">
+                                <i class="bx bx-receipt me-1 text-primary"></i>Pilih Jenis & Format Layout Struk <span class="text-danger">*</span>
+                            </label>
+                            <div class="row g-3">
+                                <!-- Card 1: PLN Prabayar -->
+                                <div class="col-12 col-md-4">
+                                    <div class="category-select-card p-3 rounded border h-100 cursor-pointer transition-all position-relative" id="cat_card_PRABAYAR" onclick="selectReceiptCategory('PRABAYAR', true)" style="background: #f0f7ff; border: 2px solid #0B6FB6 !important; cursor: pointer;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <div class="p-2 rounded bg-warning-subtle text-warning">
+                                                <i class="bx bx-zap fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark fs-6">PLN Prabayar</div>
+                                                <span class="badge bg-warning-subtle text-warning font-monospace" style="font-size: 10px;">Token Listrik</span>
+                                            </div>
+                                        </div>
+                                        <div class="small text-muted" style="font-size: 11.5px; line-height: 1.4;">
+                                            Khusus pembelian pulsa stroom / token listrik 20 digit dan jumlah kWh.
+                                        </div>
+                                        <div class="position-absolute top-0 end-0 p-2 text-primary cat-check-icon">
+                                            <i class="bx bxs-check-circle fs-4 text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2: PLN Pascabayar -->
+                                <div class="col-12 col-md-4">
+                                    <div class="category-select-card p-3 rounded border h-100 cursor-pointer transition-all position-relative" id="cat_card_PASCA_BAYAR" onclick="selectReceiptCategory('PASCA BAYAR', true)" style="background: #ffffff; border: 2px solid #cbd5e1; cursor: pointer;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <div class="p-2 rounded bg-primary-subtle text-primary">
+                                                <i class="bx bx-receipt fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark fs-6">PLN Pascabayar</div>
+                                                <span class="badge bg-primary-subtle text-primary font-monospace" style="font-size: 10px;">Tagihan Rekening</span>
+                                            </div>
+                                        </div>
+                                        <div class="small text-muted" style="font-size: 11.5px; line-height: 1.4;">
+                                            Tagihan bulanan, stand meter, periode BL/TH, dan nomor referensi transaksi.
+                                        </div>
+                                        <div class="position-absolute top-0 end-0 p-2 text-primary d-none cat-check-icon">
+                                            <i class="bx bxs-check-circle fs-4 text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 3: Transfer Bank -->
+                                <div class="col-12 col-md-4">
+                                    <div class="category-select-card p-3 rounded border h-100 cursor-pointer transition-all position-relative" id="cat_card_BANK" onclick="selectReceiptCategory('BANK', true)" style="background: #ffffff; border: 2px solid #cbd5e1; cursor: pointer;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <div class="p-2 rounded bg-success-subtle text-success">
+                                                <i class="bx bx-credit-card fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark fs-6">Transfer Bank</div>
+                                                <span class="badge bg-success-subtle text-success font-monospace" style="font-size: 10px;">Bukti Resmi Bank</span>
+                                            </div>
+                                        </div>
+                                        <div class="small text-muted" style="font-size: 11.5px; line-height: 1.4;">
+                                            Transaction receipt transfer BCA/BRI/Mandiri/BNI dengan detail rekening & penerima.
+                                        </div>
+                                        <div class="position-absolute top-0 end-0 p-2 text-primary d-none cat-check-icon">
+                                            <i class="bx bxs-check-circle fs-4 text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <input type="hidden" name="category" id="rule_category" value="PRABAYAR" required>
+                        </div>
+
+                        <div class="row g-3">
 
                             <!-- Nama Aturan -->
                             <div class="col-12 col-md-6">
@@ -1959,7 +2052,7 @@ Tidak ada log tersedia.
                                                     Contoh Reply Supplier
                                                 </div>
                                                 <div class="small font-monospace text-dark text-break bg-white p-2 rounded border" id="box_supplier_sample" style="font-size: 11px; line-height: 1.5; min-height: 75px;">
-                                                    : 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL
+                                                    046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11
                                                 </div>
                                                 <button type="button" class="btn btn-outline-primary btn-xs w-100 mt-2" onclick="copySampleToTemplate()" style="font-size: 11px;">
                                                     <i class="bx bx-copy me-1"></i>Salin ke Editor Parsing
@@ -1974,15 +2067,15 @@ Tidak ada log tersedia.
                                                 </div>
                                                 <div id="content_petunjuk_guide">
                                                     <div class="fw-semibold text-dark small mb-1">Petunjuk:</div>
-                                                    <div class="text-muted mb-2" style="font-size: 11.5px; line-height: 1.4;">
+                                                    <div class="text-muted mb-2" id="guide_desc_text" style="font-size: 11.5px; line-height: 1.4;">
                                                         Silakan replace/ganti text dengan parameter yang telah ditentukan di sebelah kanan.
                                                     </div>
-                                                    <div class="fw-semibold text-secondary mb-1" style="font-size: 11px;">Contoh SN:</div>
-                                                    <div class="p-2 bg-white rounded border font-monospace text-break mb-2 text-muted" style="font-size: 10px; line-height: 1.35;">
+                                                    <div class="fw-semibold text-secondary mb-1" style="font-size: 11px;">Contoh Balasan SN:</div>
+                                                    <div class="p-2 bg-white rounded border font-monospace text-break mb-2 text-muted" id="guide_sample_sn" style="font-size: 10px; line-height: 1.35;">
                                                         046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11
                                                     </div>
-                                                    <div class="fw-semibold text-secondary mb-1" style="font-size: 11px;">Ganti SN di atas dengan parameter parsing, contoh hasil:</div>
-                                                    <div class="p-2 bg-primary-subtle text-primary rounded border border-primary-subtle font-monospace text-break" style="font-size: 10px; line-height: 1.35;">
+                                                    <div class="fw-semibold text-secondary mb-1" style="font-size: 11px;">Ganti nilai dinamis dengan parameter parsing:</div>
+                                                    <div class="p-2 bg-primary-subtle text-primary rounded border border-primary-subtle font-monospace text-break" id="guide_result_template" style="font-size: 10px; line-height: 1.35;">
                                                         [token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]. RP TOKEN=[rptoken]. PPN=[ppn]. PPJ=[ppj]/MATERAI:[materai]
                                                     </div>
                                                 </div>
@@ -1993,21 +2086,21 @@ Tidak ada log tersedia.
                                         <div class="col-12 col-xl-6 col-lg-5">
                                             <div class="mb-2">
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                                    <label class="small fw-bold text-dark mb-0">SN:</label>
+                                                    <label class="small fw-bold text-dark mb-0">Contoh Teks Balasan SN:</label>
                                                     <div class="d-flex gap-1">
-                                                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" type="button" onclick="loadSampleSn('bank_bca')" style="font-size: 10.5px;">Bank</button>
-                                                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" type="button" onclick="loadSampleSn('pln_token')" style="font-size: 10.5px;">Token PLN</button>
-                                                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" type="button" onclick="loadSampleSn('pln_pasca')" style="font-size: 10.5px;">Tagihan PLN</button>
+                                                        <button class="btn btn-xs btn-outline-warning py-0 px-2" type="button" onclick="loadSampleSn('pln_token')" style="font-size: 10.5px;">Token PLN</button>
+                                                        <button class="btn btn-xs btn-outline-primary py-0 px-2" type="button" onclick="loadSampleSn('pln_pasca')" style="font-size: 10.5px;">Tagihan PLN</button>
+                                                        <button class="btn btn-xs btn-outline-success py-0 px-2" type="button" onclick="loadSampleSn('bank_bca')" style="font-size: 10.5px;">Transfer Bank</button>
                                                     </div>
                                                 </div>
-                                                <input type="text" name="sample_sn" id="rule_sample_sn" class="form-control font-monospace text-dark" style="background: #f1f5f9; font-size: 11.5px;" value=": 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL" oninput="handleSampleSnChange(this.value)">
+                                                <input type="text" name="sample_sn" id="rule_sample_sn" class="form-control font-monospace text-dark" style="background: #f1f5f9; font-size: 11.5px;" value="046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11" oninput="handleSampleSnChange(this.value)">
                                             </div>
 
                                             <div class="mb-2">
                                                 <label class="small fw-semibold text-dark mb-1" for="rule_sn_template">
-                                                    Buat parsing SN dengan parameter di sebelah kanan.
+                                                    Pola Template Parsing SN (Klik parameter di sebelah kanan):
                                                 </label>
-                                                <textarea name="sn_template" id="rule_sn_template" rows="7" class="form-control font-monospace" style="font-size: 12.5px; line-height: 1.5;" placeholder=": [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL" oninput="handleTemplateChange()">: [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL</textarea>
+                                                <textarea name="sn_template" id="rule_sn_template" rows="7" class="form-control font-monospace" style="font-size: 12.5px; line-height: 1.5;" placeholder="[token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]" oninput="handleTemplateChange()">[token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]. RP TOKEN=[rptoken]. PPN=[ppn]. PPJ=[ppj]/MATERAI:[materai]</textarea>
                                             </div>
 
                                             <div class="p-2.5 rounded bg-light border text-muted" style="font-size: 11px; line-height: 1.45;">
@@ -2250,41 +2343,15 @@ Tidak ada log tersedia.
                             <label class="stg-field-lbl fw-bold text-dark mb-1">
                                 <i class="bx bx-vial me-1 text-primary"></i>Teks Balasan SN dari Suplier
                             </label>
-                            <textarea name="sample_sn" id="rule_sample_sn" rows="4" class="form-control font-monospace mb-3" placeholder="Paste teks SN dari suplier di sini untuk melihat ekstraksi & preview struk secara instan..." oninput="updateLivePreview()" form="formReceiptRule">SN: 2920-3211-4567-8910-0987/PLN20/01112233445/BUDI SANTOSO/R1/900VA/13.2/20000</textarea>
+                            <textarea id="rule_sample_sn_preview" rows="4" class="form-control font-monospace mb-3" placeholder="Paste teks SN dari suplier di sini untuk melihat ekstraksi & preview struk secara instan..." oninput="handlePreviewSnChange(this.value)">046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11</textarea>
 
                             <div class="p-3 bg-light border rounded">
-                                <div class="fw-bold text-dark mb-2 small">
-                                    <i class="bx bx-check-circle me-1 text-success"></i>Data yang Berhasil Terbaca:
+                                <div class="fw-bold text-dark mb-2 small d-flex align-items-center justify-content-between">
+                                    <span><i class="bx bx-check-circle me-1 text-success"></i>Data yang Berhasil Terbaca:</span>
+                                    <span class="badge bg-label-primary font-monospace" id="preview_cat_badge" style="font-size: 10px;">PRABAYAR</span>
                                 </div>
                                 <div class="d-flex flex-column gap-2" id="previewBadges">
-                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
-                                        <span class="text-muted">No. Meter (PLN):</span>
-                                        <span class="badge bg-secondary text-white font-monospace" id="badge_meter">-</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
-                                        <span class="text-muted">ID Pelanggan:</span>
-                                        <span class="badge bg-secondary text-white font-monospace" id="badge_idpel">-</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
-                                        <span class="text-muted">Token 20 Digit:</span>
-                                        <span class="badge bg-primary text-white font-monospace" id="badge_token">-</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
-                                        <span class="text-muted">Nama Pelanggan:</span>
-                                        <span class="badge bg-info text-white" id="badge_nama">-</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
-                                        <span class="text-muted">Tarif / Daya:</span>
-                                        <span class="badge bg-secondary text-white font-monospace" id="badge_tarif">-</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
-                                        <span class="text-muted">Jumlah Kwh:</span>
-                                        <span class="badge bg-dark text-white font-monospace" id="badge_kwh">-</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center pt-1 small fw-bold">
-                                        <span class="text-dark">Estimasi Total Bayar:</span>
-                                        <span class="badge bg-success text-white font-monospace fs-6" id="badge_total">-</span>
-                                    </div>
+                                    <!-- Diisi secara dinamis sesuai kategori struk (PRABAYAR / PASCA BAYAR / BANK) oleh renderPreviewBadges() -->
                                 </div>
                             </div>
                         </div>
@@ -2376,6 +2443,7 @@ Tidak ada log tersedia.
                                             <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">NAMA</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_nama">PRABOWO SUBIANTO WARDJOYO</span></div>
                                             <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">TARIF/DAYA</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_tarif">R1/900VA</span></div>
                                             <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">BL/TH</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_blth">OKT/2026</span></div>
+                                            <div class="d-flex mb-1"><span style="width: 95px; font-weight: 700;">JML BULAN</span><span class="me-2 fw-bold">:</span><span class="fw-bold" id="pv_pasca_jmlbulan">1 BULAN</span></div>
                                         </div>
                                         <!-- Right Col -->
                                         <div style="flex: 0.9;">
@@ -2386,6 +2454,14 @@ Tidak ada log tersedia.
                                                 <span class="d-inline-flex justify-content-between" style="width: 130px;">
                                                     <span class="fw-bold">Rp</span>
                                                     <span class="fw-bold text-end" id="pv_pasca_tagihan">210.345, 00</span>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex mb-1">
+                                                <span style="width: 100px; font-weight: 700;">DENDA</span>
+                                                <span class="me-2 fw-bold">:</span>
+                                                <span class="d-inline-flex justify-content-between" style="width: 130px;">
+                                                    <span class="fw-bold">Rp</span>
+                                                    <span class="fw-bold text-end" id="pv_pasca_denda">0, 00</span>
                                                 </span>
                                             </div>
                                             <div class="d-flex mb-1">
@@ -2734,12 +2810,42 @@ Tidak ada log tersedia.
     });
 
     /* ── Receipt Settings & Interactive Live Preview Engine ── */
+    const categoryPresets = {
+        'PRABAYAR': {
+            sample_sn: '046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11',
+            template: '[token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]. RP TOKEN=[rptoken]. PPN=[ppn]. PPJ=[ppj]/MATERAI:[materai]',
+            logo: '/images/receipt/pln.svg',
+            footer: 'Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat',
+            guide_sample: '046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11',
+            guide_result: '[token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]. RP TOKEN=[rptoken]. PPN=[ppn]. PPJ=[ppj]/MATERAI:[materai]',
+            guide_desc: 'Ganti 20 digit token dengan [token], nama dengan [namapelanggan], daya dengan [daya], kwh dengan [kwh], dan ref PLN dengan [plnreff].'
+        },
+        'PASCA BAYAR': {
+            sample_sn: 'STAND: 7447-6541 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / BLN: OKT26 / JML: 1 BULAN / TAG: 210345 / DENDA: 0 / ADM: 3750 / REFF: 2TKT23R3D5994E77D4FA6B977F3A1F3',
+            template: 'STAND: [stand] / NAMA: [namapelanggan] / [golongan]/[daya] / BLN: [blth] / JML: [jmlbulan] / TAG: [nominal] / DENDA: [denda] / ADM: [admin] / REFF: [reff]',
+            logo: '/images/receipt/pln.svg',
+            footer: 'Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat',
+            guide_sample: 'STAND: 7447-6541 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / BLN: OKT26 / JML: 1 BULAN / TAG: 210345 / DENDA: 0 / ADM: 3750 / REFF: 2TKT23R3D5994E77D4FA6B977F3A1F3',
+            guide_result: 'STAND: [stand] / NAMA: [namapelanggan] / [golongan]/[daya] / BLN: [blth] / JML: [jmlbulan] / TAG: [nominal] / DENDA: [denda] / ADM: [admin] / REFF: [reff]',
+            guide_desc: 'Ganti stand meter dengan [stand], nama dengan [namapelanggan], periode bulan dengan [blth], jumlah bulan dengan [jmlbulan], tagihan dengan [nominal], denda dengan [denda], admin dengan [admin], dan nomor referensi dengan [reff].'
+        },
+        'BANK': {
+            sample_sn: 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL',
+            template: 'TRXID: [var1] / NOREK: [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [reff] / BERHASIL',
+            logo: '/images/receipt/bca.png',
+            footer: 'Struk ini merupakan bukti transfer yang sah dan diterbitkan secara elektronik.',
+            guide_sample: 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL',
+            guide_result: 'TRXID: [var1] / NOREK: [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [reff] / BERHASIL',
+            guide_desc: 'Ganti nomor rekening tujuan dengan [norek], nama penerima dengan [namapelanggan], jumlah transfer dengan [nominal], nomor referensi bank dengan [reff], dan TRXID dengan [var1].'
+        }
+    };
+
     const categoryParamDefs = {
         'BANK': {
             wajib: [
                 { tag: 'namapelanggan', label: 'Nama Penerima', hint: 'Nama pemilik rekening / penerima transfer' },
                 { tag: 'nominal', label: 'Nominal Transfer', hint: 'Nominal uang yang ditransfer' },
-                { tag: 'plnreff', label: 'No Referensi Bank', hint: 'Nomor referensi unik / ID transaksi bank' }
+                { tag: 'reff', label: 'No Referensi Bank', hint: 'Nomor referensi unik / ID transaksi bank' }
             ],
             opsional: [
                 { tag: 'norek', label: 'No Rekening (Opsional)', hint: 'Nomor rekening bank tujuan. Jika tidak ada di balasan SN, sistem otomatis mengambil dari nomor Tujuan transaksi OtomaX' },
@@ -2754,17 +2860,19 @@ Tidak ada log tersedia.
         'PASCA BAYAR': {
             wajib: [
                 { tag: 'namapelanggan', label: 'Nama Pelanggan', hint: 'Nama lengkap pelanggan terdaftar' },
-                { tag: 'nominal', label: 'Nominal Tagihan', hint: 'Nominal pokok tagihan listrik' },
-                { tag: 'blth', label: 'Bulan Tahun (BLTH)', hint: 'Bulan dan tahun tagihan listrik (misal: OKT26)' }
+                { tag: 'nominal', label: 'Nominal Pokok Tagihan', hint: 'Nominal pokok tagihan listrik' },
+                { tag: 'blth', label: 'Bulan Tahun (BLTH)', hint: 'Bulan dan tahun tagihan listrik (misal: OKT26)' },
+                { tag: 'reff', label: 'No Referensi (Reff)', hint: 'Nomor referensi unik transaksi PLN' }
             ],
             opsional: [
                 { tag: 'idpel', label: 'ID Pelanggan (Opsional)', hint: 'ID Pelanggan. Jika tidak ada di teks SN, otomatis diambil dari nomor Tujuan transaksi OtomaX' },
                 { tag: 'stand', label: 'Stand Meter', hint: 'Stand meter awal/akhir pascabayar' },
                 { tag: 'golongan', label: 'Tarif / Golongan', hint: 'Tarif golongan listrik (misal: R1)' },
                 { tag: 'daya', label: 'Daya Listrik', hint: 'Besaran daya listrik (misal: 900VA)' },
-                { tag: 'nometer', label: 'No Meter', hint: 'Nomor meter fisik pelanggan' },
-                { tag: 'plnreff', label: 'No Referensi PLN', hint: 'Nomor referensi transaksi PLN' },
+                { tag: 'jmlbulan', label: 'Jumlah Bulan', hint: 'Jumlah bulan tagihan (misal: 1 BULAN)' },
+                { tag: 'denda', label: 'Denda Keterlambatan', hint: 'Nominal denda jika ada keterlambatan pembayaran' },
                 { tag: 'admin', label: 'Biaya Admin', hint: 'Biaya admin loket/pembayaran' },
+                { tag: 'nometer', label: 'No Meter', hint: 'Nomor meter fisik pelanggan' },
                 { tag: 'totalbayar', label: 'Total Bayar', hint: 'Total keseluruhan pembayaran tagihan' },
                 { tag: 'var', label: 'Abaikan Teks Acak', hint: 'Abaikan teks/karakter acak di posisi ini' },
                 { tag: 'var1', label: 'Abaikan Karakter 1', hint: 'Abaikan karakter di tengah reply' },
@@ -2790,8 +2898,6 @@ Tidak ada log tersedia.
                 { tag: 'ppj', label: 'PPJ', hint: 'Pajak Penerangan Jalan' },
                 { tag: 'angsuran', label: 'Angsuran', hint: 'Biaya angsuran jika ada' },
                 { tag: 'materai', label: 'Meterai', hint: 'Biaya meterai transaksi' },
-                { tag: 'kwhsubsidi', label: 'kWh Subsidi', hint: 'Jumlah kWh subsidi' },
-                { tag: 'kwhkompensasi', label: 'kWh Kompensasi', hint: 'Jumlah kWh kompensasi' },
                 { tag: 'admin', label: 'Biaya Admin', hint: 'Biaya admin bawaan di SN' },
                 { tag: 'totalbayar', label: 'Total Bayar', hint: 'Total keseluruhan pembayaran' },
                 { tag: 'var', label: 'Abaikan Teks Acak', hint: 'Abaikan teks/karakter acak di posisi ini' },
@@ -2804,7 +2910,7 @@ Tidak ada log tersedia.
             wajib: [
                 { tag: 'namapelanggan', label: 'Nama Pelanggan / Tujuan', hint: 'Nama pelanggan / tujuan transaksi' },
                 { tag: 'nominal', label: 'Nominal / Harga', hint: 'Nominal transaksi atau harga produk' },
-                { tag: 'plnreff', label: 'SN / No Seri / Reff', hint: 'Nomor seri / SN dari provider' }
+                { tag: 'reff', label: 'SN / No Seri / Reff', hint: 'Nomor seri / SN dari provider' }
             ],
             opsional: [
                 { tag: 'idpel', label: 'ID Pelanggan / No Tujuan', hint: 'ID Pelanggan atau nomor tujuan' },
@@ -2817,6 +2923,33 @@ Tidak ada log tersedia.
             ]
         }
     };
+
+    function selectReceiptCategory(cat, forceReset = false) {
+        const inputCat = document.getElementById('rule_category');
+        if (inputCat) inputCat.value = cat;
+
+        // Highlight category card
+        ['PRABAYAR', 'PASCA BAYAR', 'BANK'].forEach(c => {
+            const idKey = c.replace(/\s+/g, '_');
+            const card = document.getElementById('cat_card_' + idKey);
+            if (card) {
+                const check = card.querySelector('.cat-check-icon');
+                if (c === cat) {
+                    card.style.borderColor = '#0B6FB6';
+                    card.style.background = '#f0f7ff';
+                    card.classList.add('shadow-sm');
+                    if (check) check.classList.remove('d-none');
+                } else {
+                    card.style.borderColor = '#cbd5e1';
+                    card.style.background = '#ffffff';
+                    card.classList.remove('shadow-sm');
+                    if (check) check.classList.add('d-none');
+                }
+            }
+        });
+
+        handleCategoryChange(cat, forceReset);
+    }
 
     function renderCategoryParams(cat) {
         const wContainer = document.getElementById('list_param_wajib');
@@ -2845,10 +2978,45 @@ Tidak ada log tersedia.
         handleTemplateChange();
     }
 
-    function handleCategoryChange(cat) {
+    function handleCategoryChange(cat, forceReset = false) {
         document.querySelectorAll('.field-bank-only').forEach(el => {
             el.style.display = (cat === 'BANK') ? 'block' : 'none';
         });
+
+        const preset = categoryPresets[cat] || categoryPresets['PRABAYAR'];
+
+        // Update Petunjuk box
+        const sampleBox = document.getElementById('box_supplier_sample');
+        if (sampleBox) sampleBox.innerText = preset.sample_sn;
+        const guideSample = document.getElementById('guide_sample_sn');
+        if (guideSample) guideSample.innerText = preset.guide_sample;
+        const guideResult = document.getElementById('guide_result_template');
+        if (guideResult) guideResult.innerText = preset.guide_result;
+        const guideDesc = document.getElementById('guide_desc_text');
+        if (guideDesc) guideDesc.innerText = preset.guide_desc;
+
+        // Update input fields jika mode baru atau forceReset
+        const ruleId = document.getElementById('rule_id')?.value;
+        const tplInput = document.getElementById('rule_sn_template');
+        const snInput = document.getElementById('rule_sample_sn');
+        const snPreview = document.getElementById('rule_sample_sn_preview');
+
+        if (!ruleId || forceReset) {
+            if (snInput) snInput.value = preset.sample_sn;
+            if (snPreview) snPreview.value = preset.sample_sn;
+            if (tplInput) tplInput.value = preset.template;
+            const footerInput = document.getElementById('rule_footer');
+            if (footerInput && (!footerInput.value || forceReset)) {
+                footerInput.value = preset.footer;
+            }
+            if (cat === 'BANK') {
+                const bankNameInput = document.getElementById('rule_bank_name');
+                if (bankNameInput && (!bankNameInput.value || forceReset)) bankNameInput.value = 'BANK CENTRAL ASIA';
+                const remarkInput = document.getElementById('rule_remark');
+                if (remarkInput && (!remarkInput.value || forceReset)) remarkInput.value = 'Transfer Uang';
+            }
+        }
+
         renderCategoryParams(cat);
         updateLivePreview();
     }
@@ -2927,6 +3095,16 @@ Tidak ada log tersedia.
     }
 
     function handleSampleSnChange(val) {
+        const previewInput = document.getElementById('rule_sample_sn_preview');
+        if (previewInput) previewInput.value = val;
+        const sampleBox = document.getElementById('box_supplier_sample');
+        if (sampleBox) sampleBox.innerText = val;
+        updateLivePreview();
+    }
+
+    function handlePreviewSnChange(val) {
+        const mainInput = document.getElementById('rule_sample_sn');
+        if (mainInput) mainInput.value = val;
         const sampleBox = document.getElementById('box_supplier_sample');
         if (sampleBox) sampleBox.innerText = val;
         updateLivePreview();
@@ -2964,12 +3142,10 @@ Tidak ada log tersedia.
 
             const re = new RegExp('\\[' + tag + '\\]', 'i');
             if (re.test(tplVal)) {
-                // BERUBAH JADI IJO!
                 pill.className = 'param-pill pill-green';
                 pill.innerHTML = '<i class="bx bx-check"></i>';
                 pill.title = 'Sudah terpasang di template';
             } else {
-                // TETAP OREN!
                 pill.className = 'param-pill pill-orange';
                 pill.innerHTML = '-';
                 pill.title = 'Belum terpasang di template';
@@ -3005,34 +3181,13 @@ Tidak ada log tersedia.
     }
 
     function loadSampleSn(type) {
-        const snInput = document.getElementById('rule_sample_sn');
-        const tplInput = document.getElementById('rule_sn_template');
-        const catSelect = document.getElementById('rule_category');
-        const sampleBox = document.getElementById('box_supplier_sample');
-        if (!snInput) return;
-
         if (type === 'pln_token') {
-            const val = '046X-521X-103X-540X-403X/Bejo Panuroto/R1M/900VA/23,9 PLNREF=0XYZ253511032F69F9BE6BBB555C332X. RP TOKEN=18.867,00. PPN=0,00. PPJ=1.133,00/MATERAI:0,00. Saldo 1.113.518 - 392.175 = 721.343 @14:11';
-            snInput.value = val;
-            if (sampleBox) sampleBox.innerText = val;
-            if (tplInput) tplInput.value = '[token]/[namapelanggan]/[golongan]/[daya]/[kwh] PLNREF=[plnreff]. RP TOKEN=[rptoken]. PPN=[ppn]. PPJ=[ppj]/MATERAI:[materai]';
-            if (catSelect) catSelect.value = 'PRABAYAR';
+            selectReceiptCategory('PRABAYAR', true);
         } else if (type === 'pln_pasca') {
-            const val = 'STAND: 7447-6541 / NAMA: PRABOWO SUBIANTO WARDJOYO / R1/900VA / BLN: OKT26 / TAG: 210345 / ADM: 3750 / REFF: 2TKT23R3D5994E77D4FA6B977F3A1F3';
-            snInput.value = val;
-            if (sampleBox) sampleBox.innerText = val;
-            if (tplInput) tplInput.value = 'STAND: [stand] / NAMA: [namapelanggan] / [golongan]/[daya] / BLN: [blth] / TAG: [nominal] / ADM: [admin] / REFF: [plnreff]';
-            if (catSelect) catSelect.value = 'PASCA BAYAR';
+            selectReceiptCategory('PASCA BAYAR', true);
         } else if (type === 'bank_bca') {
-            const val = 'TRXID: 032312023948239990 / NOREK: 614501012345 / NAMA: PRABOWO SUBIANTO WARDJOYO / NOMINAL: 4000000 / REFF: 261021VD3UDD / BERHASIL';
-            snInput.value = val;
-            if (sampleBox) sampleBox.innerText = val;
-            if (tplInput) tplInput.value = 'TRXID: [var1] / NOREK: [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL';
-            if (catSelect) catSelect.value = 'BANK';
+            selectReceiptCategory('BANK', true);
         }
-
-        if (catSelect) handleCategoryChange(catSelect.value);
-        handleTemplateChange();
     }
 
     function formatRupiah(num) {
@@ -3047,15 +3202,128 @@ Tidak ada log tersedia.
         return 'IDR ' + Number(num || 0).toLocaleString('id-ID');
     }
 
+    function renderPreviewBadges(cat, data) {
+        const container = document.getElementById('previewBadges');
+        if (!container) return;
+
+        if (cat === 'BANK') {
+            container.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-user me-1 text-primary"></i>Nama Penerima:</span>
+                    <span class="badge bg-info text-white font-monospace">${data.nama || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-credit-card me-1 text-secondary"></i>No. Rekening Tujuan:</span>
+                    <span class="badge bg-secondary text-white font-monospace">${data.norek || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-money me-1 text-success"></i>Nominal Transfer:</span>
+                    <span class="badge bg-primary text-white font-monospace">${formatBankIdr(data.tagihan)}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-hash me-1 text-dark"></i>No. Referensi (Reff):</span>
+                    <span class="badge bg-dark text-white font-monospace">${data.reff || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-receipt me-1 text-info"></i>Biaya Admin Bank:</span>
+                    <span class="badge bg-light text-dark font-monospace border">${formatRupiah(data.admin)}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-1 small fw-bold">
+                    <span class="text-dark"><i class="bx bx-wallet me-1 text-success"></i>Total Transfer:</span>
+                    <span class="badge bg-success text-white font-monospace fs-6">${formatBankIdr(data.total)}</span>
+                </div>
+            `;
+        } else if (cat === 'PASCA BAYAR') {
+            container.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-id-card me-1 text-secondary"></i>ID Pelanggan:</span>
+                    <span class="badge bg-secondary text-white font-monospace">${data.idpel || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-user me-1 text-primary"></i>Nama Pelanggan:</span>
+                    <span class="badge bg-info text-white font-monospace">${data.nama || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-tachometer me-1 text-warning"></i>Tarif / Daya:</span>
+                    <span class="badge bg-secondary text-white font-monospace">${data.tarif || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-time me-1 text-secondary"></i>Stand Meter:</span>
+                    <span class="badge bg-light text-dark font-monospace border">${data.stand || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-calendar me-1 text-warning"></i>Bulan / Tahun (BLTH):</span>
+                    <span class="badge bg-warning-subtle text-warning font-monospace">${data.blth || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-calendar-event me-1 text-primary"></i>Jumlah Bulan:</span>
+                    <span class="badge bg-light text-dark font-monospace border">${data.jmlbulan || '1 BULAN'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-money me-1 text-primary"></i>Tagihan Listrik:</span>
+                    <span class="badge bg-primary text-white font-monospace">${formatPlnRupiah(data.tagihan, 'Rp ')}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-alarm-exclamation me-1 text-danger"></i>Denda Keterlambatan:</span>
+                    <span class="badge bg-light text-danger font-monospace border">${formatPlnRupiah(data.denda || 0, 'Rp ')}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-receipt me-1 text-info"></i>Biaya Admin:</span>
+                    <span class="badge bg-light text-dark font-monospace border">${formatPlnRupiah(data.admin, 'Rp ')}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-hash me-1 text-dark"></i>No. Referensi (Reff):</span>
+                    <span class="badge bg-dark text-white font-monospace">${data.reff || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-1 small fw-bold">
+                    <span class="text-dark"><i class="bx bx-wallet me-1 text-success"></i>Total Bayar:</span>
+                    <span class="badge bg-success text-white font-monospace fs-6">${formatPlnRupiah(data.total, 'Rp ')}</span>
+                </div>
+            `;
+        } else {
+            // PRABAYAR (Default)
+            container.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-barcode me-1 text-primary"></i>Token 20 Digit:</span>
+                    <span class="badge bg-primary text-white font-monospace">${data.token ? (data.token.substr(0,11) + '...') : '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-user me-1 text-info"></i>Nama Pelanggan:</span>
+                    <span class="badge bg-info text-white font-monospace">${data.nama || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-tachometer me-1 text-secondary"></i>No. Meter:</span>
+                    <span class="badge bg-secondary text-white font-monospace">${data.nometer || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-id-card me-1 text-secondary"></i>ID Pelanggan:</span>
+                    <span class="badge bg-secondary text-white font-monospace">${data.idpel || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-bolt-circle me-1 text-warning"></i>Tarif / Daya:</span>
+                    <span class="badge bg-secondary text-white font-monospace">${data.tarif || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 small">
+                    <span class="text-muted"><i class="bx bx-zap me-1 text-warning"></i>Jumlah kWh:</span>
+                    <span class="badge bg-dark text-white font-monospace">${data.kwh || '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-1 small fw-bold">
+                    <span class="text-dark"><i class="bx bx-wallet me-1 text-success"></i>Estimasi Total Bayar:</span>
+                    <span class="badge bg-success text-white font-monospace fs-6">${formatPlnRupiah(data.total, 'RP ')}</span>
+                </div>
+            `;
+        }
+    }
+
     function updateLivePreview() {
         const cat = document.getElementById('rule_category')?.value || 'PRABAYAR';
         const nameVal = document.getElementById('rule_name')?.value?.trim();
         const provVal = document.getElementById('rule_provider')?.value?.trim();
-        const adminFee = parseFloat(document.getElementById('rule_admin')?.value) || 0;
+        let adminFee = parseFloat(document.getElementById('rule_admin')?.value) || 0;
         const bankName = document.getElementById('rule_bank_name')?.value?.trim() || 'BANK CENTRAL ASIA';
         const remark = document.getElementById('rule_remark')?.value?.trim() || 'Transfer Uang';
         const footerInfo = document.getElementById('rule_footer')?.value?.trim() || 'Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat';
-        const rawSn = document.getElementById('rule_sample_sn')?.value || '';
+        const rawSn = document.getElementById('rule_sample_sn')?.value || document.getElementById('rule_sample_sn_preview')?.value || '';
 
         const parserMode = document.querySelector('input[name="parser_mode"]:checked')?.value || 'auto';
         const delim = document.getElementById('rule_sn_delimiter')?.value || '/';
@@ -3073,7 +3341,9 @@ Tidak ada log tersedia.
         let idPel = '098765432100';
         let noRek = '614501012345';
         let tagihan = (cat === 'PASCA BAYAR') ? 210345 : ((cat === 'BANK') ? 4000000 : 876543);
-        let reff = '2TKT23R3D5994E77D4FA6B977F3A1F3';
+        let reff = (cat === 'BANK') ? '261021VD3UDD' : '2TKT23R3D5994E77D4FA6B977F3A1F3';
+        let jmlBulan = '1 BULAN';
+        let denda = 0;
 
         // ── Helper: Evaluasi Regex Per Kolom ──
         const evalFieldRegex = (inputId, setter) => {
@@ -3136,8 +3406,9 @@ Tidak ada log tersedia.
                         else if (m.groups.meter) noMeter = m.groups.meter.trim();
 
                         if (m.groups.idpel) idPel = m.groups.idpel.trim();
-                        if (m.groups.plnreff) reff = m.groups.plnreff.trim();
-                        else if (m.groups.reff) reff = m.groups.reff.trim();
+                        if (m.groups.reff) reff = m.groups.reff.trim();
+                        else if (m.groups.plnreff) reff = m.groups.plnreff.trim();
+                        else if (m.groups.ref) reff = m.groups.ref.trim();
 
                         if (m.groups.norek) noRek = m.groups.norek.trim();
                         else if (m.groups.rekening) noRek = m.groups.rekening.trim();
@@ -3145,13 +3416,25 @@ Tidak ada log tersedia.
                         if (m.groups.stand) standMeter = m.groups.stand.trim();
                         if (m.groups.blth) blth = m.groups.blth.trim();
 
-                        const rawNom = m.groups.nominal || m.groups.rptoken || m.groups.totalbayar;
+                        if (m.groups.jmlbulan) jmlBulan = m.groups.jmlbulan.trim();
+                        else if (m.groups.lembar) jmlBulan = m.groups.lembar.trim();
+                        else if (m.groups.bulan) jmlBulan = m.groups.bulan.trim();
+
+                        if (m.groups.denda) {
+                            const d = parseFloat(m.groups.denda.replace(/[^\d]/g, ''));
+                            if (!isNaN(d)) denda = d;
+                        }
+
+                        const rawNom = m.groups.nominal || m.groups.rptagihan || m.groups.rptoken || m.groups.totalbayar;
                         if (rawNom) {
                             const n = parseFloat(rawNom.replace(/[^\d]/g, ''));
                             if (n > 0) tagihan = n;
                         }
                         if (m.groups.admin) {
                             const adm = parseFloat(m.groups.admin.replace(/[^\d]/g, ''));
+                            if (adm > 0) adminFee = adm;
+                        } else if (m.groups.adminbank) {
+                            const adm = parseFloat(m.groups.adminbank.replace(/[^\d]/g, ''));
                             if (adm > 0) adminFee = adm;
                         }
                     }
@@ -3173,11 +3456,16 @@ Tidak ada log tersedia.
                     else if (cleanTag === 'KWH') kwh = clean;
                     else if (cleanTag === 'STAND') standMeter = clean;
                     else if (cleanTag === 'BLTH') blth = clean;
+                    else if (cleanTag === 'JMLBULAN' || cleanTag === 'LEMBAR') jmlBulan = clean;
+                    else if (cleanTag === 'DENDA') {
+                        const d = parseFloat(clean.replace(/[^\d]/g, ''));
+                        if (!isNaN(d)) denda = d;
+                    }
                     else if (cleanTag === 'IDPEL') idPel = clean;
                     else if (cleanTag === 'METER' || cleanTag === 'NOMETER') noMeter = clean;
                     else if (cleanTag === 'NOREK' || cleanTag === 'REKENING') noRek = clean;
-                    else if (cleanTag === 'REFF' || cleanTag === 'REF') reff = clean;
-                    else if (cleanTag === 'TAGIHAN' || cleanTag === 'NOMINAL' || cleanTag === 'TOTAL') {
+                    else if (cleanTag === 'REFF' || cleanTag === 'PLNREFF' || cleanTag === 'REF') reff = clean;
+                    else if (cleanTag === 'TAGIHAN' || cleanTag === 'RPTAGIHAN' || cleanTag === 'NOMINAL' || cleanTag === 'TOTAL') {
                         const n = parseFloat(clean.replace(/[^\d]/g, ''));
                         if (n > 0) tagihan = n;
                     }
@@ -3198,12 +3486,18 @@ Tidak ada log tersedia.
                     if (m.groups.kwh) kwh = m.groups.kwh;
                     if (m.groups.stand) standMeter = m.groups.stand;
                     if (m.groups.blth) blth = m.groups.blth;
+                    if (m.groups.jmlbulan) jmlBulan = m.groups.jmlbulan;
+                    if (m.groups.denda) {
+                        const d = parseFloat(m.groups.denda.replace(/[^\d]/g, ''));
+                        if (!isNaN(d)) denda = d;
+                    }
                     if (m.groups.idpel) idPel = m.groups.idpel;
                     if (m.groups.meter) noMeter = m.groups.meter;
                     if (m.groups.norek) noRek = m.groups.norek;
                     if (m.groups.reff) reff = m.groups.reff;
-                    if (m.groups.tagihan) {
-                        const n = parseFloat(m.groups.tagihan.replace(/[^\d]/g, ''));
+                    else if (m.groups.plnreff) reff = m.groups.plnreff;
+                    if (m.groups.tagihan || m.groups.nominal) {
+                        const n = parseFloat((m.groups.tagihan || m.groups.nominal).replace(/[^\d]/g, ''));
                         if (n > 0) tagihan = n;
                     }
                 }
@@ -3211,17 +3505,19 @@ Tidak ada log tersedia.
         }
 
         // 4. Smart Auto Regex Fallback (jika belum terisi dari langkah di atas)
-        if (!token) {
-            const mTok = rawSn.match(/(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})/) || rawSn.match(/\b\d{20}\b/);
-            if (mTok) {
-                const digits = mTok[0].replace(/[-\s]/g, '');
+        if (cat === 'PRABAYAR') {
+            if (!token) {
+                const mTok = rawSn.match(/(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})[-\s]?(\d{4})/) || rawSn.match(/\b\d{20}\b/);
+                if (mTok) {
+                    const digits = mTok[0].replace(/[-\s]/g, '');
+                    token = `${digits.substr(0,4)} - ${digits.substr(4,4)} - ${digits.substr(8,4)} - ${digits.substr(12,4)} - ${digits.substr(16,4)}`;
+                } else {
+                    token = '2920 - 3211 - 4567 - 8910 - 0987';
+                }
+            } else if (token.replace(/[-\s]/g, '').length === 20) {
+                const digits = token.replace(/[-\s]/g, '');
                 token = `${digits.substr(0,4)} - ${digits.substr(4,4)} - ${digits.substr(8,4)} - ${digits.substr(12,4)} - ${digits.substr(16,4)}`;
-            } else {
-                token = '2920 - 3211 - 4567 - 8910 - 0987';
             }
-        } else if (token.replace(/[-\s]/g, '').length === 20) {
-            const digits = token.replace(/[-\s]/g, '');
-            token = `${digits.substr(0,4)} - ${digits.substr(4,4)} - ${digits.substr(8,4)} - ${digits.substr(12,4)} - ${digits.substr(16,4)}`;
         }
 
         const mName = rawSn.match(/(?:NAMA|NAME|NAMA\sPELANGGAN|NAMA\sREK|AN|A\/N)\s*[:=]\s*([^\/,;]+)/i) || rawSn.match(/\/([A-Z\s]{4,35})\//);
@@ -3239,6 +3535,16 @@ Tidak ada log tersedia.
         const mBlth = rawSn.match(/(?:BLN?\/THN?|BL\/TH|PERIODE)\s*[:=]\s*([^\/,;]+)/i);
         if (mBlth && mBlth[1]) blth = mBlth[1].trim();
 
+        const mJml = rawSn.match(/(?:JML\s*BULAN|JUMLAH\s*BULAN|LEMBAR|LBR)\s*[:=]\s*(\d+\s*(?:BULAN|LBR)?)/i);
+        if (mJml && mJml[1] && jmlBulan === '1 BULAN') jmlBulan = mJml[1].trim();
+        if (!isNaN(jmlBulan) && !jmlBulan.includes('BULAN')) jmlBulan += ' BULAN';
+
+        const mDenda = rawSn.match(/(?:DENDA)\s*[:=]\s*([\d\.,]+)/i);
+        if (mDenda && mDenda[1] && denda === 0) {
+            const d = parseFloat(mDenda[1].replace(/[^\d]/g, ''));
+            if (!isNaN(d)) denda = d;
+        }
+
         const mIdpel = rawSn.match(/(?:IDPEL|ID\s*PEL|ID\s*PELANGGAN)\s*[:=]\s*(\d{10,13})/i);
         if (mIdpel && mIdpel[1]) { idPel = mIdpel[1].trim(); }
 
@@ -3251,26 +3557,32 @@ Tidak ada log tersedia.
             if (num > 0) tagihan = num;
         }
 
-        const mReff = rawSn.match(/(?:REFF|REF|SN)\s*[:=]\s*([A-Za-z0-9]+)/i);
+        const mReff = rawSn.match(/(?:REFF|REF|PLNREF|PLNREFF|SN)\s*[:=]\s*([A-Za-z0-9]+)/i);
         if (mReff && mReff[1]) reff = mReff[1].trim();
 
-        const totalBayar = (cat === 'PRABAYAR' && tagihan < 1000000) ? 1000000 : (tagihan + adminFee);
+        const totalBayar = (cat === 'PRABAYAR' && tagihan < 1000000) ? 1000000 : (tagihan + adminFee + (cat === 'PASCA BAYAR' ? denda : 0));
 
-        // Update Extracted Status Badges (Real-Time)
-        const elMeter = document.getElementById('badge_meter');
-        if (elMeter) elMeter.innerText = noMeter || '-';
-        const elIdpel = document.getElementById('badge_idpel');
-        if (elIdpel) elIdpel.innerText = idPel || '-';
-        const elTok = document.getElementById('badge_token');
-        if (elTok) elTok.innerText = token ? (token.substr(0,11) + '...') : '-';
-        const elNam = document.getElementById('badge_nama');
-        if (elNam) elNam.innerText = custName || '-';
-        const elTrf = document.getElementById('badge_tarif');
-        if (elTrf) elTrf.innerText = tarifDaya || '-';
-        const elKwh = document.getElementById('badge_kwh');
-        if (elKwh) elKwh.innerText = kwh || '-';
-        const elTot = document.getElementById('badge_total');
-        if (elTot) elTot.innerText = formatRupiah(totalBayar);
+        // Update Extracted Status Badges (Real-Time sesuai Kategori!)
+        const catBadge = document.getElementById('preview_cat_badge');
+        if (catBadge) catBadge.innerText = cat;
+
+        renderPreviewBadges(cat, {
+            token: token,
+            nama: custName,
+            nometer: noMeter,
+            idpel: idPel,
+            tarif: tarifDaya,
+            kwh: kwh,
+            stand: standMeter,
+            blth: blth,
+            jmlbulan: jmlBulan,
+            denda: denda,
+            tagihan: tagihan,
+            admin: adminFee,
+            total: totalBayar,
+            reff: reff,
+            norek: noRek
+        });
 
         // Update Paper Template Visibility
         const bPra = document.getElementById('pv_body_prabayar');
@@ -3308,7 +3620,9 @@ Tidak ada log tersedia.
         setTxt('pv_pasca_tarif', tarifDaya);
         setTxt('pv_pasca_stand', standMeter);
         setTxt('pv_pasca_blth', blth);
+        setTxt('pv_pasca_jmlbulan', jmlBulan);
         setTxt('pv_pasca_tagihan', formatPlnRupiah(tagihan, 'Rp '));
+        setTxt('pv_pasca_denda', formatPlnRupiah(denda, 'Rp '));
         setTxt('pv_pasca_admin', formatPlnRupiah(adminFee, 'Rp '));
         setTxt('pv_pasca_total', formatPlnRupiah(totalBayar, 'Rp '));
 
@@ -3340,7 +3654,6 @@ Tidak ada log tersedia.
 
         setVal('rule_id', rule.id || '');
         setVal('existing_logo_url', rule.logo_url || '');
-        setVal('rule_category', rule.category || 'UMUM');
         setVal('rule_name', rule.name || '');
         setVal('rule_provider', rule.provider || '');
         setVal('rule_keywords', rule.keywords || '');
@@ -3359,6 +3672,7 @@ Tidak ada log tersedia.
         setVal('rule_sn_regex', rule.sn_regex || '');
         if (rule.sample_sn) {
             setVal('rule_sample_sn', rule.sample_sn);
+            setVal('rule_sample_sn_preview', rule.sample_sn);
             const sBox = document.getElementById('box_supplier_sample');
             if (sBox) sBox.innerText = rule.sample_sn;
         }
@@ -3380,7 +3694,7 @@ Tidak ada log tersedia.
         const pvLogo = document.getElementById('pv_logo');
         if (pvLogo && rule.logo_url) pvLogo.src = rule.logo_url;
 
-        handleCategoryChange(rule.category);
+        selectReceiptCategory(rule.category || 'PRABAYAR', false);
         handleParserModeChange(mode);
         handleTemplateChange();
 
@@ -3404,7 +3718,6 @@ Tidak ada log tersedia.
         setVal('rule_provider', '');
         setVal('rule_keywords', '');
         setVal('rule_name', '');
-        setVal('rule_sn_template', ': [norek] / NAMA: [namapelanggan] / NOMINAL: [nominal] / REFF: [plnreff] / BERHASIL');
         setVal('rule_sn_delimiter', '/');
         setVal('rule_sn_pattern', '');
         setVal('rule_sn_regex', '');
@@ -3429,16 +3742,15 @@ Tidak ada log tersedia.
         const titleEl = document.getElementById('ruleFormTitle');
         if (titleEl) titleEl.innerText = 'Tambah Aturan Logo & Format Struk';
 
-        handleCategoryChange('PRABAYAR');
+        selectReceiptCategory('PRABAYAR', true);
         handleParserModeChange('template');
-        loadSampleSn('bank_bca');
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         // Run initial live preview on tab receipt
-        const catSelect = document.getElementById('rule_category');
-        const initialCat = catSelect ? catSelect.value : 'PRABAYAR';
-        handleCategoryChange(initialCat);
+        const catInput = document.getElementById('rule_category');
+        const initialCat = catInput ? catInput.value : 'PRABAYAR';
+        selectReceiptCategory(initialCat, false);
         const initialMode = document.querySelector('input[name="parser_mode"]:checked')?.value || 'template';
         handleParserModeChange(initialMode);
         handleTemplateChange();

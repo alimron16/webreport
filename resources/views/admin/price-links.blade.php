@@ -91,9 +91,14 @@
                     <span class="fw-bold text-dark">Tautan Tersimpan</span>
                     <span class="badge bg-label-primary ms-2">{{ count($links) }} link</span>
                 </div>
-                <a href="{{ route('webreport.public-prices') }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                    <i class="bx bx-globe me-1"></i> Tautan Dasar ↗
-                </a>
+                <div class="d-flex gap-1">
+                    <a href="{{ route('webreport.public-prices') }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                        <i class="bx bx-globe me-1"></i> Tautan Dasar ↗
+                    </a>
+                    <a href="{{ route('webreport.public-prices-json') }}" target="_blank" class="btn btn-outline-info btn-sm">
+                        <i class="bx bx-code-alt me-1"></i> JSON Dasar ↗
+                    </a>
+                </div>
             </div>
 
             <div class="table-responsive text-nowrap">
@@ -102,7 +107,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 25%;">Label & Target Level</th>
-                                <th style="width: 40%;">Tautan Publik</th>
+                                <th style="width: 40%;">Tautan Publik & API JSON</th>
                                 <th style="width: 15%;">Masa Berlaku</th>
                                 <th class="text-center" style="width: 10%;">Hits</th>
                                 <th class="text-end" style="width: 10%;">Aksi</th>
@@ -131,13 +136,26 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="input-group input-group-sm" style="max-width: 460px;">
+                                        <!-- Tautan Web -->
+                                        <div class="input-group input-group-sm mb-1" style="max-width: 480px;">
+                                            <span class="input-group-text bg-light text-muted" style="font-size: 11px; width: 55px;">Web</span>
                                             <input type="text" id="url-{{ $link['id'] }}" class="form-control font-monospace small bg-light" value="{{ $link['url'] }}" readonly>
-                                            <button type="button" class="btn btn-outline-primary" onclick="copyLink('{{ $link['id'] }}', this)" title="Salin Tautan">
+                                            <button type="button" class="btn btn-outline-primary" onclick="copyLink('{{ $link['id'] }}', this)" title="Salin Tautan Web">
                                                 <i class="bx bx-copy"></i>
                                             </button>
-                                            <a href="{{ $link['url'] }}" target="_blank" class="btn btn-outline-secondary" title="Buka">
+                                            <a href="{{ $link['url'] }}" target="_blank" class="btn btn-outline-secondary" title="Buka Halaman Web">
                                                 <i class="bx bx-link-external"></i>
+                                            </a>
+                                        </div>
+                                        <!-- Tautan Format JSON Realtime -->
+                                        <div class="input-group input-group-sm" style="max-width: 480px;">
+                                            <span class="input-group-text bg-info-subtle text-info fw-semibold" style="font-size: 11px; width: 55px;">JSON</span>
+                                            <input type="text" id="json-{{ $link['id'] }}" class="form-control font-monospace small bg-light text-primary" value="{{ $link['url'] }}/json" readonly>
+                                            <button type="button" class="btn btn-outline-info" onclick="copyJsonLink('{{ $link['id'] }}', this)" title="Salin Endpoint JSON">
+                                                <i class="bx bx-copy"></i>
+                                            </button>
+                                            <a href="{{ $link['url'] }}/json" target="_blank" class="btn btn-outline-secondary" title="Buka Data JSON">
+                                                <i class="bx bx-code-alt"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -205,6 +223,23 @@
 
     function copyLink(id, btn) {
         const input = document.getElementById('url-' + id);
+        input.select();
+        input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value).then(() => {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="bx bx-check text-success"></i>';
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+            }, 1800);
+        }).catch(() => {
+            document.execCommand('copy');
+            btn.innerHTML = '<i class="bx bx-check text-success"></i>';
+            setTimeout(() => { btn.innerHTML = '<i class="bx bx-copy"></i>'; }, 1800);
+        });
+    }
+
+    function copyJsonLink(id, btn) {
+        const input = document.getElementById('json-' + id);
         input.select();
         input.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(input.value).then(() => {

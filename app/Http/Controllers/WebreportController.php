@@ -52,7 +52,17 @@ class WebreportController extends Controller
         if (Session::has('logged_in_reseller_code')) {
             return redirect()->route('webreport.dashboard');
         }
-        return view('webreport.login');
+
+        $rcEnabled = Cache::get('recaptcha_enabled');
+        if ($rcEnabled === null) {
+            $rcEnabled = (\App\Models\Setting::get('recaptcha_enabled') === '1' || \App\Models\Setting::get('recaptcha_enabled') === true);
+        } else {
+            $rcEnabled = filter_var($rcEnabled, FILTER_VALIDATE_BOOLEAN);
+        }
+        $rcSiteKey = Cache::get('recaptcha_site_key') ?: \App\Models\Setting::get('recaptcha_site_key', '');
+        $showRecaptcha = $rcEnabled && !empty($rcSiteKey);
+
+        return view('webreport.login', compact('showRecaptcha', 'rcSiteKey'));
     }
 
     /**
@@ -120,6 +130,7 @@ class WebreportController extends Controller
                 \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
                 $request->session()->regenerate(); // Prevent Session Fixation
                 Session::put('logged_in_reseller_code', $kode);
+                Session::put('reseller_ua_hash', hash('sha256', (string)$request->userAgent()));
                 $displayName = $reseller['nama'] ?? $reseller['name'] ?? $kode;
 
                 \Illuminate\Support\Facades\Log::info("AUDIT: Reseller login SUCCESS for [{$kode}] from IP: {$request->ip()}");
@@ -163,6 +174,15 @@ class WebreportController extends Controller
     {
         if (!Session::has('logged_in_reseller_code')) {
             return redirect()->route('webreport.login');
+        }
+        $expectedUa = Session::get('reseller_ua_hash');
+        $currentUa = hash('sha256', (string)request()->userAgent());
+        if (!empty($expectedUa) && !hash_equals($expectedUa, $currentUa)) {
+            Log::warning("SECURITY: Reseller session User-Agent mismatch for [" . Session::get('logged_in_reseller_code') . "] from IP: " . request()->ip());
+            Session::forget(['logged_in_reseller_code', 'reseller_ua_hash']);
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect()->route('webreport.login')->with('error', 'Sesi Anda telah berakhir demi keamanan. Silakan login kembali.');
         }
         return null;
     }
@@ -462,18 +482,25 @@ class WebreportController extends Controller
      */
     public function transactionDetail(Request $request, $trxid)
     {
-        if (!Session::has('logged_in_reseller_code')) {
+        if ($this->checkAuth() !== null) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         }
 
-        $detailsResult = $this->otomaXService->call('GetTrx', ['trxid' => (int)$trxid]);
+        if (!is_numeric($trxid) || (int)$trxid <= 0) {
+            return response()->json(['status' => 'error', 'message' => 'ID Transaksi tidak valid'], 400);
+        }
+
+        $detailsResult = $this->otomaXService->call('GetTrx', [
+            'trxid'         => (int)$trxid,
+            'kode_reseller' => $this->getActiveReseller(),
+        ]);
         $details = $this->parseResponse($detailsResult);
 
         if (!$details) {
             return response()->json([
                 'status' => 'error', 
                 'message' => $detailsResult['desc'] ?? $detailsResult['message'] ?? 'Transaction not found'
-            ]);
+            ], 404);
         }
 
         return response()->json($details);
@@ -491,7 +518,13 @@ class WebreportController extends Controller
         $activeCode = $this->getActiveReseller();
         $filter = $request->input('filter', 'semua');
         $productCode = $request->input('product_code', '');
-        $kodeLevel = $request->input('level', '');
+        
+        // Kunci level ketat ke level resmi milik reseller yang login (cegah tembus via query string ?level=)
+        $kodeLevel = '';
+        if (!empty($activeCode)) {
+            $rsInfo = $this->parseResponse($this->otomaXService->call('GetRs', ['kode' => $activeCode]));
+            $kodeLevel = trim((string)($rsInfo['kode_level'] ?? ''));
+        }
 
         $pricesRes = $this->otomaXService->call('GetDaftarHargaRs', [
             'kode_reseller' => $activeCode,
@@ -522,6 +555,67 @@ class WebreportController extends Controller
     {
         $request->merge(['token' => $token]);
         return $this->publicPrices($request);
+    }
+
+    public function publicPricesTokenJson(Request $request, $token)
+    {
+        $request->merge(['token' => $token]);
+        return $this->publicPricesJson($request);
+    }
+
+    public function publicPricesJson(Request $request)
+    {
+        $token = $request->input('token') ?? $request->route('token');
+        $activeLink = null;
+
+        if ($token) {
+            $links = Cache::get('generated_price_links', []);
+            $updated = false;
+            foreach ($links as &$item) {
+                if (($item['token'] ?? '') === $token) {
+                    $activeLink = $item;
+                    
+                    if (!empty($item['expires_at'])) {
+                        if (Carbon::now()->greaterThan(Carbon::parse($item['expires_at']))) {
+                            return response()->json([
+                                'status'  => false,
+                                'message' => 'Tautan daftar harga telah kadaluarsa.'
+                            ], 410);
+                        }
+                    }
+
+                    $item['hits'] = ($item['hits'] ?? 0) + 1;
+                    $updated = true;
+                    break;
+                }
+            }
+            if ($updated) {
+                Cache::forever('generated_price_links', $links);
+            }
+        }
+
+        $filter = $request->input('filter', 'semua');
+        $productCode = $request->input('product_code', '');
+        // Hanya token resmi yang berhak membuka level tertentu. Tanpa token selalu harga umum ('')
+        $kodeLevel = $activeLink ? ($activeLink['level'] ?? '') : '';
+
+        $pricesRes = $this->otomaXService->call('GetDaftarHargaRs', [
+            'kode_reseller' => '',
+            'kode_level'    => $kodeLevel,
+            'kode_produk'   => $productCode,
+            'sort_filter'   => $filter
+        ]);
+        $prices = $this->parseResponse($pricesRes, []);
+        $pricesList = is_array($prices) ? array_values($prices) : [];
+
+        return response()->json([
+            'status'       => true,
+            'label'        => $activeLink['label'] ?? 'Daftar Harga Resmi',
+            'level'        => !empty($kodeLevel) ? strtoupper($kodeLevel) : 'UMUM',
+            'total_produk' => count($pricesList),
+            'updated_at'   => Carbon::now()->format('Y-m-d H:i:s'),
+            'data'         => $pricesList
+        ], 200, ['Content-Type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
     public function publicPrices(Request $request)
@@ -560,8 +654,8 @@ class WebreportController extends Controller
         $filter = $request->input('filter', 'semua');
         $productCode = $request->input('product_code', '');
         
-        // Jika tautan dibuat untuk level tertentu, utamakan level tersebut
-        $kodeLevel = $activeLink ? ($activeLink['level'] ?? '') : $request->input('level', '');
+        // Hanya tautan token terdaftar yang dapat memuat level tertentu. URL publik tanpa token selalu terkunci harga umum ('')
+        $kodeLevel = $activeLink ? ($activeLink['level'] ?? '') : '';
 
         $pricesRes = $this->otomaXService->call('GetDaftarHargaRs', [
             'kode_reseller' => '',
@@ -595,6 +689,11 @@ class WebreportController extends Controller
     {
         if ($redirect = $this->checkAuth()) {
             return $redirect;
+        }
+
+        if (!filter_var(env('OTOMAX_MOCK_MODE', false), FILTER_VALIDATE_BOOLEAN)) {
+            Log::warning("SECURITY: Blocked quickAction [{$request->input('action')}] in production mode from IP: {$request->ip()}");
+            return back()->with('error', 'Fitur simulasi dinonaktifkan pada mode produksi.');
         }
 
         $action = $request->input('action');
@@ -732,6 +831,15 @@ class WebreportController extends Controller
         }
 
         $activeCode = $this->getActiveReseller();
+        $throttleKey = 'settings_otp_send_' . $activeCode . '_' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'status'  => 'error',
+                'message' => "Terlalu banyak permintaan OTP. Silakan tunggu {$seconds} detik."
+            ], 429);
+        }
+
         $rsResult = $this->otomaXService->call('GetRs', ['kode' => $activeCode]);
         $reseller = $rsResult['ok'] ? $rsResult['result'] : [];
 
@@ -743,9 +851,13 @@ class WebreportController extends Controller
             ]);
         }
 
-        $otp = (string)rand(100000, 999999);
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
+
+        $otp = (string)random_int(100000, 999999);
         Session::put('settings_otp', $otp);
         Session::put('settings_otp_email', $email);
+        Session::put('settings_otp_expires', time() + 600);
+        Session::put('settings_otp_attempts', 0);
 
         $sent = MailService::sendOtp($email, $otp, 'Perubahan Data Keamanan');
 
@@ -759,6 +871,31 @@ class WebreportController extends Controller
         ]);
     }
 
+    /**
+     * Validate callback URL against SSRF (blocks loopback, private IPs, and non-HTTP/HTTPS schemes)
+     */
+    protected function isSafeCallbackUrl(?string $url): bool
+    {
+        if (empty($url)) {
+            return true;
+        }
+        $parsed = parse_url($url);
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        $host   = strtolower($parsed['host'] ?? '');
+        if (!in_array($scheme, ['http', 'https'], true) || empty($host)) {
+            return false;
+        }
+        if (in_array($host, ['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]', '169.254.169.254'], true) || str_ends_with($host, '.local') || str_ends_with($host, '.internal')) {
+            return false;
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            if (!filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function updateSettings(Request $request)
     {
         if ($redirect = $this->checkAuth()) {
@@ -766,6 +903,11 @@ class WebreportController extends Controller
         }
 
         $activeCode = $this->getActiveReseller();
+        $throttleKey = 'settings_otp_verify_' . $activeCode . '_' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return back()->withInput()->with('error', "Terlalu banyak percobaan OTP. Silakan coba lagi dalam {$seconds} detik.");
+        }
         
         $validated = $request->validate([
             'otp' => 'required|string|size:6',
@@ -782,14 +924,29 @@ class WebreportController extends Controller
             'url_report.url' => 'Format URL Callback tidak valid.',
         ]);
 
-        $sessionOtp = Session::get('settings_otp');
-        if (empty($sessionOtp) || $request->input('otp') !== $sessionOtp) {
-            return back()->withInput()->withErrors(['otp' => 'Kode OTP salah atau telah kedaluwarsa!']);
+        if (!$this->isSafeCallbackUrl($validated['url_report'] ?? null)) {
+            return back()->withInput()->withErrors(['url_report' => 'URL Callback tidak diizinkan mengarah ke jaringan lokal / internal (SSRF Protection).']);
         }
 
+        $sessionOtp = (string)Session::get('settings_otp', '');
+        $otpExpires = (int)Session::get('settings_otp_expires', 0);
+        $otpAttempts = (int)Session::get('settings_otp_attempts', 0);
+
+        if (empty($sessionOtp) || time() > $otpExpires || $otpAttempts >= 5) {
+            Session::forget(['settings_otp', 'settings_otp_email', 'settings_otp_expires', 'settings_otp_attempts']);
+            return back()->withInput()->withErrors(['otp' => 'Kode OTP telah kedaluwarsa atau melebihi batas percobaan. Silakan minta OTP baru!']);
+        }
+
+        if (!hash_equals($sessionOtp, (string)$request->input('otp'))) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
+            Session::put('settings_otp_attempts', $otpAttempts + 1);
+            return back()->withInput()->withErrors(['otp' => 'Kode OTP salah!']);
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
+
         // Clear OTP once verified
-        Session::forget('settings_otp');
-        Session::forget('settings_otp_email');
+        Session::forget(['settings_otp', 'settings_otp_email', 'settings_otp_expires', 'settings_otp_attempts']);
 
         // Prepare updates
         $updateData = ['kode' => $activeCode];
@@ -797,18 +954,19 @@ class WebreportController extends Controller
             $updateData['pin'] = $validated['pin'];
         }
         if (isset($validated['alamat_ip'])) {
-            $updateData['alamat_ip'] = $validated['alamat_ip'];
+            $updateData['alamat_ip'] = strip_tags(trim($validated['alamat_ip']));
         }
         if (!empty($validated['password_ip'])) {
             $updateData['password_ip'] = $validated['password_ip'];
         }
         if (isset($validated['url_report'])) {
-            $updateData['url_report'] = $validated['url_report'];
+            $updateData['url_report'] = trim($validated['url_report']);
         }
 
         $res = $this->otomaXService->call('UpdateRs', $updateData);
 
         if ($res['ok']) {
+            Log::info("AUDIT: Reseller [{$activeCode}] updated security settings from IP: {$request->ip()}");
             return redirect()->route('webreport.settings')->with('success', 'Pengaturan keamanan berhasil diperbarui.');
         }
 
@@ -831,6 +989,21 @@ class WebreportController extends Controller
      */
     public function printReceipt(Request $request, $trxid)
     {
+        $throttleKey = 'receipt_view_' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 30)) {
+            return response()->view('errors.404', [
+                'title'   => 'Terlalu Banyak Permintaan',
+                'message' => 'Silakan tunggu beberapa saat sebelum mencetak struk kembali.'
+            ], 429);
+        }
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
+
+        if (!preg_match('/^[A-Za-z0-9\-_]{1,40}$/', (string)$trxid)) {
+            return response()->view('errors.404', [
+                'message' => 'Format ID Transaksi tidak valid.'
+            ], 404);
+        }
+
         $receiptService = app(\App\Services\ReceiptService::class);
         
         $trxRes = $this->otomaXService->call('GetSingleTransaction', ['trxid' => $trxid]);
@@ -841,11 +1014,9 @@ class WebreportController extends Controller
         }
 
         $trx = $trxRes['result'];
-        \Illuminate\Support\Facades\Log::info("PRINT_RECEIPT [{$trxid}] RAW_TRX: " . json_encode($trx));
         
         // Cari aturan logo & kategori struk yang cocok
         $rule = $receiptService->findMatchingRule($trx);
-        \Illuminate\Support\Facades\Log::info("PRINT_RECEIPT [{$trxid}] MATCHED_RULE: " . json_encode($rule));
 
         if (!$rule || !in_array(strtoupper(trim($rule['category'] ?? '')), ['PRABAYAR', 'PASCA BAYAR', 'BANK'], true)) {
             return response()->view('errors.404', [
@@ -854,14 +1025,24 @@ class WebreportController extends Controller
             ], 404);
         }
 
+        // Validasi transaksi: HANYA transaksi Sukses yang boleh mencetak struk
+        if (!$receiptService->isPrintable($trx)) {
+            return response()->view('errors.404', [
+                'title'   => 'Struk Belum Tersedia',
+                'message' => 'Struk hanya dapat dicetak untuk transaksi yang telah berhasil (Sukses).'
+            ], 403);
+        }
+
         // Jika ada override admin fee via parameter URL (?admin=3500)
         if ($request->has('admin') && is_numeric($request->input('admin'))) {
-            $rule['default_admin'] = (float)$request->input('admin');
+            $adminOverride = (float)$request->input('admin');
+            if ($adminOverride >= 0 && $adminOverride <= 1000000) {
+                $rule['default_admin'] = $adminOverride;
+            }
         }
 
         // Parse semua data terstruktur struk
         $receipt = $receiptService->parseReceipt($trx, $rule);
-        \Illuminate\Support\Facades\Log::info("PRINT_RECEIPT [{$trxid}] PARSED_RECEIPT: " . json_encode($receipt));
 
         return view('webreport.receipt', compact('receipt', 'trx', 'rule'));
     }

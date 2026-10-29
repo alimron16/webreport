@@ -202,15 +202,26 @@
         }
     </style>
 
-    @if(\Illuminate\Support\Facades\Cache::get('recaptcha_enabled') && \Illuminate\Support\Facades\Cache::get('recaptcha_site_key'))
+    @php
+        $rcEnabled = \Illuminate\Support\Facades\Cache::get('recaptcha_enabled');
+        if ($rcEnabled === null) {
+            $rcEnabled = (\App\Models\Setting::get('recaptcha_enabled') === '1' || \App\Models\Setting::get('recaptcha_enabled') === true);
+        } else {
+            $rcEnabled = filter_var($rcEnabled, FILTER_VALIDATE_BOOLEAN);
+        }
+        $rcSiteKey = \Illuminate\Support\Facades\Cache::get('recaptcha_site_key') ?: \App\Models\Setting::get('recaptcha_site_key', '');
+        $showRecaptcha = $rcEnabled && !empty($rcSiteKey);
+    @endphp
+
+    @if($showRecaptcha)
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var form = document.getElementById('adminLoginForm');
             if (form) {
                 form.addEventListener('submit', function(e) {
-                    var response = grecaptcha.getResponse();
-                    if(response.length == 0) {
+                    var response = (typeof grecaptcha !== 'undefined') ? grecaptcha.getResponse() : '';
+                    if(!response || response.length == 0) {
                         e.preventDefault();
                         alert("Silakan verifikasi CAPTCHA terlebih dahulu.");
                     }
@@ -281,9 +292,9 @@
                             </div>
                         </div>
 
-                        @if(\Illuminate\Support\Facades\Cache::get('recaptcha_enabled') && \Illuminate\Support\Facades\Cache::get('recaptcha_site_key'))
+                        @if($showRecaptcha)
                         <div class="recaptcha-wrapper">
-                            <div class="g-recaptcha" data-sitekey="{{ \Illuminate\Support\Facades\Cache::get('recaptcha_site_key') }}"></div>
+                            <div class="g-recaptcha" data-sitekey="{{ $rcSiteKey }}"></div>
                         </div>
                         @endif
 

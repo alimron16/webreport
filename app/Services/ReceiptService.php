@@ -239,9 +239,16 @@ class ReceiptService
         $supportedCategories = ['PRABAYAR', 'PASCA BAYAR', 'BANK'];
 
         // PASS 1: Prioritas Tertinggi — Pencocokan Kode Produk Spesifik (Keywords)
+        $isBankInquiry = (
+            str_starts_with($code, 'CEK') || str_contains($code, 'INQ') ||
+            str_contains($name, 'CEK') || str_contains($name, 'INQUIRY') || str_contains($name, 'TAGIHAN') ||
+            str_contains($ket, 'CEK REKENING') || str_contains($ket, 'INQUIRY')
+        );
+
         foreach ($rules as $r) {
             $cat = strtoupper(trim($r['category'] ?? ''));
             if (!in_array($cat, $supportedCategories, true)) continue;
+            if ($cat === 'BANK' && $isBankInquiry) continue; // Cek/Inquiry Bank bukan transaksi transfer
 
             $rawKeywords = $r['keywords'] ?? '';
             if (empty(trim($rawKeywords))) continue;
@@ -265,6 +272,7 @@ class ReceiptService
         foreach ($rules as $r) {
             $cat = strtoupper(trim($r['category'] ?? ''));
             if (!in_array($cat, $supportedCategories, true)) continue;
+            if ($cat === 'BANK' && $isBankInquiry) continue;
 
             $rawProvider = trim($r['provider'] ?? '');
             if (empty($rawProvider)) continue;
@@ -294,6 +302,7 @@ class ReceiptService
         foreach ($rules as $r) {
             $cat = strtoupper(trim($r['category'] ?? ''));
             if (!in_array($cat, $supportedCategories, true)) continue;
+            if ($cat === 'BANK' && $isBankInquiry) continue;
 
             $rawKeywords = $r['keywords'] ?? '';
             if (empty(trim($rawKeywords))) continue;
@@ -334,8 +343,8 @@ class ReceiptService
             ];
         }
 
-        // Bank detector
-        if (str_contains($code, 'TF') || str_contains($name, 'TRANSFER') || str_contains($code, 'BANK')) {
+        // Bank detector (Hanya untuk transfer riil, bukan cek rekening)
+        if (!$isBankInquiry && (str_contains($code, 'TF') || str_contains($name, 'TRANSFER') || str_contains($code, 'BANK'))) {
             return [
                 'id'            => 'rule_auto_bank',
                 'name'          => 'Transfer Bank',
@@ -352,16 +361,48 @@ class ReceiptService
     }
 
     /**
-     * Cek apakah transaksi ini mendukung cetak struk (hanya 3 kategori resmi: PRABAYAR, PASCA BAYAR, BANK).
+     * Cek apakah transaksi ini mendukung cetak struk.
+     * Hanya berlaku untuk transaksi berstatus SUKSES pada 3 kategori resmi: PRABAYAR, PASCA BAYAR, dan TRANSFER BANK.
      */
     public function isPrintable(array $trx): bool
     {
+        // 1. Validasi Status Transaksi: HANYA transaksi Sukses yang boleh cetak struk!
+        $statusStr = strtolower(trim((string)($trx['status'] ?? '')));
+        $statusRaw = (int)($trx['status_raw'] ?? (is_numeric($trx['status'] ?? null) ? $trx['status'] : 0));
+        
+        $isSukses = in_array($statusStr, ['sukses', 's', 'berhasil', 'success'], true) 
+                    || in_array($statusRaw, [20, 3, 4], true);
+                    
+        if (!$isSukses) {
+            return false;
+        }
+
         $rule = $this->findMatchingRule($trx);
         if (!$rule) {
             return false;
         }
         $cat = strtoupper(trim($rule['category'] ?? ''));
-        return in_array($cat, ['PRABAYAR', 'PASCA BAYAR', 'BANK'], true);
+        
+        if (!in_array($cat, ['PRABAYAR', 'PASCA BAYAR', 'BANK'], true)) {
+            return false;
+        }
+
+        // 2. Transaksi Bank: Jangan cetak struk untuk Cek Rekening / Inquiry Bank
+        if ($cat === 'BANK') {
+            $code = strtoupper(trim($trx['kode_produk'] ?? ''));
+            $name = strtoupper(trim($trx['nama_produk'] ?? ($trx['nama'] ?? '')));
+            $ket  = strtoupper(trim($trx['keterangan'] ?? ''));
+
+            if (
+                str_starts_with($code, 'CEK') || str_contains($code, 'INQ') ||
+                str_contains($name, 'CEK') || str_contains($name, 'INQUIRY') || str_contains($name, 'TAGIHAN') ||
+                str_contains($ket, 'CEK REKENING') || str_contains($ket, 'INQUIRY')
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -411,25 +452,51 @@ class ReceiptService
         $ppn = 0;
         $materai = 0;
         $angsuran = 0;
+        $jmlBulan = '1 BULAN';
+        $denda = 0;
+
+        // Ekstraksi denominasi resmi PLN dari kode / nama produk (misal PLN20 -> 20.000, PLN50 -> 50.000)
+        $extractPlnNominal = function(string $code, string $name) {
+            $str = strtoupper($code . ' ' . $name);
+            if (preg_match('/\b(20|50|100|200|500|1000|5000)\s*(?:K|RB|RIBU)?\b/i', $str, $m)) {
+                $num = (int)$m[1];
+                if ($num < 1000) return (float)($num * 1000);
+                if ($num === 1000) return 1000000.0;
+                if ($num === 5000) return 5000000.0;
+            }
+            if (preg_match('/(?:PLN|TOKEN|DPLN|TPLN)(\d+)/i', $code, $m)) {
+                $num = (int)$m[1];
+                if ($num <= 500) return (float)($num * 1000);
+                if ($num >= 1000 && $num < 10000) return (float)($num * 1000);
+                if ($num >= 10000) return (float)$num;
+            }
+            if (preg_match('/\b(\d{1,3}(?:\.\d{3})+)\b/', $str, $m)) {
+                return (float)str_replace('.', '', $m[1]);
+            }
+            return 0.0;
+        };
+        $plnNominal = $extractPlnNominal($trx['kode_produk'] ?? '', $trx['nama_produk'] ?? ($trx['nama'] ?? ''));
 
         $parserMode = $rule['parser_mode'] ?? 'auto';
 
         // 0. Field-by-Field Regex Extraction (Mapping regex spesifik per kolom struk)
         $fieldRegexMap = [
-            'regex_meter'   => function($val) use (&$noMeter) { $noMeter = $val; },
-            'regex_idpel'   => function($val) use (&$idPel) { $idPel = $val; },
-            'regex_nama'    => function($val) use (&$custName) { $custName = $val; },
-            'regex_tarif'   => function($val) use (&$tarifDaya) { $tarifDaya = $val; },
-            'regex_token'   => function($val) use (&$token20) { $token20 = $val; },
-            'regex_kwh'     => function($val) use (&$jumlahKwh) { $jumlahKwh = $val; },
-            'regex_stand'   => function($val) use (&$standMeter) { $standMeter = $val; },
-            'regex_blth'    => function($val) use (&$blTh) { $blTh = $val; },
-            'regex_tagihan' => function($val) use (&$harga) { 
+            'regex_meter'    => function($val) use (&$noMeter) { $noMeter = $val; },
+            'regex_idpel'    => function($val) use (&$idPel) { $idPel = $val; },
+            'regex_nama'     => function($val) use (&$custName) { $custName = $val; },
+            'regex_tarif'    => function($val) use (&$tarifDaya) { $tarifDaya = $val; },
+            'regex_token'    => function($val) use (&$token20) { $token20 = $val; },
+            'regex_kwh'      => function($val) use (&$jumlahKwh) { $jumlahKwh = $val; },
+            'regex_stand'    => function($val) use (&$standMeter) { $standMeter = $val; },
+            'regex_blth'     => function($val) use (&$blTh) { $blTh = $val; },
+            'regex_jmlbulan' => function($val) use (&$jmlBulan) { $jmlBulan = $val; },
+            'regex_denda'    => function($val) use (&$denda) { $d = $this->parseCurrencyValue($val); if ($d >= 0) $denda = $d; },
+            'regex_tagihan'  => function($val) use (&$harga) { 
                 $n = $this->parseCurrencyValue($val); 
                 if ($n > 0) $harga = $n; 
             },
-            'regex_reff'    => function($val) use (&$reff) { $reff = $val; },
-            'regex_norek'   => function($val) use (&$accountNumber) { $accountNumber = $val; },
+            'regex_reff'     => function($val) use (&$reff) { $reff = $val; },
+            'regex_norek'    => function($val) use (&$accountNumber) { $accountNumber = $val; },
         ];
 
         foreach ($fieldRegexMap as $prop => $setter) {
@@ -475,14 +542,20 @@ class ReceiptService
                     elseif (!empty($mTemplate['meter']))     $noMeter = trim($mTemplate['meter']);
                     
                     if (!empty($mTemplate['idpel']))          $idPel = trim($mTemplate['idpel']);
-                    if (!empty($mTemplate['plnreff']))        $reff = trim($mTemplate['plnreff']);
-                    elseif (!empty($mTemplate['reff']))       $reff = trim($mTemplate['reff']);
+                    if (!empty($mTemplate['reff']))           $reff = trim($mTemplate['reff']);
+                    elseif (!empty($mTemplate['plnreff']))    $reff = trim($mTemplate['plnreff']);
                     
                     if (!empty($mTemplate['norek']))          $accountNumber = trim($mTemplate['norek']);
                     elseif (!empty($mTemplate['rekening']))   $accountNumber = trim($mTemplate['rekening']);
                     
                     if (!empty($mTemplate['stand']))          $standMeter = trim($mTemplate['stand']);
                     if (!empty($mTemplate['blth']))           $blTh = trim($mTemplate['blth']);
+
+                    if (!empty($mTemplate['jmlbulan']))       $jmlBulan = trim($mTemplate['jmlbulan']);
+                    elseif (!empty($mTemplate['lembar']))     $jmlBulan = trim($mTemplate['lembar']);
+                    elseif (!empty($mTemplate['bulan']))      $jmlBulan = trim($mTemplate['bulan']);
+
+                    if (!empty($mTemplate['denda']))          $denda = $this->parseCurrencyValue($mTemplate['denda']);
                     
                     if (!empty($mTemplate['rptoken']))        $rpToken = $this->parseCurrencyValue($mTemplate['rptoken']);
                     if (!empty($mTemplate['ppj']))            $ppj = $this->parseCurrencyValue($mTemplate['ppj']);
@@ -490,13 +563,16 @@ class ReceiptService
                     if (!empty($mTemplate['materai']))        $materai = $this->parseCurrencyValue($mTemplate['materai']);
                     if (!empty($mTemplate['angsuran']))       $angsuran = $this->parseCurrencyValue($mTemplate['angsuran']);
 
-                    $rawNominal = $mTemplate['nominal'] ?? $mTemplate['totalbayar'] ?? null;
+                    $rawNominal = $mTemplate['nominal'] ?? $mTemplate['rptagihan'] ?? $mTemplate['totalbayar'] ?? null;
                     if ($rawNominal !== null) {
                         $cleanNum = $this->parseCurrencyValue($rawNominal);
                         if ($cleanNum > 0) $harga = $cleanNum;
                     }
                     if (!empty($mTemplate['admin'])) {
                         $cleanAdm = $this->parseCurrencyValue($mTemplate['admin']);
+                        if ($cleanAdm > 0) $adminFee = $cleanAdm;
+                    } elseif (!empty($mTemplate['adminbank'])) {
+                        $cleanAdm = $this->parseCurrencyValue($mTemplate['adminbank']);
                         if ($cleanAdm > 0) $adminFee = $cleanAdm;
                     }
                 }
@@ -517,7 +593,11 @@ class ReceiptService
                     if (!empty($mCustom['meter']))     $noMeter = trim($mCustom['meter']);
                     if (!empty($mCustom['norek']))     $accountNumber = trim($mCustom['norek']);
                     if (!empty($mCustom['reff']))      $reff = trim($mCustom['reff']);
+                    elseif (!empty($mCustom['plnreff'])) $reff = trim($mCustom['plnreff']);
                     if (!empty($mCustom['tagihan']))   $harga = $this->parseCurrencyValue($mCustom['tagihan']);
+                    elseif (!empty($mCustom['nominal'])) $harga = $this->parseCurrencyValue($mCustom['nominal']);
+                    if (!empty($mCustom['denda']))     $denda = $this->parseCurrencyValue($mCustom['denda']);
+                    if (!empty($mCustom['jmlbulan']))  $jmlBulan = trim($mCustom['jmlbulan']);
                 }
             } catch (\Throwable $e) {}
         }
@@ -562,6 +642,13 @@ class ReceiptService
                     case 'BULAN':
                         $blTh = $val;
                         break;
+                    case 'JMLBULAN':
+                    case 'LEMBAR':
+                        $jmlBulan = $val;
+                        break;
+                    case 'DENDA':
+                        $denda = $this->parseCurrencyValue($val);
+                        break;
                     case 'IDPEL':
                         $idPel = $val;
                         break;
@@ -574,11 +661,13 @@ class ReceiptService
                         $accountNumber = $val;
                         break;
                     case 'REFF':
+                    case 'PLNREFF':
                     case 'REF':
                     case 'SN':
                         $reff = $val;
                         break;
                     case 'TAGIHAN':
+                    case 'RPTAGIHAN':
                     case 'NOMINAL':
                     case 'TOTAL':
                     case 'TAG':
@@ -656,6 +745,22 @@ class ReceiptService
             $noMeter = trim($mMeter[1]);
         }
 
+        // Smart Auto-Detect Fallback: Jumlah Bulan & Denda
+        if ($jmlBulan === '1 BULAN') {
+            if (preg_match('/(?:JML\s*BULAN|JUMLAH\s*BULAN|LEMBAR|LBR)\s*[:=]\s*(\d+\s*(?:BULAN|LBR)?)/i', $sn, $mJml)) {
+                $jmlBulan = trim($mJml[1]);
+            }
+        }
+        if (is_numeric($jmlBulan)) {
+            $jmlBulan = $jmlBulan . ' BULAN';
+        }
+
+        if ($denda <= 0) {
+            if (preg_match('/(?:DENDA)\s*[:=]\s*([\d\.,]+)/i', $sn, $mDenda)) {
+                $denda = $this->parseCurrencyValue($mDenda[1]);
+            }
+        }
+
         // Smart Auto-Detect Fallback: PPJ, PPN, Materai, Rp Token
         if ($ppj <= 0 && preg_match('/(?:PPJ)\s*[:=]\s*([\d\.,]+)/i', $sn, $mPpj)) {
             $ppj = $this->parseCurrencyValue($mPpj[1]);
@@ -693,21 +798,26 @@ class ReceiptService
         if (empty($token20)) $token20 = ($category === 'UMUM') ? '' : '2920 - 3211 - 4567 - 8910 - 0987';
         if (empty($reff)) $reff = !empty($trx['sn']) ? $trx['sn'] : (!empty($trx['ref_id']) ? $trx['ref_id'] : ($trx['kode'] ?? '2TKT23R3D5994E77D4FA6B977F3A1F3'));
 
-        // Math for PLN Prabayar & Umum
-        if ($rpToken > 0) {
-            $stroomToken = $rpToken;
-            $totalBayarPra = ($rpToken + $ppj + $ppn + $materai + $angsuran) + $adminFee;
-        } else {
-            $stroomToken = $harga;
-            if ($ppj <= 0) {
-                $ppj = ($category === 'UMUM') ? 0 : ($harga > 0 ? round($harga * 0.05) : 43210);
+        // Math for PLN Prabayar & Umum: Jangan pernah pakai harga modal/jual wholesale server!
+        if ($category === 'PRABAYAR') {
+            if ($rpToken > 0) {
+                $stroomToken = $rpToken;
+            } elseif ($plnNominal > 0) {
+                $stroomToken = $plnNominal;
+                $rpToken = $plnNominal;
+            } else {
+                $stroomToken = 20000;
+                $rpToken = 20000;
             }
+            $totalBayarPra = $stroomToken + $adminFee;
+        } else {
+            $stroomToken = $rpToken > 0 ? $rpToken : ($harga > 0 ? $harga : 50000);
             $totalBayarPra = $stroomToken + $adminFee;
         }
 
-        // Math for PLN Pasca
+        // Math for PLN Pasca: Total Bayar = Pokok Tagihan + Biaya Admin + Denda
         $tagihanPasca = $harga > 0 ? $harga : 210345;
-        $totalBayarPasca = $tagihanPasca + $adminFee;
+        $totalBayarPasca = $tagihanPasca + $adminFee + $denda;
 
         // Bank Transfer specific
         $bankName = $rule['bank_name'] ?? 'BANK CENTRAL ASIA';
@@ -738,6 +848,8 @@ class ReceiptService
             'tarif_daya'        => $tarifDaya,
             'bl_th'             => $blTh,
             'stand_meter'       => $standMeter,
+            'jml_bulan'         => $jmlBulan,
+            'denda'             => $denda,
 
             // PLN Numbers
             'admin_fee'         => $adminFee,
@@ -789,10 +901,18 @@ class ReceiptService
             $isLast = ($idx === $count - 1);
             if (str_starts_with($part, '[') && str_ends_with($part, ']')) {
                 $rawTag = strtolower(substr($part, 1, -1));
+
+                // Normalisasi sinonim tag
+                if ($rawTag === 'plnreff') $rawTag = 'reff';
+                elseif ($rawTag === 'adminbank') $rawTag = 'admin';
+                elseif ($rawTag === 'rptagihan') $rawTag = 'nominal';
+                elseif ($rawTag === 'lembar' || $rawTag === 'bulan') $rawTag = 'jmlbulan';
+
                 if (str_starts_with($rawTag, 'var')) {
-                    $regex .= $isLast ? '(?:.+)' : '(?:.+?)';
+                    $regex .= $isLast ? '(?:.+?)' : '(?:.+?)';
                 } else {
-                    $regex .= $isLast ? '(?P<' . $rawTag . '>.+?)(?:[\.\s]*)$' : '(?P<' . $rawTag . '>.+?)';
+                    // Toleran terhadap karakter trailing setelah token terakhir (misal sisa saldo, spasi, dsb)
+                    $regex .= $isLast ? '(?P<' . $rawTag . '>[^\/\r\n,;]+)' : '(?P<' . $rawTag . '>.+?)';
                 }
             } else {
                 $quoted = preg_quote($part, '/');

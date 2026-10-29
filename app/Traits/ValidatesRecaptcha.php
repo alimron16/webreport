@@ -17,17 +17,22 @@ trait ValidatesRecaptcha
      */
     protected function validateRecaptcha(Request $request)
     {
-        if (!Cache::get('recaptcha_enabled', false)) {
+        $enabled = Cache::get('recaptcha_enabled');
+        if ($enabled === null) {
+            $enabled = (\App\Models\Setting::get('recaptcha_enabled') === '1' || \App\Models\Setting::get('recaptcha_enabled') === true);
+        } else {
+            $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        if (!$enabled) {
             return true; // Auto-pass if not enabled
         }
 
-        $token = $request->input('g-recaptcha-response');
-        if (!$token) {
-            Log::warning("reCAPTCHA validation failed: token 'g-recaptcha-response' is empty from IP: {$request->ip()}");
-            return false;
-        }
-
+        $siteKey = Cache::get('recaptcha_site_key') ?: \App\Models\Setting::get('recaptcha_site_key', '');
         $secret = Cache::get('recaptcha_secret_key');
+        if (!$secret) {
+            $secret = \App\Models\Setting::get('recaptcha_secret_key');
+        }
         if ($secret) {
             // Unravel potential multi-encryption safely
             while (is_string($secret) && str_starts_with($secret, 'eyJ')) {
@@ -39,9 +44,15 @@ trait ValidatesRecaptcha
             }
         }
 
-        if (empty($secret)) {
-            Log::warning("reCAPTCHA is enabled but Secret Key is empty. Auto-passing to avoid locking users out.");
+        if (empty($siteKey) || empty($secret)) {
+            Log::warning("reCAPTCHA is enabled but Site Key or Secret Key is empty. Auto-passing to avoid locking users out.");
             return true;
+        }
+
+        $token = $request->input('g-recaptcha-response');
+        if (!$token) {
+            Log::warning("reCAPTCHA validation failed: token 'g-recaptcha-response' is empty from IP: {$request->ip()}");
+            return false;
         }
 
         try {

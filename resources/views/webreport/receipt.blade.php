@@ -501,6 +501,11 @@
                                 <span class="pln-sep">:</span>
                                 <span class="pln-val val-blth">{{ $receipt['bl_th'] }}</span>
                             </div>
+                            <div class="pln-row">
+                                <span class="pln-lbl">JML BULAN</span>
+                                <span class="pln-sep">:</span>
+                                <span class="pln-val val-jmlbulan">{{ $receipt['jml_bulan'] ?? '1 BULAN' }}</span>
+                            </div>
                         </div>
 
                         <!-- Right Column -->
@@ -517,6 +522,16 @@
                                     <span class="pln-money">
                                         <span class="pln-money-curr">Rp</span>
                                         <span class="pln-money-val val-tagihan-fmt">{{ number_format($receipt['tagihan_pasca'], 0, ',', '.') }}, 00</span>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="pln-row">
+                                <span class="pln-lbl-right">DENDA</span>
+                                <span class="pln-sep">:</span>
+                                <span class="pln-val">
+                                    <span class="pln-money">
+                                        <span class="pln-money-curr">Rp</span>
+                                        <span class="pln-money-val val-denda-fmt">{{ number_format($receipt['denda'] ?? 0, 0, ',', '.') }}, 00</span>
                                     </span>
                                 </span>
                             </div>
@@ -851,11 +866,12 @@
     <script>
         // Global variables for calculations
         const baseNominal = {{ (float)($receipt['category'] === 'PASCA BAYAR' ? $receipt['tagihan_pasca'] : ($receipt['category'] === 'BANK' ? $receipt['amount'] : $receipt['stroom_token'])) }};
+        const dendaVal = {{ (float)($receipt['denda'] ?? 0) }};
         const category = "{{ $receipt['category'] }}";
 
         function updateAdminFee(newAdminVal) {
             const admin = parseFloat(newAdminVal) || 0;
-            const total = baseNominal + admin;
+            const total = baseNominal + admin + (category === 'PASCA BAYAR' ? dendaVal : 0);
 
             const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
 
@@ -900,7 +916,7 @@
             const tujuan = document.querySelector('.val-tujuan') ? document.querySelector('.val-tujuan').innerText : '{{ $receipt['tujuan'] }}';
             const nama = document.querySelector('.val-nama') ? document.querySelector('.val-nama').innerText : '{{ $receipt['nama'] }}';
             const admin = document.getElementById('inputAdminFee') ? parseFloat(document.getElementById('inputAdminFee').value) || 0 : {{ $receipt['admin_fee'] }};
-            const total = baseNominal + admin;
+            const total = baseNominal + admin + (category === 'PASCA BAYAR' ? dendaVal : 0);
             const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
 
             let text = '';
@@ -922,14 +938,17 @@
                        `----------------------------------------\n` +
                        `Terima kasih telah bertransaksi.`;
             } else if (category === 'PASCA BAYAR') {
+                const jmlBulan = document.querySelector('.val-jmlbulan') ? document.querySelector('.val-jmlbulan').innerText : '{{ $receipt['jml_bulan'] ?? '1 BULAN' }}';
                 text = `*STRUK PEMBAYARAN LISTRIK PASCABAYAR*\n` +
                        `Tanggal: {{ $receipt['tgl_bayar'] }}\n` +
                        `----------------------------------------\n` +
                        `ID Pel: ${tujuan}\n` +
                        `Nama: ${nama}\n` +
                        `Tarif/Daya: {{ $receipt['tarif_daya'] }}\n` +
+                       `Jml Bulan: ${jmlBulan}\n` +
                        `Tagihan: Rp ${formatRupiah(baseNominal)}\n` +
-                       `Admin: Rp ${formatRupiah(admin)}\n` +
+                       (dendaVal > 0 ? `Denda: Rp ${formatRupiah(dendaVal)}\n` : '') +
+                       `Admin Bank: Rp ${formatRupiah(admin)}\n` +
                        `*Total Bayar: Rp ${formatRupiah(total)}*\n` +
                        `Reff: {{ $receipt['reff'] }}\n` +
                        `----------------------------------------\n` +

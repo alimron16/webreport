@@ -25,6 +25,31 @@ class RegistrationController extends Controller
     }
 
     /**
+     * Validate callback URL against SSRF (blocks loopback, private IPs, and non-HTTP/HTTPS schemes)
+     */
+    protected function isSafeCallbackUrl(?string $url): bool
+    {
+        if (empty($url)) {
+            return true;
+        }
+        $parsed = parse_url($url);
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        $host   = strtolower($parsed['host'] ?? '');
+        if (!in_array($scheme, ['http', 'https'], true) || empty($host)) {
+            return false;
+        }
+        if (in_array($host, ['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]', '169.254.169.254'], true) || str_ends_with($host, '.local') || str_ends_with($host, '.internal')) {
+            return false;
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            if (!filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Handle registration form submission
      */
     public function store(Request $request)
@@ -33,7 +58,14 @@ class RegistrationController extends Controller
             return redirect()->route('license.show');
         }
 
+        $throttleKey = 'register_submit_' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return back()->with('error', "Terlalu banyak percobaan registrasi. Silakan coba lagi dalam {$seconds} detik.")->withInput();
+        }
+
         if (!$this->validateRecaptcha($request)) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
             return back()->with('error', 'Validasi CAPTCHA gagal. Silakan centang kotak "I\'m not a robot".')->withInput();
         }
 
@@ -64,30 +96,44 @@ class RegistrationController extends Controller
             'url_report.url'        => 'Format URL Callback tidak valid.',
         ]);
 
-        // Verify OTP from session
-        $sessionOtp = Session::get('register_otp');
-        $sessionEmail = Session::get('register_otp_email');
+        if (!$this->isSafeCallbackUrl($validated['url_report'] ?? null)) {
+            return back()->withInput()->withErrors(['url_report' => 'URL Callback tidak diizinkan mengarah ke jaringan lokal / internal (SSRF Protection).']);
+        }
 
-        if (empty($sessionOtp) || $request->input('otp') !== $sessionOtp || $validated['email'] !== $sessionEmail) {
+        // Verify OTP from session with expiry & max-attempts protection
+        $sessionOtp = (string)Session::get('register_otp', '');
+        $sessionEmail = (string)Session::get('register_otp_email', '');
+        $otpExpires = (int)Session::get('register_otp_expires', 0);
+        $otpAttempts = (int)Session::get('register_otp_attempts', 0);
+
+        if (empty($sessionOtp) || time() > $otpExpires || $otpAttempts >= 5) {
+            Session::forget(['register_otp', 'register_otp_email', 'register_otp_expires', 'register_otp_attempts']);
+            return back()->withInput()->withErrors(['otp' => 'Kode OTP telah kedaluwarsa atau melebihi batas percobaan. Silakan minta OTP baru!']);
+        }
+
+        if (!hash_equals($sessionOtp, (string)$request->input('otp')) || strcasecmp($validated['email'], $sessionEmail) !== 0) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
+            Session::put('register_otp_attempts', $otpAttempts + 1);
             return back()->withInput()->withErrors(['otp' => 'Kode OTP salah atau alamat email tidak cocok dengan penerima OTP!']);
         }
 
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
+
         // Clear OTP session once successfully verified
-        Session::forget('register_otp');
-        Session::forget('register_otp_email');
+        Session::forget(['register_otp', 'register_otp_email', 'register_otp_expires', 'register_otp_attempts']);
 
         Registration::create([
-            'nama'           => $validated['nama'],
-            'nama_pemilik'   => $validated['nama_pemilik'],
-            'no_hp'          => $validated['no_hp'],
-            'email'          => $validated['email'] ?? null,
-            'alamat'         => $validated['alamat'] ?? null,
+            'nama'           => strip_tags(trim($validated['nama'])),
+            'nama_pemilik'   => strip_tags(trim($validated['nama_pemilik'])),
+            'no_hp'          => strip_tags(trim($validated['no_hp'])),
+            'email'          => isset($validated['email']) ? trim($validated['email']) : null,
+            'alamat'         => isset($validated['alamat']) ? strip_tags(trim($validated['alamat'])) : null,
             'pin'            => $validated['pin'],
-            'nomor_ktp'      => $validated['nomor_ktp'] ?? null,
-            'npwp'           => $validated['npwp'] ?? null,
-            'alamat_ip'      => $validated['alamat_ip'] ?? null,
+            'nomor_ktp'      => isset($validated['nomor_ktp']) ? strip_tags(trim($validated['nomor_ktp'])) : null,
+            'npwp'           => isset($validated['npwp']) ? strip_tags(trim($validated['npwp'])) : null,
+            'alamat_ip'      => isset($validated['alamat_ip']) ? strip_tags(trim($validated['alamat_ip'])) : null,
             'password_ip'    => $validated['password_ip'] ?? null,
-            'url_report'     => $validated['url_report'] ?? null,
+            'url_report'     => isset($validated['url_report']) ? trim($validated['url_report']) : null,
             'berkas_path'    => null,
             'berkas_nama'    => null,
             'foto_ktp_path'  => null,
@@ -101,16 +147,29 @@ class RegistrationController extends Controller
 
     public function sendOtp(Request $request)
     {
+        $throttleKey = 'register_otp_send_' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'status'  => 'error',
+                'message' => "Terlalu banyak permintaan OTP. Silakan tunggu {$seconds} detik."
+            ], 429);
+        }
+
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'required|email|max:100'
         ]);
 
-        $email = $request->input('email');
-        $otp = (string)rand(100000, 999999);
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
 
-        // Store OTP details in Session
+        $email = trim((string)$request->input('email'));
+        $otp = (string)random_int(100000, 999999);
+
+        // Store OTP details in Session with 10-minute expiration
         Session::put('register_otp', $otp);
         Session::put('register_otp_email', $email);
+        Session::put('register_otp_expires', time() + 600);
+        Session::put('register_otp_attempts', 0);
 
         $sent = MailService::sendOtp($email, $otp, 'Registrasi');
 

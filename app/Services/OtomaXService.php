@@ -20,6 +20,27 @@ class OtomaXService
     }
 
     /**
+     * Sanitasi input string pencarian SQL LIKE agar aman dari SQL Server Wildcard Injection (%, _, [, ]) dan null-bytes.
+     */
+    protected function escapeSqlLike(string $value): string
+    {
+        $clean = str_replace("\0", '', trim($value));
+        return str_replace(['[', '%', '_'], ['[[]', '[%]', '[_]'], $clean);
+    }
+
+    /**
+     * Validasi format tanggal YYYY-MM-DD ketat sebelum dikirim ke query SQL.
+     */
+    protected function sanitizeDate(string $date, string $fallback = ''): string
+    {
+        $date = trim($date);
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $date;
+        }
+        return $fallback;
+    }
+
+    /**
      * Call SQL Database directly or fallback to Mock
      */
     public function call(string $endpoint, array $data = [])
@@ -82,22 +103,22 @@ class OtomaXService
                     return ['ok' => true, 'result' => (array)$row];
 
                 case 'TesPinRs':
-                    $kode = $data['kode'] ?? '';
-                    $pin = $data['pin'] ?? ''; // Received plain pin for database comparison
+                    $kode = trim((string)($data['kode'] ?? ''));
+                    $pin = trim((string)($data['pin'] ?? ''));
                     
                     $row = $db->table('reseller')->where('kode', $kode)->select('pin')->first();
                     if (!$row) {
                         return ['ok' => false, 'desc' => 'Reseller tidak ditemukan'];
                     }
                     
-                    // Direct string comparison since plain pin is stored in SQL reseller table
-                    if (trim($row->pin) === trim($pin)) {
+                    // Timing-safe comparison untuk mencegah Timing Side-Channel Attack pada PIN
+                    if ($pin !== '' && hash_equals(trim((string)($row->pin ?? '')), $pin)) {
                         return ['ok' => true];
                     }
                     return ['ok' => false, 'desc' => 'PIN salah'];
 
                 case 'UpdateRs':
-                    $kode = $data['kode'] ?? '';
+                    $kode = trim((string)($data['kode'] ?? ''));
                     $update = [];
                     if (isset($data['pin'])) $update['pin'] = $data['pin'];
                     if (isset($data['alamat_ip'])) $update['alamat_ip'] = $data['alamat_ip'];
@@ -112,8 +133,13 @@ class OtomaXService
                     return ['ok' => true, 'result' => $affected];
 
                 case 'GetTrx':
-                    $trxid = $data['trxid'] ?? 0;
-                    $row = $db->table('transaksi')->where('kode', $trxid)->first();
+                    $trxid = (int)($data['trxid'] ?? 0);
+                    $kode_rs = trim((string)($data['kode_reseller'] ?? ''));
+                    $query = $db->table('transaksi')->where('kode', $trxid);
+                    if ($kode_rs !== '') {
+                        $query->where('kode_reseller', $kode_rs);
+                    }
+                    $row = $query->first();
                     if (!$row) {
                         return ['ok' => false, 'desc' => 'Transaksi tidak ditemukan'];
                     }
@@ -124,10 +150,10 @@ class OtomaXService
                     return ['ok' => true, 'result' => $res];
 
                 case 'GetTrxHistory':
-                    $kode_rs = $data['kode_reseller'] ?? '';
-                    $tgl_awal = $data['tgl_awal'] ?? '';
-                    $tgl_akhir = $data['tgl_akhir'] ?? '';
-                    $limit = (int)($data['limit'] ?? 20); // Removed 100 cap to support 'Semua' filter
+                    $kode_rs = trim((string)($data['kode_reseller'] ?? ''));
+                    $tgl_awal = $this->sanitizeDate((string)($data['tgl_awal'] ?? ''));
+                    $tgl_akhir = $this->sanitizeDate((string)($data['tgl_akhir'] ?? ''));
+                    $limit = min(max((int)($data['limit'] ?? 20), 1), 10000);
 
                     // Select required columns for transactions page
                     $query = $db->table('transaksi')
@@ -142,13 +168,13 @@ class OtomaXService
                     }
 
                     if (!empty($data['tujuan'])) {
-                        $query->where('tujuan', 'like', '%' . $data['tujuan'] . '%');
+                        $query->where('tujuan', 'like', '%' . $this->escapeSqlLike((string)$data['tujuan']) . '%');
                     }
                     if (!empty($data['produk'])) {
-                        $query->where('kode_produk', 'like', '%' . $data['produk'] . '%');
+                        $query->where('kode_produk', 'like', '%' . $this->escapeSqlLike((string)$data['produk']) . '%');
                     }
                     if (!empty($data['ref_id'])) {
-                        $query->where('ref_id', 'like', '%' . $data['ref_id'] . '%');
+                        $query->where('ref_id', 'like', '%' . $this->escapeSqlLike((string)$data['ref_id']) . '%');
                     }
                     if (!empty($data['status'])) {
                         $statusVal = $data['status'];
@@ -228,52 +254,152 @@ class OtomaXService
                     $kode_prod = $data['kode_produk'] ?? '';
                     $filter = $data['sort_filter'] ?? 'semua';
 
-                    // 1. Get reseller's kode_level or use explicit level
+                    // 1. Ambil kode_level dari parameter atau dari profil reseller yang login
                     $kode_level = $data['kode_level'] ?? null;
                     if (empty($kode_level) && !empty($kode_rs)) {
                         $reseller = $db->table('reseller')->where('kode', $kode_rs)->select('kode_level')->first();
                         $kode_level = $reseller->kode_level ?? null;
                     }
+                    $cleanLvlUpper = !empty($kode_level) ? strtoupper(trim((string)$kode_level)) : '';
 
-                    // 2. Select required columns
+                    // Helper validasi ketat apakah string kode_level (misal 'A,B' atau 'NCP') mengizinkan target level saat ini
+                    $isLevelAllowed = function ($rawLevelStr, $targetLevel, bool $emptyMeansAll = true) {
+                        $target = strtoupper(trim((string)$targetLevel));
+                        $targetClean = trim(preg_replace('/^(LEVEL|LVL)[\s\-_]*/i', '', $target));
+                        $rawLevelStr = trim((string)$rawLevelStr);
+
+                        // Jika kolom kode_level kosong / null
+                        if ($rawLevelStr === '') {
+                            return $emptyMeansAll;
+                        }
+
+                        // Jika sedang membuka Harga Umum (tanpa level), blokir semua yang memiliki kode_level khusus
+                        if ($target === '' && $targetClean === '') {
+                            return false;
+                        }
+
+                        // Pecah string level berdasarkan koma, titik koma, spasi, garis miring, atau pipa (contoh: 'A,B' -> ['A', 'B'])
+                        $parts = preg_split('/[\s,;\/|]+/', strtoupper($rawLevelStr), -1, PREG_SPLIT_NO_EMPTY);
+                        $allowedTokens = [];
+                        foreach ($parts as $p) {
+                            $p = trim($p);
+                            if ($p === '') continue;
+                            $allowedTokens[] = $p;
+
+                            $clean = trim(preg_replace('/^(LEVEL|LVL)[\s\-_]*/i', '', $p));
+                            if ($clean !== '') {
+                                $allowedTokens[] = $clean;
+                            }
+                        }
+
+                        if (in_array($target, $allowedTokens, true)) {
+                            return true;
+                        }
+                        if ($targetClean !== '' && in_array($targetClean, $allowedTokens, true)) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+
+                    // 2. Muat peta operator (nama & kode_level) agar kebal terhadap perbedaan spasi CHAR/VARCHAR di SQL Server
+                    $operatorMap = [];
+                    try {
+                        $opRows = $db->table('operator')->select('kode', 'nama', 'kode_level')->get();
+                        foreach ($opRows as $op) {
+                            $kOp = strtoupper(trim((string)($op->kode ?? '')));
+                            if ($kOp !== '') {
+                                $operatorMap[$kOp] = [
+                                    'nama'       => trim((string)($op->nama ?? '')),
+                                    'kode_level' => trim((string)($op->kode_level ?? '')),
+                                ];
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        // Abaikan jika tabel operator tidak dapat dibaca terpisah
+                    }
+
+                    // 3. Muat pengecualian blok_produk & selisih_harga dari tabel level (jika sedang membuka level tertentu)
+                    $blockedProductSet = [];
+                    $levelSelisihHarga = 0.0;
+                    if ($cleanLvlUpper !== '') {
+                        try {
+                            $lvlRows = $db->table('level')
+                                ->select('kode', 'blok_produk', 'selisih_harga')
+                                ->get();
+                            foreach ($lvlRows as $lr) {
+                                if ($isLevelAllowed($lr->kode ?? '', $cleanLvlUpper, false)) {
+                                    if (isset($lr->selisih_harga) && $lr->selisih_harga !== null && $lr->selisih_harga !== '') {
+                                        $rawSelisih = is_string($lr->selisih_harga) ? str_replace(',', '.', trim($lr->selisih_harga)) : $lr->selisih_harga;
+                                        if (is_numeric($rawSelisih)) {
+                                            $levelSelisihHarga = (float)$rawSelisih;
+                                        }
+                                    }
+                                    $rawBlok = trim((string)($lr->blok_produk ?? ''));
+                                    if ($rawBlok !== '') {
+                                        $blokTokens = preg_split('/[\s,;\/|]+/', strtoupper($rawBlok), -1, PREG_SPLIT_NO_EMPTY);
+                                        foreach ($blokTokens as $bt) {
+                                            $bt = trim($bt);
+                                            if ($bt !== '') {
+                                                $blockedProductSet[$bt] = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            // Abaikan jika tabel level atau kolom blok_produk tidak tersedia
+                        }
+                    }
+
+                    // 4. Muat patokan harga khusus level dari tabel produk_level (jika sedang membuka level tertentu)
+                    $levelPriceMap = [];
+                    if ($cleanLvlUpper !== '') {
+                        try {
+                            $plRows = $db->table('produk_level')
+                                ->select('kode_level', 'kode_produk', 'harga')
+                                ->get();
+                            foreach ($plRows as $pl) {
+                                // Untuk produk_level, baris hanya berlaku jika kode_level cocok dengan level yang dibuka
+                                if ($isLevelAllowed($pl->kode_level ?? '', $cleanLvlUpper, false)) {
+                                    $kProd = strtoupper(trim((string)($pl->kode_produk ?? '')));
+                                    if ($kProd !== '' && $pl->harga !== null && $pl->harga !== '') {
+                                        $rawHarga = is_string($pl->harga) ? str_replace(',', '.', trim($pl->harga)) : $pl->harga;
+                                        if (is_numeric($rawHarga)) {
+                                            $levelPriceMap[$kProd] = (float)$rawHarga;
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            // Abaikan jika tabel produk_level tidak tersedia
+                        }
+                    }
+
+                    // 5. Query produk aktif + Left Join tabel operator
                     $query = $db->table('produk')
+                        ->leftJoin('operator', 'produk.kode_operator', '=', 'operator.kode')
+                        ->where('produk.aktif', 1)
                         ->select(
-                            'produk.kode', 
-                            'produk.nama', 
-                            'produk.harga_jual', 
-                            'produk.harga_awal', 
-                            'produk.kode_operator', 
+                            'produk.kode',
+                            'produk.nama',
+                            'produk.harga_jual',
+                            'produk.harga_awal',
+                            'produk.kode_operator',
+                            'operator.nama as nama_operator',
+                            'operator.kode_level as op_kode_level',
                             'produk.aktif',
                             'produk.catatan',
                             'produk.gangguan'
                         );
 
-                    // 3. Left join with produk_level if kode_level exists
-                    if ($kode_level) {
-                        $query->leftJoin('produk_level', function ($join) use ($kode_level) {
-                            $join->on('produk.kode', '=', 'produk_level.kode_produk')
-                                 ->where('produk_level.kode_level', '=', $kode_level);
-                        });
-                        $query->addSelect('produk_level.harga as harga_level');
-
-                        // Cegah produk milik level lain bocor ke link level saat ini:
-                        // Hanya tampilkan produk yang terdaftar di level ini ATAU produk umum yang tidak terikat di tabel produk_level level manapun
-                        $query->where(function ($w) {
-                            $w->whereNotNull('produk_level.kode_level')
-                              ->orWhereNotIn('produk.kode', function ($sub) {
-                                  $sub->select('kode_produk')->from('produk_level')->whereNotNull('kode_produk');
-                              });
-                        });
-                    }
-
                     if (!empty($kode_prod)) {
                         $query->where('produk.kode', $kode_prod);
                     }
 
+                    $popularRank = [];
                     if ($filter === 'terlaris') {
                         try {
-                            // Optimize query by looking up only the last 30 days and limiting to top 20 popular codes
-                            // This prevents a heavy table scan on millions of transaction rows
                             $popularCodes = $db->table('transaksi')
                                 ->where('tgl_entri', '>=', now()->subDays(30))
                                 ->select('kode_produk', DB::raw('count(*) as count_trx'))
@@ -282,59 +408,153 @@ class OtomaXService
                                 ->limit(20)
                                 ->pluck('kode_produk')
                                 ->toArray();
-                            
-                            if (!empty($popularCodes)) {
-                                $orderByCase = 'CASE ';
-                                foreach ($popularCodes as $index => $code) {
-                                    $orderByCase .= "WHEN produk.kode = " . $db->getPdo()->quote($code) . " THEN " . $index . " ";
-                                }
-                                $orderByCase .= "ELSE 9999 END";
-                                $query->orderByRaw($orderByCase);
-                            } else {
-                                $query->orderBy('produk.nama', 'asc');
+
+                            foreach ($popularCodes as $idx => $c) {
+                                $popularRank[strtoupper(trim((string)$c))] = $idx;
                             }
-                        } catch (\Exception $e) {
-                            $query->orderBy('produk.nama', 'asc');
-                        }
-                    } elseif ($filter === 'termurah') {
-                        $query->orderBy('produk.harga_jual', 'asc');
-                    } else {
-                        // Default: Urutkan per provider dari yang paling murah ke yang paling mahal
-                        $query->orderBy('produk.kode_operator', 'asc')
-                              ->orderBy('produk.harga_jual', 'asc')
-                              ->orderBy('produk.nama', 'asc');
+                        } catch (\Exception $e) {}
                     }
 
                     $rows = $query->get();
 
-                    $mapped = $rows->map(function ($r) {
+                    // 6. Filter ketat berdasarkan level.blok_produk, operator.kode_level & terapkan harga dari produk_level -> fallback produk.harga_jual
+                    $mapped = $rows->map(function ($r) use ($cleanLvlUpper, $isLevelAllowed, $operatorMap, $levelPriceMap, $blockedProductSet, $levelSelisihHarga) {
                         $arr = (array)$r;
+
+                        // Sembunyikan produk jika status produk nonaktif (aktif == 0 / false)
+                        if (empty($arr['aktif'])) {
+                            return null;
+                        }
+
+                        $kodeProdRaw = trim((string)($arr['kode'] ?? ''));
+                        $kodeProdUpper = strtoupper($kodeProdRaw);
+                        $kodeOp = trim((string)($arr['kode_operator'] ?? ''));
+                        $kodeOpUpper = strtoupper($kodeOp);
+
+                        // TAHAP 0: Cek apakah kode produk ini diblokir pada tabel level (kolom blok_produk) untuk level aktif
+                        if ($kodeProdUpper !== '' && isset($blockedProductSet[$kodeProdUpper])) {
+                            return null;
+                        }
+
+                        // Ambil kode_level & nama operator dari hasil JOIN atau fallback ke $operatorMap
+                        $opKodeLevel = trim((string)($arr['op_kode_level'] ?? ''));
+                        if ($opKodeLevel === '' && isset($operatorMap[$kodeOpUpper])) {
+                            $opKodeLevel = $operatorMap[$kodeOpUpper]['kode_level'];
+                        }
+
+                        $namaOp = trim((string)($arr['nama_operator'] ?? ''));
+                        if ($namaOp === '' && isset($operatorMap[$kodeOpUpper])) {
+                            $namaOp = $operatorMap[$kodeOpUpper]['nama'];
+                        }
+
+                        $hasExplicitLevelPrice = array_key_exists($kodeProdUpper, $levelPriceMap);
+
+                        // TAHAP 1: Validasi visibilitas provider berdasarkan operator.kode_level
+                        // Contoh: AXIS memiliki kode_level 'A,B' -> tampil di A dan B, otomatis diblokir di C maupun Umum.
+                        // Produk yang secara eksplisit didaftarkan di tabel produk_level untuk level ini juga diizinkan tampil.
+                        if (!$hasExplicitLevelPrice && !$isLevelAllowed($opKodeLevel, $cleanLvlUpper, true)) {
+                            return null;
+                        }
+
+                        // TAHAP 2: Penentuan harga produk
+                        // Prioritas 1: Harga patokan dari produk_level untuk level ini (jika ada)
+                        // Prioritas 2: Harga jual standar dari tabel produk (harga_jual / harga_awal) + selisih_harga level
+                        $baseHarga = (float)($arr['harga_jual'] ?? $arr['harga_awal'] ?? 0);
+                        $finalHarga = $hasExplicitLevelPrice
+                            ? $levelPriceMap[$kodeProdUpper]
+                            : ($baseHarga + $levelSelisihHarga);
+
+                        $labelOp = $namaOp !== ''
+                            ? ($namaOp . ($kodeOp !== '' && strcasecmp($kodeOp, $namaOp) !== 0 ? ' (' . $kodeOp . ')' : ''))
+                            : $kodeOp;
+
                         return [
-                            'kode' => $arr['kode'],
-                            'nama' => $arr['nama'],
-                            'harga' => $arr['harga_level'] ?? $arr['harga_jual'] ?? $arr['harga_awal'] ?? 0,
-                            'operator' => $arr['kode_operator'],
-                            'status' => $arr['aktif'] ? 'Aktif' : 'Nonaktif',
-                            'catatan' => $arr['catatan'] ?? '',
-                            'gangguan' => $arr['gangguan'] ?? 0
+                            'kode'           => $kodeProdRaw,
+                            'nama'           => $arr['nama'],
+                            'harga'          => $finalHarga,
+                            'operator'       => $labelOp,
+                            'kode_operator'  => $kodeOp,
+                            'nama_operator'  => $namaOp,
+                            'status'         => $arr['aktif'] ? 'Aktif' : 'Nonaktif',
+                            'catatan'        => $arr['catatan'] ?? '',
+                            'gangguan'       => $arr['gangguan'] ?? 0,
                         ];
-                    })->toArray();
+                    })->filter()->values()->toArray();
+
+                    // 6. Urutkan berdasarkan harga final (setelah override produk_level diterapkan)
+                    if ($filter === 'terlaris' && !empty($popularRank)) {
+                        usort($mapped, function ($a, $b) use ($popularRank) {
+                            $ra = $popularRank[strtoupper($a['kode'])] ?? 9999;
+                            $rb = $popularRank[strtoupper($b['kode'])] ?? 9999;
+                            if ($ra !== $rb) return $ra <=> $rb;
+                            return $a['harga'] <=> $b['harga'];
+                        });
+                    } elseif ($filter === 'termurah') {
+                        usort($mapped, fn($a, $b) => $a['harga'] <=> $b['harga']);
+                    } else {
+                        // Default: Urutkan per provider lalu dari harga termurah ke termahal
+                        usort($mapped, function ($a, $b) {
+                            $cmpOp = strcasecmp($a['kode_operator'] ?? '', $b['kode_operator'] ?? '');
+                            if ($cmpOp !== 0) return $cmpOp;
+                            $cmpPrice = ($a['harga'] ?? 0) <=> ($b['harga'] ?? 0);
+                            if ($cmpPrice !== 0) return $cmpPrice;
+                            return strcasecmp($a['nama'] ?? '', $b['nama'] ?? '');
+                        });
+                    }
 
                     return ['ok' => true, 'result' => $mapped];
 
                 case 'GetLevels':
                     try {
-                        // Ambil daftar level dari tabel level (jika ada) atau distinct dari produk_level / reseller
-                        $levels = [];
+                        $allLevels = collect();
                         if ($db->getSchemaBuilder()->hasTable('level')) {
-                            $levels = $db->table('level')->select('kode', 'nama')->orderBy('kode')->get()->map(fn($r) => (array)$r)->toArray();
-                        } else {
-                            $distLevels = $db->table('produk_level')->distinct()->pluck('kode_level')->filter()->values();
-                            if ($distLevels->isEmpty()) {
-                                $distLevels = $db->table('reseller')->distinct()->pluck('kode_level')->filter()->values();
+                            $tblLevels = $db->table('level')->select('kode', 'nama')->orderBy('kode')->get();
+                            foreach ($tblLevels as $tl) {
+                                $c = strtoupper(trim((string)($tl->kode ?? '')));
+                                if ($c !== '') {
+                                    $rawNama = trim((string)($tl->nama ?? ''));
+                                    $allLevels->put($c, [
+                                        'kode' => $c,
+                                        'nama' => $rawNama !== '' ? $rawNama : ('Level ' . $c)
+                                    ]);
+                                }
                             }
-                            $levels = $distLevels->map(fn($lvl) => ['kode' => $lvl, 'nama' => 'Level ' . strtoupper($lvl)])->toArray();
                         }
+
+                        // Ambil juga distinct level dari operator, produk_level, dan reseller
+                        $scanSources = [
+                            ['table' => 'operator', 'col' => 'kode_level'],
+                            ['table' => 'produk_level', 'col' => 'kode_level'],
+                            ['table' => 'reseller', 'col' => 'kode_level'],
+                        ];
+
+                        foreach ($scanSources as $src) {
+                            try {
+                                if ($db->getSchemaBuilder()->hasTable($src['table'])) {
+                                    $rawList = $db->table($src['table'])
+                                        ->whereNotNull($src['col'])
+                                        ->where($src['col'], '!=', '')
+                                        ->distinct()
+                                        ->pluck($src['col']);
+
+                                    foreach ($rawList as $rawStr) {
+                                        $tokens = preg_split('/[\s,;\/|]+/', strtoupper(trim((string)$rawStr)), -1, PREG_SPLIT_NO_EMPTY);
+                                        foreach ($tokens as $t) {
+                                            $clean = trim(preg_replace('/^(LEVEL|LVL)[\s\-_]*/i', '', $t));
+                                            $code = $clean !== '' ? $clean : $t;
+                                            if ($code !== '' && !$allLevels->has($code)) {
+                                                $allLevels->put($code, [
+                                                    'kode' => $code,
+                                                    'nama' => 'Level ' . $code
+                                                ]);
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (\Exception $ex) {}
+                        }
+
+                        $levels = $allLevels->sortBy('kode')->values()->toArray();
                         return ['ok' => true, 'result' => $levels];
                     } catch (\Exception $e) {
                         return ['ok' => true, 'result' => []];
@@ -490,47 +710,13 @@ class OtomaXService
                     return ['ok' => false, 'desc' => 'Tiket tidak ditemukan.'];
 
                 case 'TambahSaldo':
-                    $kode_rs = $data['kode_reseller'] ?? '';
-                    $jumlah = $data['jumlah'] ?? 0;
-
-                    $db->table('reseller')->where('kode', $kode_rs)->increment('saldo', $jumlah);
-                    
-                    return ['ok' => true, 'result' => true];
-
                 case 'TambahPoin':
-                    $kode_rs = $data['kode_reseller'] ?? '';
-                    $jumlah = $data['jumlah'] ?? 0;
-
-                    $db->table('reseller')->where('kode', $kode_rs)->increment('poin', $jumlah);
-                    
-                    return ['ok' => true, 'result' => true];
-
                 case 'InsertReseller':
-                    $name = $data['name'] ?? '';
-                    $pengirim = $data['pengirim'] ?? '';
-                    $pin = $data['pin'] ?? '1234';
-
-                    $kode_new = strtolower(str_replace(' ', '', $name));
-                    
-                    $db->table('reseller')->insert([
-                        'kode' => $kode_new,
-                        'nama' => $name,
-                        'pin' => $pin,
-                        'aktif' => 1,
-                        'saldo' => 0,
-                        'poin' => 0,
-                        'komisi' => 0,
-                        'tgl_daftar' => now(),
-                        'kode_level' => 'O'
-                    ]);
-
+                    // Aksi simulasi (quickAction) DILARANG KERAS pada database produksi SQL Server OtomaX!
+                    \Illuminate\Support\Facades\Log::warning("SECURITY: Blocked direct database mutation [{$endpoint}] in production mode.");
                     return [
-                        'ok' => true,
-                        'result' => [
-                            'kode_reseller' => $kode_new,
-                            'name' => $name,
-                            'pengirim' => $pengirim
-                        ]
+                        'ok'   => false,
+                        'desc' => 'Fitur simulasi ini dinonaktifkan pada mode produksi demi keamanan saldo.'
                     ];
 
                 case 'InsertResellerFull':
@@ -861,11 +1047,11 @@ class OtomaXService
                     ];
 
                 case 'GetAdminResellerProfit':
-                    $tgl_awal = !empty($data['tgl_awal']) ? $data['tgl_awal'] : now()->startOfMonth()->format('Y-m-d');
-                    $tgl_akhir = !empty($data['tgl_akhir']) ? $data['tgl_akhir'] : now()->format('Y-m-d');
-                    $kode_reseller = trim($data['kode_reseller'] ?? '');
+                    $tgl_awal = $this->sanitizeDate((string)($data['tgl_awal'] ?? ''), now()->startOfMonth()->format('Y-m-d'));
+                    $tgl_akhir = $this->sanitizeDate((string)($data['tgl_akhir'] ?? ''), now()->format('Y-m-d'));
+                    $kode_reseller = trim((string)($data['kode_reseller'] ?? ''));
                     $profit_filter = $data['profit_filter'] ?? 'all';
-                    $search = trim($data['search'] ?? '');
+                    $search = trim((string)($data['search'] ?? ''));
 
                     $query = $db->table('transaksi')
                         ->join('reseller', 'transaksi.kode_reseller', '=', 'reseller.kode')
@@ -887,18 +1073,20 @@ class OtomaXService
                         ->where('transaksi.tgl_entri', '<=', $tgl_akhir . ' 23:59:59');
 
                     if (!empty($kode_reseller)) {
-                        $query->where(function($q) use ($kode_reseller) {
+                        $escapedKode = $this->escapeSqlLike($kode_reseller);
+                        $query->where(function($q) use ($kode_reseller, $escapedKode) {
                             $q->where('reseller.kode', $kode_reseller)
                               ->orWhere('reseller.nama', $kode_reseller)
-                              ->orWhere('reseller.kode', 'like', "%{$kode_reseller}%")
-                              ->orWhere('reseller.nama', 'like', "%{$kode_reseller}%");
+                              ->orWhere('reseller.kode', 'like', "%{$escapedKode}%")
+                              ->orWhere('reseller.nama', 'like', "%{$escapedKode}%");
                         });
                     }
 
                     if (!empty($search)) {
-                        $query->where(function($q) use ($search) {
-                            $q->where('reseller.kode', 'like', "%{$search}%")
-                              ->orWhere('reseller.nama', 'like', "%{$search}%");
+                        $escapedSearch = $this->escapeSqlLike($search);
+                        $query->where(function($q) use ($escapedSearch) {
+                            $q->where('reseller.kode', 'like', "%{$escapedSearch}%")
+                              ->orWhere('reseller.nama', 'like', "%{$escapedSearch}%");
                         });
                     }
 
@@ -977,9 +1165,9 @@ class OtomaXService
                     ];
 
                 case 'GetAdminResellerDetail':
-                    $kode = $data['kode_reseller'] ?? '';
-                    $tgl_awal = !empty($data['tgl_awal']) ? $data['tgl_awal'] : now()->startOfMonth()->format('Y-m-d');
-                    $tgl_akhir = !empty($data['tgl_akhir']) ? $data['tgl_akhir'] : now()->format('Y-m-d');
+                    $kode = trim((string)($data['kode_reseller'] ?? ''));
+                    $tgl_awal = $this->sanitizeDate((string)($data['tgl_awal'] ?? ''), now()->startOfMonth()->format('Y-m-d'));
+                    $tgl_akhir = $this->sanitizeDate((string)($data['tgl_akhir'] ?? ''), now()->format('Y-m-d'));
 
                     $reseller = $db->table('reseller')->where('kode', $kode)->first();
                     if (!$reseller) {
@@ -1097,13 +1285,14 @@ class OtomaXService
                     $query = $db->table('reseller');
 
                     if (!empty($search)) {
-                        $query->where(function($q) use ($search) {
-                            $q->where('reseller.kode', 'like', "%{$search}%")
-                              ->orWhere('reseller.nama', 'like', "%{$search}%");
+                        $escapedSearch = $this->escapeSqlLike($search);
+                        $query->where(function($q) use ($escapedSearch) {
+                            $q->where('reseller.kode', 'like', "%{$escapedSearch}%")
+                              ->orWhere('reseller.nama', 'like', "%{$escapedSearch}%");
                             // Tambahkan search pada kolom nomor_hp jika ada
                             try {
-                                $q->orWhere('reseller.nomor_hp', 'like', "%{$search}%")
-                                  ->orWhere('reseller.alamat', 'like', "%{$search}%");
+                                $q->orWhere('reseller.nomor_hp', 'like', "%{$escapedSearch}%")
+                                  ->orWhere('reseller.alamat', 'like', "%{$escapedSearch}%");
                             } catch (\Throwable $e) {}
                         });
                     }

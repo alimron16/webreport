@@ -14,9 +14,11 @@ Route::post('/license/activate',  [LicenseController::class, 'activate'])->name(
 Route::get('/',                    [WebreportController::class, 'landing'])->name('webreport.landing');
 
 // ── Public Pages & Registration ──────────────────────────────
-Route::get('/daftar-harga',        [WebreportController::class, 'publicPrices'])->name('webreport.public-prices');
-Route::get('/harga/{token}',       [WebreportController::class, 'publicPricesToken'])->name('webreport.public-prices-token');
-Route::get('/register',            [RegistrationController::class, 'show'])->name('webreport.register');
+Route::get('/daftar-harga',             [WebreportController::class, 'publicPrices'])->name('webreport.public-prices');
+Route::get('/daftar-harga/json',        [WebreportController::class, 'publicPricesJson'])->name('webreport.public-prices-json');
+Route::get('/harga/{token}',            [WebreportController::class, 'publicPricesToken'])->name('webreport.public-prices-token');
+Route::get('/harga/{token}/json',       [WebreportController::class, 'publicPricesTokenJson'])->name('webreport.public-prices-token-json');
+Route::get('/register',                 [RegistrationController::class, 'show'])->name('webreport.register');
 Route::post('/register',           [RegistrationController::class, 'store'])->name('webreport.register.post');
 Route::post('/register/send-otp',  [RegistrationController::class, 'sendOtp'])->name('webreport.register.send-otp');
 Route::get('/register/template',   [RegistrationController::class, 'downloadTemplate'])->name('webreport.register.template');
