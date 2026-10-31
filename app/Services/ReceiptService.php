@@ -10,6 +10,75 @@ use Carbon\Carbon;
 class ReceiptService
 {
     /**
+     * Ambil URL Domain Samaran Struk (contoh: https://cetaklawdiaoja.id) jika dikonfigurasi oleh Admin.
+     */
+    public function getCustomDomain(): string
+    {
+        $raw = trim((string) Setting::get('receipt_custom_domain', ''));
+        if ($raw === '') {
+            return '';
+        }
+        if (!preg_match('#^https?://#i', $raw)) {
+            $raw = 'https://' . $raw;
+        }
+        $parsed = parse_url($raw);
+        if (empty($parsed['host'])) {
+            return '';
+        }
+        $scheme = strtolower($parsed['scheme'] ?? 'https');
+        $host = strtolower($parsed['host']);
+        $port = isset($parsed['port']) ? (':' . $parsed['port']) : '';
+        return $scheme . '://' . $host . $port;
+    }
+
+    /**
+     * Ambil hostname murni dari Domain Samaran Struk (contoh: cetaklawdiaoja.id).
+     */
+    public function getCustomDomainHost(): string
+    {
+        $domain = $this->getCustomDomain();
+        if ($domain === '') {
+            return '';
+        }
+        return strtolower((string) (parse_url($domain, PHP_URL_HOST) ?? ''));
+    }
+
+    /**
+     * Apakah Stealth Mode aktif pada Domain Samaran Struk (menyembunyikan halaman utama Webreport).
+     */
+    public function isStealthModeEnabled(): bool
+    {
+        return Setting::get('receipt_stealth_mode', '1') !== '0';
+    }
+
+    /**
+     * Cek apakah HTTP request saat ini diakses melalui Domain Samaran Struk.
+     */
+    public function isCurrentRequestOnCustomDomain(?\Illuminate\Http\Request $request = null): bool
+    {
+        $customHost = $this->getCustomDomainHost();
+        if ($customHost === '' || in_array($customHost, ['localhost', '127.0.0.1', '::1'], true)) {
+            return false;
+        }
+        $req = $request ?: request();
+        $currentHost = strtolower((string) $req->getHost());
+        return $currentHost !== '' && $currentHost === $customHost;
+    }
+
+    /**
+     * Hasilkan URL lengkap Cetak Struk (otomatis memakai Domain Samaran jika diatur).
+     */
+    public function getReceiptUrl($trxid): string
+    {
+        $cleanId = urlencode(trim((string) $trxid));
+        $customDomain = $this->getCustomDomain();
+        if ($customDomain !== '') {
+            return rtrim($customDomain, '/') . '/struk/' . $cleanId;
+        }
+        return route('webreport.struk', $trxid);
+    }
+
+    /**
      * Get predefined built-in receipt templates and rules
      */
     public function getDefaultRules(): array

@@ -2690,7 +2690,7 @@ Tidak ada log tersedia.
                 </div>
             </div>
 
-            <!-- Card Pengaturan Umum Header & Footer Struk (FULL WIDTH) -->
+            <!-- Card Pengaturan Umum, Header/Footer & Domain Samaran Struk (FULL WIDTH) -->
             <div class="stg-card">
                 <div class="stg-card-hdr">
                     <div class="stg-card-hdr-left">
@@ -2698,10 +2698,15 @@ Tidak ada log tersedia.
                             <i class="bx bx-slider fs-5"></i>
                         </div>
                         <div>
-                            <div class="stg-card-title">Pengaturan Umum Struk</div>
-                            <div class="stg-card-sub">Nama brand outlet dan catatan standar pada struk</div>
+                            <div class="stg-card-title">Pengaturan Umum & Domain Samaran Link Struk (White-Label)</div>
+                            <div class="stg-card-sub">Atur header/footer struk serta domain netral samaran untuk menyembunyikan nama domain utama saat berbagi link struk</div>
                         </div>
                     </div>
+                    @if(!empty($receiptCustomDomain ?? ''))
+                        <span class="stg-badge ok">
+                            <i class="bx bx-shield-quarter me-1"></i>Domain Samaran Aktif
+                        </span>
+                    @endif
                 </div>
 
                 <div class="stg-card-body p-3 p-md-4">
@@ -2716,10 +2721,53 @@ Tidak ada log tersedia.
                                 <label class="stg-field-lbl">Catatan Footer Standar</label>
                                 <input type="text" name="receipt_footer_info" class="form-control" value="{{ $receiptFooterInfo }}" placeholder="Contoh: Simpan struk ini sebagai bukti pembayaran sah.">
                             </div>
+
+                            <div class="col-12 mt-3 pt-3 border-top">
+                                <div class="stg-label mb-2">Domain Samaran Cetak Struk (White-Label / Netral Domain)</div>
+                                <div class="row g-3 align-items-start">
+                                    <div class="col-12 col-md-7">
+                                        <label class="stg-field-lbl">
+                                            <i class="bx bx-globe text-primary"></i>
+                                            Domain Samaran Link Struk <span class="text-muted fw-normal">(Opsional)</span>
+                                        </label>
+                                        <input type="text" name="receipt_custom_domain" class="form-control font-monospace" value="{{ $receiptCustomDomain ?? '' }}" placeholder="Contoh: https://cetaklawdiaoja.id (Kosongkan jika memakai domain utama)">
+                                        <div class="stg-hint">
+                                            Jika diisi, semua tombol <strong>Struk</strong> & <strong>Salin Link</strong> akan menggunakan domain ini (contoh: <code>https://cetaklawdiaoja.id/struk/12345</code>) sehingga nama domain utama server Anda tidak terlihat oleh pelanggan akhir.
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-5">
+                                        <label class="stg-field-lbl">
+                                            <i class="bx bx-hide text-primary"></i>
+                                            Mode Samaran Penuh (Stealth Mode)
+                                        </label>
+                                        <div class="p-3 rounded border bg-light">
+                                            <div class="form-check form-switch mb-1">
+                                                <input type="hidden" name="receipt_stealth_mode" value="0">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="receipt_stealth_mode" name="receipt_stealth_mode" value="1" {{ ($receiptStealthMode ?? true) ? 'checked' : '' }}>
+                                                <label class="form-check-label fw-semibold text-dark small" for="receipt_stealth_mode">
+                                                    Kunci Halaman Utama pada Domain Samaran
+                                                </label>
+                                            </div>
+                                            <div class="text-muted" style="font-size: 11.5px; line-height: 1.45;">
+                                                Jika seseorang membuka domain samaran tanpa <code>/struk/...</code>, sistem otomatis menyembunyikan halaman utama/login Webreport dan hanya menampilkan halaman netral pencarian struk.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 p-3 rounded border" style="background: #f8fafc; font-size: 12px; color: #334155;">
+                                    <div class="fw-bold text-dark mb-1"><i class="bx bx-info-circle text-primary me-1"></i>Cara Menghubungkan Domain Samaran di Cloudflare Tunnel (Tanpa Install Ulang di Windows):</div>
+                                    <ol class="mb-0 ps-3" style="line-height: 1.6;">
+                                        <li>Buka dashboard <strong>Cloudflare Zero Trust</strong> &rarr; <strong>Networks</strong> &rarr; <strong>Tunnels</strong>, lalu pilih tunnel Windows Webreport Anda yang sedang berjalan.</li>
+                                        <li>Buka tab <strong>Public Hostname</strong> &rarr; klik <strong>Add a public hostname</strong>.</li>
+                                        <li>Isi domain samaran Anda (misal <code>cetaklawdiaoja.id</code>), pilih Service Type <code>HTTP</code>, dan isi URL <code>localhost:8000</code> (samakan persis dengan port lokal Webreport Anda), lalu klik <strong>Save</strong>.</li>
+                                    </ol>
+                                </div>
+                            </div>
                         </div>
                         <div class="text-end mt-3">
                             <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="bx bx-save me-1"></i>Simpan Pengaturan Umum
+                                <i class="bx bx-save me-1"></i>Simpan Pengaturan Umum & Domain Samaran
                             </button>
                         </div>
                     </form>

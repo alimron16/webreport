@@ -395,6 +395,9 @@
             <button type="button" class="btn btn-success btn-sm" onclick="downloadReceiptImage()">
                 <i class="bx bx-download me-1"></i>Simpan Gambar
             </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyReceiptLink()" title="Salin Link Struk (Siap Bagikan)">
+                <i class="bx bx-link-alt me-1"></i>Salin Link
+            </button>
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyWhatsappText()" title="Salin Teks Struk">
                 <i class="bx bx-copy me-1"></i>Salin Teks WA
             </button>
@@ -868,6 +871,22 @@
         const baseNominal = {{ (float)($receipt['category'] === 'PASCA BAYAR' ? $receipt['tagihan_pasca'] : ($receipt['category'] === 'BANK' ? $receipt['amount'] : $receipt['stroom_token'])) }};
         const dendaVal = {{ (float)($receipt['denda'] ?? 0) }};
         const category = "{{ $receipt['category'] }}";
+        const baseShareUrl = @json(app(\App\Services\ReceiptService::class)->getReceiptUrl($receipt['trxid']));
+
+        function copyReceiptLink() {
+            const adminInput = document.getElementById('inputAdminFee');
+            const defaultAdmin = {{ (int)($receipt['admin_fee'] ?? 0) }};
+            const currentAdmin = adminInput ? (parseInt(adminInput.value, 10) || 0) : defaultAdmin;
+            let finalUrl = baseShareUrl;
+            if (currentAdmin !== defaultAdmin && currentAdmin >= 0) {
+                finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'admin=' + currentAdmin;
+            }
+            navigator.clipboard.writeText(finalUrl).then(() => {
+                alert('Link struk berhasil disalin:\n' + finalUrl);
+            }).catch(() => {
+                prompt('Salin link struk di bawah ini:', finalUrl);
+            });
+        }
 
         function updateAdminFee(newAdminVal) {
             const admin = parseFloat(newAdminVal) || 0;

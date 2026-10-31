@@ -169,7 +169,7 @@
                             </td>
                             <td class="text-center text-nowrap">
                                 @if(app(\App\Services\ReceiptService::class)->isPrintable($trx))
-                                <a href="{{ route('webreport.struk', $trx['trxid'] ?? ($trx['kode'] ?? 0)) }}" target="_blank" class="btn btn-sm btn-outline-primary py-1 px-2" title="Cetak Struk Resmi">
+                                <a href="{{ app(\App\Services\ReceiptService::class)->getReceiptUrl($trx['trxid'] ?? ($trx['kode'] ?? 0)) }}" target="_blank" class="btn btn-sm btn-outline-primary py-1 px-2" title="Cetak Struk Resmi">
                                     <i class="bx bx-printer me-1"></i>Struk
                                 </a>
                                 @else

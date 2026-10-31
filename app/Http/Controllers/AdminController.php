@@ -824,11 +824,13 @@ class AdminController extends Controller
         $receiptRules = $receiptService->getRules();
         $receiptStoreTitle = \App\Models\Setting::get('receipt_store_title', 'PAYMENT POINT ONLINE BANKING');
         $receiptFooterInfo = \App\Models\Setting::get('receipt_footer_info', '');
+        $receiptCustomDomain = \App\Models\Setting::get('receipt_custom_domain', '');
+        $receiptStealthMode = \App\Models\Setting::get('receipt_stealth_mode', '1') !== '0';
 
         return view('admin.settings', compact(
             'mailConfig', 'logs', 'levels', 'currentAdminUsername', 'adminCredSource', 
             'otomaxDbConfig', 'recaptchaEnabled', 'recaptchaSiteKey', 'recaptchaSecret', 
-            'receiptRules', 'receiptStoreTitle', 'receiptFooterInfo'
+            'receiptRules', 'receiptStoreTitle', 'receiptFooterInfo', 'receiptCustomDomain', 'receiptStealthMode'
         ));
     }
 
@@ -837,10 +839,33 @@ class AdminController extends Controller
     {
         if ($r = $this->guardAdmin()) return $r;
 
+        $rawCustomDomain = trim((string) $request->input('receipt_custom_domain', ''));
+        $cleanDomain = '';
+        if ($rawCustomDomain !== '') {
+            if (!preg_match('#^https?://#i', $rawCustomDomain)) {
+                $rawCustomDomain = 'https://' . $rawCustomDomain;
+            }
+            $parsed = parse_url($rawCustomDomain);
+            if (empty($parsed['host'])) {
+                return back()->withErrors(['target' => 'Format Domain Samaran Struk tidak valid (contoh yang benar: https://cetaklawdiaoja.id).'])->withInput();
+            }
+            $host = strtolower($parsed['host']);
+            if ($host === strtolower((string) $request->getHost())) {
+                return back()->withErrors(['target' => 'Domain Samaran Struk tidak boleh sama dengan domain utama Webreport yang sedang Anda gunakan. Gunakan domain berbeda.'])->withInput();
+            }
+            $scheme = strtolower($parsed['scheme'] ?? 'https');
+            $port = isset($parsed['port']) ? (':' . $parsed['port']) : '';
+            $cleanDomain = $scheme . '://' . $host . $port;
+        }
+
+        $stealthMode = $request->input('receipt_stealth_mode', '0') === '1' ? '1' : '0';
+
         \App\Models\Setting::set('receipt_store_title', trim($request->input('receipt_store_title', 'PAYMENT POINT ONLINE BANKING')));
         \App\Models\Setting::set('receipt_footer_info', trim($request->input('receipt_footer_info', '')));
+        \App\Models\Setting::set('receipt_custom_domain', $cleanDomain);
+        \App\Models\Setting::set('receipt_stealth_mode', $stealthMode);
         
-        return back()->with('receipt_success', 'Pengaturan umum struk berhasil disimpan.');
+        return back()->with('receipt_success', 'Pengaturan umum & domain samaran struk berhasil disimpan.');
     }
 
     public function storeReceiptRule(Request $request)
