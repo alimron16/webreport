@@ -88,7 +88,7 @@ class ReceiptService
                 'id'            => 'rule_pln_pra',
                 'name'          => 'PLN Prabayar (Token Listrik)',
                 'category'      => 'PRABAYAR',
-                'provider'      => 'PLN',
+                'provider'      => '',
                 'keywords'      => 'PLN, TPLN, DPLN, TOKEN, STROOM, PLNTOKEN',
                 'logo_url'      => '/images/receipt/pln.svg',
                 'bank_name'     => 'PLN PAYMENT POINT',
@@ -102,7 +102,7 @@ class ReceiptService
                 'id'            => 'rule_pln_pasca',
                 'name'          => 'PLN Pascabayar (Tagihan Listrik)',
                 'category'      => 'PASCA BAYAR',
-                'provider'      => 'PLNPASCA',
+                'provider'      => '',
                 'keywords'      => 'PLNPASCA, TAGPLN, BYRPLN, PASCAPLN, PLNPOST',
                 'logo_url'      => '/images/receipt/pln.svg',
                 'bank_name'     => 'PLN PAYMENT POINT',
@@ -117,7 +117,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank BCA',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK CENTRAL ASIA',
-                'provider'      => 'BCA',
+                'provider'      => '',
                 'keywords'      => 'BCA, TFBCA, IBCA, BCATF, TRANSFER_BCA',
                 'logo_url'      => '/images/gateways/bca.png',
                 'default_admin' => 2500,
@@ -131,7 +131,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank BRI',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK RAKYAT INDONESIA',
-                'provider'      => 'BRI',
+                'provider'      => '',
                 'keywords'      => 'BRI, TFBRI, IBRI, BRITF, TRANSFER_BRI',
                 'logo_url'      => '/images/gateways/bri.png',
                 'default_admin' => 2500,
@@ -145,7 +145,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank BNI',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK NEGARA INDONESIA',
-                'provider'      => 'BNI',
+                'provider'      => '',
                 'keywords'      => 'BNI, TFBNI, IBNI, BNITF, TRANSFER_BNI',
                 'logo_url'      => '/images/gateways/bni.png',
                 'default_admin' => 2500,
@@ -159,7 +159,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank Mandiri',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK MANDIRI',
-                'provider'      => 'MANDIRI',
+                'provider'      => '',
                 'keywords'      => 'MANDIRI, TFMANDIRI, IMANDIRI, TRANSFER_MANDIRI',
                 'logo_url'      => '/images/gateways/mandiri.png',
                 'default_admin' => 2500,
@@ -173,7 +173,7 @@ class ReceiptService
                 'name'          => 'Transfer Bank Syariah Indonesia (BSI)',
                 'category'      => 'BANK',
                 'bank_name'     => 'BANK SYARIAH INDONESIA',
-                'provider'      => 'BSI',
+                'provider'      => '',
                 'keywords'      => 'BSI, TFBSI, IBSI, TRANSFER_BSI',
                 'logo_url'      => '/images/receipt/bsi.svg',
                 'default_admin' => 2500,
@@ -186,7 +186,7 @@ class ReceiptService
     }
 
     /**
-     * Enrich stored rules with default templates if missing
+     * Enrich stored rules with default templates if missing (tanpa menimpa provider/keywords whitelist admin)
      */
     public function enrichRulesWithDefaults(array $rules): array
     {
@@ -205,12 +205,6 @@ class ReceiptService
                 }
                 if (empty($rule['parser_mode']) && !empty($d['parser_mode'])) {
                     $rule['parser_mode'] = $d['parser_mode'];
-                }
-                if (empty($rule['provider']) && !empty($d['provider'])) {
-                    $rule['provider'] = $d['provider'];
-                }
-                if (empty($rule['keywords']) && !empty($d['keywords'])) {
-                    $rule['keywords'] = $d['keywords'];
                 }
             }
         }
@@ -252,19 +246,19 @@ class ReceiptService
      */
     public function getRules(): array
     {
-        $cached = Cache::get('receipt_rules');
-        if (is_array($cached) && !empty($cached)) {
-            return $this->enrichRulesWithDefaults($cached);
-        }
-
         $dbJson = Setting::get('receipt_rules', null);
-        if ($dbJson) {
+        if ($dbJson !== null) {
             $decoded = json_decode($dbJson, true);
-            if (is_array($decoded) && !empty($decoded)) {
+            if (is_array($decoded)) {
                 $enriched = $this->enrichRulesWithDefaults($decoded);
                 Cache::forever('receipt_rules', $enriched);
                 return $enriched;
             }
+        }
+
+        $cached = Cache::get('receipt_rules');
+        if (is_array($cached) && !empty($cached)) {
+            return $this->enrichRulesWithDefaults($cached);
         }
 
         $defaults = $this->getDefaultRules();
@@ -294,138 +288,92 @@ class ReceiptService
     }
 
     /**
-     * Find matching rule for a transaction (hanya mendukung 3 kategori: PRABAYAR, PASCA BAYAR, BANK)
+     * Find matching rule for a transaction (Strict Whitelist: hanya produk/operator yang terdaftar di aturan aktif)
      */
     public function findMatchingRule(array $trx): ?array
     {
         $rules = $this->getRules();
-        $code = strtoupper(trim($trx['kode_produk'] ?? ''));
-        $name = strtoupper(trim($trx['nama_produk'] ?? ($trx['nama'] ?? '')));
-        $op   = strtoupper(trim($trx['kode_operator'] ?? ''));
-        $sn   = strtoupper(trim($trx['sn'] ?? ''));
-        $ket  = strtoupper(trim($trx['keterangan'] ?? ''));
+        $code = strtoupper(trim((string)($trx['kode_produk'] ?? '')));
+        $name = strtoupper(trim((string)($trx['nama_produk'] ?? ($trx['nama'] ?? ''))));
+        $op   = strtoupper(trim((string)($trx['kode_operator'] ?? '')));
+        $ket  = strtoupper(trim((string)($trx['keterangan'] ?? '')));
+
+        if ($code === '' && $op === '') {
+            return null;
+        }
 
         $supportedCategories = ['PRABAYAR', 'PASCA BAYAR', 'BANK'];
 
-        // PASS 1: Prioritas Tertinggi — Pencocokan Kode Produk Spesifik (Keywords)
         $isBankInquiry = (
             str_starts_with($code, 'CEK') || str_contains($code, 'INQ') ||
             str_contains($name, 'CEK') || str_contains($name, 'INQUIRY') || str_contains($name, 'TAGIHAN') ||
             str_contains($ket, 'CEK REKENING') || str_contains($ket, 'INQUIRY')
         );
 
+        // PASS 1: Prioritas Tertinggi — Whitelist Ketat Kode Produk OtomaX (Exact Match)
         foreach ($rules as $r) {
-            $cat = strtoupper(trim($r['category'] ?? ''));
+            $cat = strtoupper(trim((string)($r['category'] ?? '')));
             if (!in_array($cat, $supportedCategories, true)) continue;
             if ($cat === 'BANK' && $isBankInquiry) continue; // Cek/Inquiry Bank bukan transaksi transfer
 
-            $rawKeywords = $r['keywords'] ?? '';
-            if (empty(trim($rawKeywords))) continue;
+            $rawKeywords = trim((string)($r['keywords'] ?? ''));
+            if ($rawKeywords === '') continue;
 
             $keywords = array_filter(array_map('trim', explode(',', strtoupper($rawKeywords))));
             foreach ($keywords as $kw) {
-                if (empty($kw)) continue;
+                if ($kw === '') continue;
 
                 if ($kw === '*' || $kw === 'ALL') {
                     return $r;
                 }
 
-                // Cocokkan persis atau awalan kode produk
-                if ($code === $kw || str_starts_with($code, $kw) || str_contains($code, $kw)) {
+                // Dukungan wildcard eksplisit jika admin menulis tanda * (misal: PLN*)
+                if (str_contains($kw, '*')) {
+                    if ($code !== '' && fnmatch($kw, $code)) {
+                        return $r;
+                    }
+                    continue;
+                }
+
+                // Pencocokan Whitelist Ketat: kode_produk harus SAMA PERSIS dengan kode di daftar aturan
+                if ($code !== '' && $code === $kw) {
                     return $r;
                 }
             }
         }
 
-        // PASS 2: Pencocokan Berdasarkan Provider / Operator
+        // PASS 2: Whitelist Berdasarkan Kode Provider / Operator OtomaX (Hanya jika kolom Provider diisi di aturan)
         foreach ($rules as $r) {
-            $cat = strtoupper(trim($r['category'] ?? ''));
+            $cat = strtoupper(trim((string)($r['category'] ?? '')));
             if (!in_array($cat, $supportedCategories, true)) continue;
             if ($cat === 'BANK' && $isBankInquiry) continue;
 
-            $rawProvider = trim($r['provider'] ?? '');
-            if (empty($rawProvider)) continue;
+            $rawProvider = trim((string)($r['provider'] ?? ''));
+            if ($rawProvider === '') continue;
 
             $providers = array_filter(array_map('trim', explode(',', strtoupper($rawProvider))));
             foreach ($providers as $prov) {
-                if (empty($prov)) continue;
+                if ($prov === '') continue;
 
-                // Cocokkan dengan kode_operator dari tabel produk
-                if (!empty($op) && ($op === $prov || str_contains($op, $prov))) {
+                if ($prov === '*' || $prov === 'ALL') {
                     return $r;
                 }
 
-                // Cocokkan dengan kode_produk
-                if (str_contains($code, $prov) || str_starts_with($code, $prov)) {
-                    return $r;
+                if (str_contains($prov, '*')) {
+                    if ($op !== '' && fnmatch($prov, $op)) {
+                        return $r;
+                    }
+                    continue;
                 }
 
-                // Cocokkan dengan nama produk
-                if (str_contains($name, $prov)) {
-                    return $r;
-                }
-            }
-        }
-
-        // PASS 3: Fallback ke kecocokan nama produk / keterangan dari keywords aturan
-        foreach ($rules as $r) {
-            $cat = strtoupper(trim($r['category'] ?? ''));
-            if (!in_array($cat, $supportedCategories, true)) continue;
-            if ($cat === 'BANK' && $isBankInquiry) continue;
-
-            $rawKeywords = $r['keywords'] ?? '';
-            if (empty(trim($rawKeywords))) continue;
-
-            $keywords = array_filter(array_map('trim', explode(',', strtoupper($rawKeywords))));
-            foreach ($keywords as $kw) {
-                if (empty($kw)) continue;
-                if (str_contains($name, $kw) || str_contains($ket, $kw)) {
+                // Pencocokan Ketat (Exact Match) dengan kode_operator dari tabel produk OtomaX
+                if ($op !== '' && $op === $prov) {
                     return $r;
                 }
             }
         }
 
-        // PASS 4: Fallback heuristic detection if not explicitly matched
-        // Token PLN detector (20 digits in SN)
-        if (preg_match('/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/', $sn)) {
-            return [
-                'id'            => 'rule_auto_pln_pra',
-                'name'          => 'PLN Prabayar',
-                'category'      => 'PRABAYAR',
-                'logo_url'      => '/images/receipt/pln.svg',
-                'bank_name'     => 'PLN PAYMENT POINT',
-                'default_admin' => 3000,
-                'footer_info'   => 'Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat',
-            ];
-        }
-
-        // PLN Post detector
-        if (str_contains($code, 'PLN') && (str_contains($code, 'PASCA') || str_contains($code, 'TAG') || str_contains($name, 'PASCA'))) {
-            return [
-                'id'            => 'rule_auto_pln_post',
-                'name'          => 'PLN Pascabayar',
-                'category'      => 'PASCA BAYAR',
-                'logo_url'      => '/images/receipt/pln.svg',
-                'bank_name'     => 'PLN PAYMENT POINT',
-                'default_admin' => 3750,
-                'footer_info'   => 'Informasi Hubungi: Call Center 123 • Mobile PLN • PLN Terdekat',
-            ];
-        }
-
-        // Bank detector (Hanya untuk transfer riil, bukan cek rekening)
-        if (!$isBankInquiry && (str_contains($code, 'TF') || str_contains($name, 'TRANSFER') || str_contains($code, 'BANK'))) {
-            return [
-                'id'            => 'rule_auto_bank',
-                'name'          => 'Transfer Bank',
-                'category'      => 'BANK',
-                'bank_name'     => 'BANK TRANSFER POINT',
-                'logo_url'      => '/images/gateways/bca.png',
-                'default_admin' => 2500,
-                'remark'        => 'Transfer Uang',
-            ];
-        }
-
-        // Produk di luar 3 kategori resmi (PRABAYAR, PASCA BAYAR, BANK) tidak memiliki struk
+        // Produk di luar daftar whitelist aturan struk TIDAK diizinkan mencetak struk
         return null;
     }
 

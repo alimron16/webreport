@@ -155,39 +155,55 @@ class OtomaXService
                     $tgl_akhir = $this->sanitizeDate((string)($data['tgl_akhir'] ?? ''));
                     $limit = min(max((int)($data['limit'] ?? 20), 1), 10000);
 
-                    // Select required columns for transactions page
+                    // Select required columns for transactions page (beserta kode_operator & nama_produk untuk validasi whitelist struk)
                     $query = $db->table('transaksi')
-                        ->select('kode', 'tgl_entri', 'tgl_status', 'kode_produk', 'tujuan', 'sn', 'harga', 'status', 'ref_id', 'keterangan', 'kode_reseller', 'saldo_awal')
-                        ->where('kode_reseller', $kode_rs);
+                        ->leftJoin('produk', 'transaksi.kode_produk', '=', 'produk.kode')
+                        ->select(
+                            'transaksi.kode',
+                            'transaksi.tgl_entri',
+                            'transaksi.tgl_status',
+                            'transaksi.kode_produk',
+                            'produk.nama as nama_produk',
+                            'produk.kode_operator',
+                            'transaksi.tujuan',
+                            'transaksi.sn',
+                            'transaksi.harga',
+                            'transaksi.status',
+                            'transaksi.ref_id',
+                            'transaksi.keterangan',
+                            'transaksi.kode_reseller',
+                            'transaksi.saldo_awal'
+                        )
+                        ->where('transaksi.kode_reseller', $kode_rs);
 
                     if (!empty($tgl_awal)) {
-                        $query->where('tgl_entri', '>=', $tgl_awal . ' 00:00:00');
+                        $query->where('transaksi.tgl_entri', '>=', $tgl_awal . ' 00:00:00');
                     }
                     if (!empty($tgl_akhir)) {
-                        $query->where('tgl_entri', '<=', $tgl_akhir . ' 23:59:59');
+                        $query->where('transaksi.tgl_entri', '<=', $tgl_akhir . ' 23:59:59');
                     }
 
                     if (!empty($data['tujuan'])) {
-                        $query->where('tujuan', 'like', '%' . $this->escapeSqlLike((string)$data['tujuan']) . '%');
+                        $query->where('transaksi.tujuan', 'like', '%' . $this->escapeSqlLike((string)$data['tujuan']) . '%');
                     }
                     if (!empty($data['produk'])) {
-                        $query->where('kode_produk', 'like', '%' . $this->escapeSqlLike((string)$data['produk']) . '%');
+                        $query->where('transaksi.kode_produk', 'like', '%' . $this->escapeSqlLike((string)$data['produk']) . '%');
                     }
                     if (!empty($data['ref_id'])) {
-                        $query->where('ref_id', 'like', '%' . $this->escapeSqlLike((string)$data['ref_id']) . '%');
+                        $query->where('transaksi.ref_id', 'like', '%' . $this->escapeSqlLike((string)$data['ref_id']) . '%');
                     }
                     if (!empty($data['status'])) {
                         $statusVal = $data['status'];
                         if ($statusVal === 'Sukses') {
-                            $query->whereIn('status', [20, 3, 4]);
+                            $query->whereIn('transaksi.status', [20, 3, 4]);
                         } elseif ($statusVal === 'Proses') {
-                            $query->whereIn('status', [0, 1]);
+                            $query->whereIn('transaksi.status', [0, 1]);
                         } elseif ($statusVal === 'Gagal') {
-                            $query->whereNotIn('status', [0, 1, 20, 3, 4]);
+                            $query->whereNotIn('transaksi.status', [0, 1, 20, 3, 4]);
                         }
                     }
 
-                    $rows = $query->orderBy('tgl_entri', 'desc')->limit($limit)->get();
+                    $rows = $query->orderBy('transaksi.tgl_entri', 'desc')->limit($limit)->get();
 
                     $mapped = $rows->map(function ($r) {
                         $arr = (array)$r;
