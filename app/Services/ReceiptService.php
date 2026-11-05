@@ -730,6 +730,9 @@ class ReceiptService
         if (empty($jumlahKwh)) {
             if (preg_match('/(?:KWH|JML\s*KWH|JUMLAH\s*KWH)\s*[:=]\s*([\d\.,]+)/i', $sn, $mKwh)) {
                 $jumlahKwh = trim($mKwh[1]);
+            } elseif (preg_match('/\d\s*VA\s*\/\s*(\d+(?:[\.,]\d+)?)/i', $sn, $mKwh)) {
+                // Format supplier: .../R1/450VA/109,6 atau .../R1/1300 VA/32.2
+                $jumlahKwh = trim($mKwh[1]);
             } elseif (preg_match('/\/(\d+(?:[\.,]\d+)?)\s*(?:PLNREF|KWH|\/)/i', $sn, $mKwh)) {
                 $jumlahKwh = trim($mKwh[1]);
             }
@@ -928,8 +931,13 @@ class ReceiptService
                 if (str_starts_with($rawTag, 'var')) {
                     $regex .= $isLast ? '(?:.+?)' : '(?:.+?)';
                 } else {
-                    // Toleran terhadap karakter trailing setelah token terakhir (misal sisa saldo, spasi, dsb)
-                    $regex .= $isLast ? '(?P<' . $rawTag . '>[^\/\r\n,;]+)' : '(?P<' . $rawTag . '>.+?)';
+                    if ($isLast && $rawTag === 'kwh') {
+                        // kWh di ujung SN: angka desimal apa adanya, pemisah koma (109,6) maupun titik (32.2)
+                        $regex .= '(?P<kwh>\d+(?:[.,]\d+)?)';
+                    } else {
+                        // Toleran terhadap karakter trailing setelah token terakhir (misal sisa saldo, spasi, dsb)
+                        $regex .= $isLast ? '(?P<' . $rawTag . '>[^\/\r\n,;]+)' : '(?P<' . $rawTag . '>.+?)';
+                    }
                 }
             } else {
                 $quoted = preg_quote($part, '/');

@@ -3162,12 +3162,19 @@ Tidak ada log tersedia.
         if (!template || !template.trim()) return '';
         const parts = template.split(/(\[[a-zA-Z0-9_]+\])/g);
         let regex = '';
+        const nonEmptyParts = parts.filter(p => p);
+        const lastPart = nonEmptyParts[nonEmptyParts.length - 1];
         parts.forEach(part => {
             if (!part) return;
             if (part.startsWith('[') && part.endsWith(']')) {
                 const rawTag = part.slice(1, -1).toLowerCase();
+                const isLast = (part === lastPart);
                 if (rawTag.startsWith('var')) {
                     regex += '(?:.+?)';
+                } else if (isLast && rawTag === 'kwh') {
+                    regex += '(?<kwh>\\d+(?:[.,]\\d+)?)';
+                } else if (isLast) {
+                    regex += '(?<' + rawTag + '>[^\\/\\r\\n,;]+)';
                 } else {
                     regex += '(?<' + rawTag + '>.+?)';
                 }
